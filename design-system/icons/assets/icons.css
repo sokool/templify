@@ -1,0 +1,2 @@
+/* Intrinsic SVG presentation only. Contexts own colour and sizing overrides. */
+.ui-icon{width:20px;height:20px;display:inline-block;vertical-align:middle;flex-shrink:0}

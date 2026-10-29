@@ -1,0 +1,9 @@
+/* Host-only toolbar, sample content and dialogs. Never shipped with components. */
+.example-page[data-example=kanban]{max-width:none}
+.example-card-samples{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:18px;max-width:940px;margin-block:24px}
+.example-kanban-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.example-kanban-add{display:grid;place-items:center;flex:none;width:44px;height:44px;padding:0;border:0;border-radius:12px;background:var(--ds-colour-accent);color:var(--ds-colour-on-accent);cursor:pointer}
+.example-kanban-search{position:relative;min-width:0;flex:1;max-width:640px;z-index:30}
+.example-kanban-results{display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:12px;background:var(--ds-colour-selection);color:var(--ds-colour-text);font-size:12px}
+.example-kanban-dialog{width:min(460px,calc(100vw - 32px));box-sizing:border-box;border:1px solid var(--ds-colour-border);border-radius:14px;padding:20px;background:var(--ds-colour-panel);color:var(--ds-colour-text);font:14px/1.5 var(--ds-font-family)}
+.example-kanban-dialog::backdrop{background:#0006}.example-kanban-dialog form{display:grid;gap:12px}.example-kanban-dialog input,.example-kanban-dialog textarea{min-width:0;padding:10px;border:1px solid var(--ds-colour-border);border-radius:8px;background:var(--ds-colour-panel);color:var(--ds-colour-text);font:inherit}

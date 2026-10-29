@@ -1,0 +1,20 @@
+/* Catalogue presentation only. SVG assets have no search, tiles or slider styles. */
+.example-icon-tools{display:flex;align-items:center;flex-wrap:wrap;gap:18px;margin:24px 0}
+.example-icon-search{display:flex;flex-direction:column;gap:6px;min-width:0;width:min(340px,100%);color:var(--ds-colour-muted);font-size:12px}
+.example-icon-search input{width:100%;padding:10px 12px;border:1px solid var(--ds-colour-border);border-radius:10px;background:var(--ds-colour-panel);color:var(--ds-colour-text);font:inherit;font-size:14px}
+.example-icon-search input:focus-visible{outline:0;border-color:var(--ds-colour-accent)}
+.example-icon-size{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ds-colour-muted)}
+.example-icon-size input{width:130px;accent-color:var(--ds-colour-accent)}
+.example-icon-size output{min-width:40px;color:var(--ds-colour-text)}
+.example-icon-count,.example-icon-status{font-size:12px;color:var(--ds-colour-muted)}
+.example-icon-catalogue .icon-category{margin-top:22px}
+.example-icon-catalogue .icon-category h3{font-size:14px;margin:0 0 10px}
+.example-icon-catalogue .icon-grid{display:grid;grid-template-columns:repeat(auto-fill,var(--catalog-tile-size,44px));gap:6px}
+.example-icon-catalogue .icon-tile{position:relative;display:flex;align-items:center;justify-content:center;width:var(--catalog-tile-size,44px);height:var(--catalog-tile-size,44px);padding:0;border:1px solid var(--ds-colour-border);border-radius:9px;background:var(--ds-colour-panel);color:var(--ds-colour-text);cursor:pointer}
+.example-icon-catalogue .icon-tile .ui-icon{width:var(--catalog-icon-size,20px);height:var(--catalog-icon-size,20px)}
+.example-icon-catalogue .icon-tile:hover,.example-icon-catalogue .icon-tile:focus-visible{border-color:var(--ds-colour-accent);color:var(--ds-colour-accent);outline:none;z-index:6}
+.example-glyphs{margin-top:30px;border-top:1px solid var(--ds-colour-border);padding-top:20px}
+.example-glyphs>div{display:flex;flex-wrap:wrap;gap:10px}
+.example-glyphs kbd{padding:3px 7px;border:1px solid var(--ds-colour-border);border-bottom-width:2px;border-radius:5px;background:var(--ds-colour-soft);font:12px/1.6 var(--ds-font-family)}
+
+.example-icon-catalogue .icon-category-count{display:inline-block;margin-left:10px;color:var(--ds-colour-muted);font-size:11px;font-weight:400}

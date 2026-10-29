@@ -1,0 +1,89 @@
+/* Shared foundation. Load once before component styles. No application selectors. */
+:root,[data-ds-theme=light] {
+  --ds-font-family:system-ui,sans-serif;
+  --ds-font-size-body:14px;
+  --ds-weight-regular:400;
+  --ds-weight-medium:600;
+  --ds-line-height:1.4;
+  --ds-space-1:4px;
+  --ds-space-2:8px;
+  --ds-space-3:12px;
+  --ds-space-4:16px;
+  --ds-space-6:24px;
+  --ds-motion-fast:120ms;
+  --ds-motion-normal:180ms;
+  --ds-focus-width:2px;
+  --ds-focus-offset:3px;
+  --ds-focus-radius:2px;
+  --ds-colour-text:#1B2D50;
+  --ds-colour-muted:#617086;
+  --ds-colour-accent:#22447F;
+  --ds-colour-panel:#FFFFFF;
+  --ds-colour-border:#8895A7;
+  --ds-colour-soft:#F3F6FA;
+  --ds-accent-1:#D8DEE8;--ds-accent-2:#E9CB86;--ds-accent-3:#91CEBA;
+  --ds-accent-4:#A1CDE0;--ds-accent-5:#B9AAD8;--ds-accent-6:#DEA4AF;
+  --ds-grey-400:#8895A7;--ds-grey-500:#647490;--ds-grey-700:#485568;--ds-grey-900:#303844;
+}
+
+/* Theme defaults mirrored from themes.js; the optional runtime applies user overrides. */
+:root,[data-ds-theme=light]{
+
+ --ds-colour-lane:#EAECF0;
+ --ds-colour-lane-header:#F3F6FA;
+ --ds-colour-scroll-indicator:#C0C4C9;
+ --ds-colour-scroll-border:#A7ADB3;
+ --ds-colour-error:#B43C4A;
+
+ --ds-colour-page:#F3F6FA;
+ --ds-colour-panel:#FFFFFF;
+ --ds-colour-text:#1B2D50;
+ --ds-colour-muted:#617086;
+ --ds-colour-border:#8895A7;
+ --ds-colour-divider:#CAD8EA;
+ --ds-colour-accent:#22447F;
+ --ds-colour-selection:#E5EBF3;
+ --ds-colour-hover:#EDF1F7;
+ --ds-colour-on-accent:#FFFFFF;
+ --ds-colour-highlight:var(--ds-accent-1);
+}
+[data-ds-theme=dark],[data-ds-theme-base=dark]{
+
+ --ds-colour-lane:#333333;
+ --ds-colour-lane-header:#333739;
+ --ds-colour-scroll-indicator:#858B91;
+ --ds-colour-scroll-border:#A0A6AD;
+ --ds-colour-error:#FF9BA8;
+
+ --ds-colour-page:#242424;
+ --ds-colour-panel:#2B2B2B;
+ --ds-colour-text:#D7D9DE;
+ --ds-colour-muted:#AAAEB5;
+ --ds-colour-border:#62666B;
+ --ds-colour-divider:#454749;
+ --ds-colour-accent:#78A9ED;
+ --ds-colour-selection:#3C3F41;
+ --ds-colour-hover:#353739;
+ --ds-colour-on-accent:#1B2D50;
+ --ds-colour-highlight:color-mix(in srgb,var(--ds-accent-1) 15%,var(--ds-colour-panel));
+}
+[data-ds-theme=matrix],[data-ds-theme-base=matrix]{
+
+ --ds-colour-lane:#19271E;
+ --ds-colour-lane-header:#21392A;
+ --ds-colour-scroll-indicator:#7C9B85;
+ --ds-colour-scroll-border:#9FC8AC;
+ --ds-colour-error:#FF9BA8;
+
+ --ds-colour-page:#0C110E;
+ --ds-colour-panel:#121A15;
+ --ds-colour-text:#D4F5DE;
+ --ds-colour-muted:#8EAD98;
+ --ds-colour-border:#4E7259;
+ --ds-colour-divider:#293E30;
+ --ds-colour-accent:#75E89A;
+ --ds-colour-selection:#21392A;
+ --ds-colour-hover:#1A2C21;
+ --ds-colour-on-accent:#102B1B;--ds-accent-1:#75E89A;--ds-accent-2:#C8E985;--ds-accent-3:#5BC8A2;--ds-accent-4:#83CFC5;--ds-accent-5:#B2D8A4;--ds-accent-6:#D4DF9B;
+ --ds-colour-highlight:color-mix(in srgb,var(--ds-accent-1) 15%,var(--ds-colour-panel));
+}

@@ -1,0 +1,213 @@
+/* Composition-only layout. Component internals remain in components/. */
+html{color-scheme:light}
+html[data-ds-theme=dark],html[data-ds-theme=matrix]{color-scheme:dark}
+body{margin:0;background:var(--ds-colour-page,var(--ds-colour-soft));color:var(--ds-colour-text);font:14px/1.6 var(--ds-font-family)}
+#example-viewport{container:ui-preview / inline-size;width:100%;min-height:100dvh;margin-inline:auto;background:var(--ds-colour-panel)}
+#example-viewport[data-device=tablet]{max-width:768px}
+#example-viewport[data-device=mobile]{max-width:390px}
+#menu-live{margin:0;min-height:100dvh;border-radius:0}
+.example-page{width:100%;min-width:0;max-width:none;margin:0;overflow-wrap:anywhere}
+.example-page h1{font-size:clamp(28px,4cqw,44px);line-height:1.15;letter-spacing:-.04em;margin:8px 0 16px}
+.example-page h2{font-size:20px;line-height:1.3;margin:0 0 12px}
+.example-kicker{color:var(--ds-colour-accent);font-size:11px;letter-spacing:.16em;font-weight:700;text-transform:uppercase}
+.example-lead{max-width:65ch;color:var(--ds-colour-muted);font-size:16px}
+.example-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-block:28px}
+.example-card{border-block-start:1px solid var(--ds-colour-border);padding-block:22px}
+.example-card p{color:var(--ds-colour-muted)}
+.example-link{color:var(--ds-colour-accent);text-decoration-thickness:1px;text-underline-offset:4px}
+.example-paths{display:grid;gap:28px;margin-block:24px}
+.example-paths>nav{padding-block:18px;border-bottom:1px solid var(--ds-colour-border);min-width:0}
+.example-status{color:var(--ds-colour-muted);font-size:12px}
+.example-composition{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:24px 0;padding:16px 0;border-block:1px solid var(--ds-colour-border);font-weight:600}
+.example-composition span[aria-hidden]{color:var(--ds-colour-muted)}
+.example-utilities{display:flex;flex-direction:column;gap:3px;width:100%}
+.example-utility{display:flex;align-items:center;gap:12px;width:100%;min-height:36px;padding:8px 11px;border:0;border-radius:0;background:transparent;color:var(--ds-colour-muted);text-align:left}
+.example-utility:hover{background:var(--ds-colour-hover,var(--ds-colour-soft));color:var(--ds-colour-accent)}
+.example-utility[aria-pressed=true]{background:var(--ds-colour-selection,var(--ds-colour-soft));color:var(--ds-colour-accent)}
+.example-utility:focus-visible{outline:1px solid var(--ds-colour-accent);outline-offset:-1px}
+@container ui-preview (min-width:621px){
+ #menu-live[data-sidebar-collapsed=true] .example-utility{justify-content:center;padding-inline:0}
+ #menu-live[data-sidebar-collapsed=true] .example-utility-label{display:none}
+}
+@container ui-preview (max-width:620px){
+ .example-utilities{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+ .example-utility{justify-content:center}
+ .example-utility-label{display:none}
+}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+/* Host compatibility bridge for the extracted Navigation's historic variable names.
+   The editor only sets semantic tokens, never component-specific state. */
+#menu-live.ds-navigation {
+ --surface:var(--ds-colour-page);--panel:var(--ds-colour-panel);
+ --text:var(--ds-colour-text);--muted:var(--ds-colour-muted);
+ --link:var(--ds-colour-accent);--blue:var(--ds-colour-accent);
+ --border:var(--ds-colour-border);--ice:var(--ds-colour-divider);
+ --ui-soft:var(--ds-colour-selection);--ui-hover:var(--ds-colour-hover);
+ --menu-selection:var(--ds-colour-selection)!important;
+ --menu-hover:var(--ds-colour-hover)!important;
+ --submenu-title-bg:var(--ds-colour-selection)!important;
+ --submenu-title-color:var(--ds-colour-text)!important;
+ --submenu-title-line:var(--ds-colour-divider)!important;
+}
+
+/* Data-driven component demonstrations, not component internals. */
+.example-component-section{padding-block:22px;border-top:1px solid var(--ds-colour-divider);margin-top:20px;min-width:0}
+.example-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-block:18px}
+.example-button-colours{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}
+.example-button-colour{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;border-top:1px solid var(--ds-colour-divider);padding:16px 0;font-size:12px}
+.example-state-button{border:1px solid var(--ds-colour-border);padding:7px 13px;border-radius:8px;background:transparent;color:var(--ds-colour-muted);font:600 12px var(--ds-font-family);cursor:pointer}
+.example-state-button[aria-pressed=true]{color:var(--ds-colour-accent);background:var(--ds-colour-selection);border-color:var(--ds-colour-accent)}
+@container ds-shell-content (max-width:620px){.example-button-colours{grid-template-columns:1fr}}
+
+/* Utility icons use the same fixed axis in both sidebar widths. */
+@container ui-preview (min-width:621px){
+ #menu-live[data-sidebar-collapsed] .example-utility{position:relative;display:grid;grid-template-columns:44px minmax(0,1fr);align-items:center;justify-content:stretch;gap:0;padding:0;min-height:36px}
+ #menu-live[data-sidebar-collapsed] .example-utility>.ui-icon{grid-area:1 / 1;justify-self:center}
+ #menu-live[data-sidebar-collapsed] .example-utility-label{grid-area:1 / 2;white-space:nowrap;overflow:hidden;transition:opacity 280ms ease}
+ #menu-live[data-sidebar-collapsed=true] .example-utility-label{display:block;position:absolute;left:44px;max-width:0;opacity:0}
+ #menu-live[data-sidebar-collapsed=false] .example-utility-label{opacity:1}
+}
+
+#menu-live:not([data-motion-ready=true]) .example-utility-label{transition:none!important}
+@media(prefers-reduced-motion:reduce){#menu-live .example-utility-label{transition:none!important}}
+
+/* All page grids query the remaining content width, never the whole preview. */
+@container ds-shell-content (max-width:620px){
+ .example-grid{grid-template-columns:minmax(0,1fr);gap:8px}
+ .example-paths .ds-breadcrumbs{font-size:min(var(--ds-bc-size),5cqw)}
+}
+
+/* The original fold control ends the footer; the edge is a second view of the
+   same shell state. Neither control participates in the scrolling page list. */
+#menu-live .example-sidebar-edge-toggle{display:none}
+@container ui-preview (min-width:621px){
+ #menu-live[data-menu-design=sidebar][data-sidebar-collapsed] .menu-live-header{padding-left:12px}
+ #menu-live[data-menu-design=sidebar] .menu-sidebar-footer #menu-sidebar-toggle{
+  display:grid;grid-template-columns:44px minmax(0,1fr);align-items:center;justify-content:stretch;gap:0;
+  flex:none;align-self:stretch;width:100%;min-width:0;height:36px;min-height:36px;
+  padding:0;margin:0;border:0;border-radius:0;background:transparent;color:var(--ds-colour-muted);box-shadow:none;
+ }
+ #menu-live .menu-sidebar-footer #menu-sidebar-toggle .sidebar-toggle-icon{display:flex;grid-area:1 / 1;justify-self:center;width:20px;height:20px}
+ #menu-live .menu-sidebar-footer #menu-sidebar-toggle:hover{color:var(--ds-colour-accent);background:var(--ds-colour-hover)}
+ #menu-live .menu-sidebar-footer #menu-sidebar-toggle:focus-visible{outline:1px solid var(--ds-colour-accent);outline-offset:-3px}
+ #menu-live[data-input-modality=pointer] .menu-sidebar-footer #menu-sidebar-toggle:focus-visible{outline:none}
+ /* Overflow affordances overlay the borders and never reserve layout space.
+    Opening submenus must not move the top-level icon rows. */
+ #menu-live[data-menu-design=sidebar] .menu-live-nav{padding-block:0;gap:0;z-index:61}
+ #menu-live[data-menu-design=sidebar] .menu-scroll-region,
+ #menu-live[data-menu-design=sidebar] .menu-scroll-region[data-overflow=true]{padding-block:0;border:0}
+ /* Filled arrow bases join the border; hit areas do not affect layout. */
+ #menu-live[data-menu-design=sidebar] :is(.example-sidebar-edge-toggle,.menu-scroll-indicator){
+  position:absolute;display:flex;align-items:center;justify-content:center;
+  width:24px;height:24px;min-height:24px;margin:0;padding:0;border:0;border-radius:0;
+  background:transparent;color:var(--ice,var(--ds-colour-divider));box-shadow:none;cursor:pointer;z-index:8;
+  transition:color 180ms ease;
+ }
+ #menu-live[data-menu-design=sidebar] .example-sidebar-edge-toggle{top:-4px;right:-12.5px;transform:none}
+ #menu-live[data-menu-design=sidebar] :is(.example-sidebar-edge-toggle,.menu-scroll-indicator){--notch-fill:var(--surface,var(--ds-colour-soft))}
+ #menu-live[data-menu-design=sidebar] .example-sidebar-edge-toggle[aria-expanded=true]{--notch-fill:var(--panel,var(--ds-colour-panel))}
+ #menu-live[data-menu-design=sidebar] .menu-scroll-indicator{left:50%;right:auto;transform:translateX(-50%)}
+ #menu-live[data-menu-design=sidebar] .menu-scroll-indicator.up{top:-12.5px;border:0}
+ #menu-live[data-menu-design=sidebar] .menu-scroll-indicator.down{bottom:-12px;border:0}
+ /* Match the 1px outer border and join the centre of that line. */
+ #menu-live[data-menu-design=sidebar] .menu-sidebar-footer{border-top-width:1px}
+ #menu-live[data-menu-design=sidebar] .menu-scroll-primary .menu-scroll-indicator.down{bottom:-12.5px}
+ #menu-live[data-menu-design=sidebar] .menu-scroll-footer .menu-scroll-indicator.up{top:-11.5px}
+ /* A notch in the border: mask the straight join, then continue it as a chevron. */
+ #menu-live[data-menu-design=sidebar] :is(.example-sidebar-edge-toggle,.menu-scroll-indicator)::after{
+  content:'';position:absolute;left:50%;top:50%;width:14px;height:3px;
+  transform:translate(-50%,-50%);background:var(--notch-fill);pointer-events:none;
+ }
+ #menu-live[data-menu-design=sidebar] .example-sidebar-edge-toggle::after{width:3px;height:14px}
+ #menu-live[data-menu-design=sidebar] :is(.example-sidebar-edge-toggle,.menu-scroll-indicator)::before{
+  content:'';position:absolute;left:50%;top:50%;width:14px;height:8px;
+  background:var(--notch-fill);clip-path:path('M 0 7.5 C 1.6 7.5 1.8 7.2 2.6 6.3 L 5.2 3.3 Q 7 1.2 8.8 3.3 L 11.4 6.3 C 12.2 7.2 12.4 7.5 14 7.5 Z');
+  transform:translate(-50%,-50%) var(--notch-transform);pointer-events:none;
+ }
+ #menu-live[data-menu-design=sidebar] :is(.example-sidebar-edge-toggle,.menu-scroll-indicator)>.ui-icon{
+  position:relative;z-index:1;display:block;width:14px;height:8px;background:currentColor;fill:none;stroke:none;transform:var(--notch-transform);
+  clip-path:none;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 8'%3E%3Cpath d='M0 7.5C1.6 7.5 1.8 7.2 2.6 6.3L5.2 3.3Q7 1.2 8.8 3.3L11.4 6.3C12.2 7.2 12.4 7.5 14 7.5' fill='none' stroke='black' stroke-width='1' stroke-linecap='butt' stroke-linejoin='round'/%3E%3C/svg%3E") center/100% 100% no-repeat;
+ }
+ #menu-live[data-menu-design=sidebar] :is(.example-sidebar-edge-toggle,.menu-scroll-indicator)>.ui-icon>*{display:none}
+ #menu-live[data-menu-design=sidebar] .menu-scroll-indicator.up{--notch-transform:translateY(-3.5px)}
+ #menu-live[data-menu-design=sidebar] .menu-scroll-indicator.down{--notch-transform:translateY(3.5px) rotate(180deg)}
+ #menu-live[data-menu-design=sidebar] .example-sidebar-edge-toggle[aria-expanded=true]{--notch-transform:translateX(-3.5px) rotate(-90deg)}
+ #menu-live[data-menu-design=sidebar] .example-sidebar-edge-toggle[aria-expanded=false]{--notch-transform:translateX(3.5px) rotate(90deg)}
+ #menu-live[data-menu-design=sidebar] :is(.example-sidebar-edge-toggle,.menu-scroll-indicator):hover{background:transparent;color:var(--ice,var(--ds-colour-divider))}
+ #menu-live[data-menu-design=sidebar] .menu-scroll-indicator:disabled,
+ #menu-live[data-menu-design=sidebar] .menu-scroll-indicator:disabled:hover{background:transparent;color:var(--ice,var(--ds-colour-divider));opacity:1;cursor:default}
+ #menu-live[data-menu-design=sidebar] :is(.example-sidebar-edge-toggle,.menu-scroll-indicator):focus-visible{outline:1px solid var(--ds-colour-accent);outline-offset:-2px}
+ #menu-live[data-input-modality=pointer][data-menu-design=sidebar] :is(.example-sidebar-edge-toggle,.menu-scroll-indicator):focus-visible{outline:none}
+ /* Keep the border notch mounted during fade-out, including when overflow ends. */
+ #menu-live[data-menu-design=sidebar] .menu-scroll-indicator{
+  opacity:1;visibility:visible;transition:opacity 450ms ease,visibility 0s linear;
+ }
+ #menu-live[data-menu-design=sidebar] .menu-scroll-indicator:is(:disabled,[hidden]),
+ #menu-live[data-menu-design=sidebar] .menu-scroll-indicator:disabled:hover{
+  display:flex;opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity 450ms ease,visibility 0s linear 450ms;
+ }
+
+}
+@container ui-preview (min-width:621px){
+ #menu-live .menu-sidebar-footer #menu-sidebar-toggle{text-align:left}
+ #menu-live .example-sidebar-toggle-label{grid-area:1 / 2;white-space:nowrap;overflow:hidden;transition:opacity 280ms ease}
+ #menu-live[data-sidebar-collapsed=true] .example-sidebar-toggle-label{position:absolute;left:44px;max-width:0;opacity:0}
+ #menu-live[data-sidebar-collapsed=false] .example-sidebar-toggle-label{position:static;opacity:1}
+}
+#menu-live:not([data-motion-ready=true]) .example-sidebar-toggle-label{transition:none!important}
+@media(prefers-reduced-motion:reduce){#menu-live .example-sidebar-toggle-label{transition:none!important}}
+
+@media(prefers-reduced-motion:reduce){
+ #menu-live[data-menu-design=sidebar] .menu-scroll-indicator,
+ #menu-live[data-menu-design=sidebar] .menu-scroll-indicator:is(:disabled,[hidden]){transition:none!important}
+}
+
+@container ui-preview (min-width:621px){
+ #menu-live[data-menu-design=sidebar][data-sidebar-collapsed]{transition:grid-template-columns 700ms cubic-bezier(.22,1,.36,1)}
+}
+
+/* Labels keep their geometry during fold/unfold; only opacity animates.
+   Collapsed labels remain clipped by their row, without moving the icon axis. */
+@container ui-preview (min-width:621px){
+ #menu-live[data-menu-design=sidebar][data-sidebar-collapsed] .menu-nav-label{
+  display:block;position:absolute;left:42px;grid-area:auto;
+  width:154px;max-width:none;padding:0;margin:0;transform:none;text-align:left;
+  white-space:nowrap;overflow:hidden;pointer-events:none;
+  transition:opacity 700ms ease;
+ }
+ #menu-live[data-menu-design=sidebar][data-sidebar-collapsed=true] .menu-nav-label{opacity:0}
+ #menu-live[data-menu-design=sidebar][data-sidebar-collapsed=false] .menu-nav-label{opacity:1}
+ #menu-live[data-sidebar-collapsed] :is(.example-utility-label,.example-sidebar-toggle-label){
+  display:block;position:absolute;left:44px;grid-area:auto;
+  width:176px;max-width:none;margin:0;padding:0;pointer-events:none;
+  transition:opacity 700ms ease;
+ }
+ #menu-live[data-sidebar-collapsed=true] :is(.example-utility-label,.example-sidebar-toggle-label){opacity:0}
+ #menu-live[data-sidebar-collapsed=false] :is(.example-utility-label,.example-sidebar-toggle-label){opacity:1}
+ #menu-live .menu-sidebar-footer #menu-sidebar-toggle{position:relative;overflow:hidden}
+ #menu-live[data-menu-design=sidebar][data-sidebar-collapsed] .menu-group-chevron{
+  display:flex;transition:opacity 700ms ease,transform 180ms ease;
+ }
+ #menu-live[data-sidebar-collapsed=true] .menu-group-chevron{opacity:0}
+ #menu-live[data-sidebar-collapsed=false] .menu-group-chevron{opacity:1}
+}
+#menu-live:not([data-motion-ready=true]) :is(.menu-nav-label,.menu-group-chevron,.example-utility-label,.example-sidebar-toggle-label){transition:none!important}
+@media(prefers-reduced-motion:reduce){
+ #menu-live :is(.menu-nav-label,.menu-group-chevron,.example-utility-label,.example-sidebar-toggle-label){transition:none!important}
+}
+
+/* Menu focus never draws a rectangular frame. Keyboard focus uses the glyph
+   and label instead, including utilities whose browser focus may be retained. */
+#menu-live[data-menu-design=sidebar][data-sidebar-collapsed] .menu-live-nav button:is(:focus,:focus-visible){outline:none;box-shadow:none}
+#menu-live[data-input-modality=keyboard] .menu-live-nav button:focus-visible>.ui-icon,
+#menu-live[data-input-modality=keyboard] .menu-live-nav button:focus-visible .menu-nav-icon{color:var(--ds-colour-accent)}
+#menu-live[data-input-modality=keyboard] .menu-live-nav button:focus-visible :is(.menu-nav-label,.menu-sub-label,.example-utility-label,.example-sidebar-toggle-label){text-decoration:underline;text-underline-offset:4px}
+
+/* The current group's edge belongs to both sidebar presentations. */
+#menu-live[data-menu-design=sidebar] .menu-live-nav .menu-nav-parent.has-current-page::before{
+ content:'';position:absolute;left:-1px;top:-1px;bottom:-1px;width:3px;
+ background:var(--link,var(--ds-colour-accent));border-radius:0;opacity:1;pointer-events:none;
+}

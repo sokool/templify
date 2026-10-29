@@ -1,0 +1,7 @@
+.ds-tooltip{--tip-bg:var(--ds-tooltip-bg,var(--ds-colour-panel));--tip-ink:var(--ds-tooltip-text,var(--ds-colour-text));--tip-border:var(--ds-tooltip-border,color-mix(in srgb,var(--ds-accent-1) 55%,var(--ds-colour-panel)));position:fixed;inset:auto;width:max-content;max-width:min(280px,calc(100vw - 16px));height:auto;margin:0;padding:var(--ds-tooltip-padding,8px 11px);border:1px solid var(--tip-border);border-left:3px solid var(--ds-tooltip-accent,var(--ds-colour-accent));border-radius:0 7px 7px 0;background:var(--tip-bg);color:var(--tip-ink);font:var(--ds-tooltip-style,normal) var(--ds-tooltip-weight,500) var(--ds-tooltip-size,12px)/1.5 var(--ds-font-family);box-shadow:0 6px 18px #00000018;overflow:visible;pointer-events:none;z-index:2000;opacity:0;transition:opacity var(--ds-tooltip-fade,350ms) ease-in-out}
+.ds-tooltip[data-visible=true]{opacity:1}.ds-tooltip[hidden]{display:none}
+.ds-tooltip:before{content:'';position:absolute;left:var(--ds-tooltip-pointer,50%);bottom:-5px;width:8px;height:8px;background:var(--tip-bg);border-right:1px solid var(--tip-border);border-bottom:1px solid var(--tip-border);transform:translateX(-50%) rotate(45deg)}
+.ds-tooltip[data-placement=bottom]:before{bottom:auto;top:-5px;transform:translateX(-50%) rotate(225deg)}
+.ds-tooltip--preview{position:relative;inset:auto;opacity:1;pointer-events:none}
+@media(prefers-reduced-motion:reduce){.ds-tooltip{transition:none}}
+

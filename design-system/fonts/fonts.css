@@ -1,0 +1,20 @@
+/* Font configuration UI belongs only to the composition examples. */
+.example-font-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0 28px}
+.example-font-grid .example-font-choice{position:relative;display:flex;flex-direction:column;gap:6px;min-width:0;padding:14px;text-align:left;background:var(--ds-colour-panel);color:var(--ds-colour-text);border:1px solid var(--ds-colour-border);border-radius:10px;font-family:var(--candidate-font);font-size:12px;line-height:1.4;cursor:pointer}
+.example-font-choice-name{font-size:11px;padding-right:18px}
+.example-font-sample{font-size:18px;font-weight:600;letter-spacing:-.04em}
+.example-font-alphabet{font-size:11px;color:var(--ds-colour-muted)}
+.example-font-grid .example-font-choice:hover{border-color:var(--ds-colour-accent)}
+.example-font-grid .example-font-choice[aria-pressed=true]{border-color:var(--ds-colour-accent);box-shadow:inset 0 0 0 1px var(--ds-colour-accent)}
+.example-font-grid .example-font-choice:focus-visible{outline:2px solid var(--ds-colour-accent);outline-offset:3px}
+.example-font-check{position:absolute;right:12px;top:13px;display:flex;color:var(--ds-colour-accent);visibility:hidden}
+.example-font-choice[aria-pressed=true] .example-font-check{visibility:visible}
+.example-typography{padding-top:22px;border-top:1px solid var(--ds-colour-border)}
+.example-type-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:28px;margin-top:24px}
+.example-type-grid h3{font-size:36px;line-height:1.2;margin:12px 0}
+.example-type-grid p{color:var(--ds-colour-muted)}
+.example-font-weights{display:flex;flex-wrap:wrap;gap:14px;margin-top:24px;font-size:12px}
+.example-type-grid .example-type-sentence{font-size:24px;font-weight:700;color:var(--ds-colour-text);margin:0 0 12px}
+.example-type-grid .example-type-alphabet{font-size:20px;color:var(--ds-colour-text)}
+@container ds-shell-content (max-width:1000px){.example-font-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container ds-shell-content (max-width:620px){.example-font-grid{grid-template-columns:minmax(0,1fr)}.example-type-grid{grid-template-columns:minmax(0,1fr)}}

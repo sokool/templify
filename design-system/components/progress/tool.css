@@ -1,0 +1,1 @@
+.progress-tool{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0 26px}.progress-tool>div{min-width:0}@container ds-shell-content (max-width:600px){.progress-tool{grid-template-columns:1fr}}

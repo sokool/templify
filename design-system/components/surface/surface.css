@@ -1,0 +1,2 @@
+.ds-surface{padding:var(--ds-surface-padding,25px);border:var(--ds-surface-border-width,1px) solid var(--ds-surface-border,var(--ds-colour-divider,var(--ds-colour-border)));border-radius:var(--ds-surface-radius,20px);background:var(--ds-surface-bg,var(--ds-colour-panel));color:var(--ds-surface-text,var(--ds-colour-text));box-shadow:var(--ds-surface-shadow,none);min-width:0;font-family:var(--ds-font-family)}
+

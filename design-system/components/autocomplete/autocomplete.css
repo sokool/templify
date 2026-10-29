@@ -1,0 +1,63 @@
+/* Autocomplete-local styles; input geometry and error labels come from FormField. */
+.ds-autocomplete{position:relative;min-width:0;width:100%;font-family:var(--ds-font-family,system-ui,sans-serif);font-size:14px;color:var(--ds-colour-text);--ds-ac-radius:10px;--ds-ac-list-height:320px}
+.ds-autocomplete [hidden]{display:none!important}
+.ds-autocomplete .ds-field-caption{position:absolute;top:-8px;left:11px;margin:0}
+.ds-autocomplete .ds-field-control{padding-inline:36px 36px}
+.ds-ac-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;line-height:1;font-size:18px}
+.ds-ac-icon svg{display:block;width:18px;height:18px}
+.ds-ac-search{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ds-colour-muted);pointer-events:none}
+.ds-ac-clear{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:28px;height:28px;border:0;border-radius:6px;background:transparent;color:var(--ds-colour-muted);cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center}
+.ds-ac-clear:hover,.ds-ac-clear:focus-visible{background:var(--ds-colour-hover);color:var(--ds-colour-accent)}
+.ds-ac-popup{position:absolute;left:0;right:0;z-index:40;margin-top:6px;border:1px solid var(--ds-colour-divider);border-radius:var(--ds-ac-radius);background:var(--ds-colour-panel);box-shadow:0 8px 22px color-mix(in srgb,var(--ds-colour-text) 13%,transparent);overflow:hidden;min-width:0}
+.ds-ac-list{max-height:var(--ds-ac-list-height);overflow-y:auto;overscroll-behavior:contain;padding:3px;scrollbar-width:thin}
+.ds-ac-option{display:flex;align-items:center;gap:8px;min-height:42px;padding:5px 8px;border-radius:7px;cursor:pointer;color:var(--ds-colour-text)}
+.ds-ac-option[data-active=true]{background:var(--ds-colour-selection);color:var(--ds-colour-accent)}
+.ds-ac-option[aria-disabled=true]{opacity:.45;cursor:not-allowed}
+.ds-ac-media{position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 26px;width:26px;height:26px;border-radius:5px;background:var(--ds-colour-soft);color:var(--ds-colour-accent)}
+.ds-ac-media>img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
+.ds-ac-media .ds-ac-icon svg{width:18px;height:18px}
+.ds-ac-media-badge{position:absolute;right:-3px;bottom:-3px;display:flex;align-items:center;justify-content:center;width:13px;height:13px;border:1px solid var(--ds-colour-divider);border-radius:4px;background:var(--ds-colour-panel)}
+.ds-ac-media-badge .ds-ac-icon svg{width:9px;height:9px}
+.ds-ac-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:0;overflow-wrap:anywhere}
+.ds-ac-copy strong{font-size:11px;font-weight:600;line-height:1.4}
+.ds-ac-copy small{font-size:9px;line-height:1.4;color:var(--ds-colour-muted)}
+.ds-ac-category{display:none;font-size:10px;color:var(--ds-colour-accent)}
+.ds-ac-copy mark{background:color-mix(in srgb,var(--ds-colour-accent) 14%,var(--ds-colour-panel));color:var(--ds-colour-accent);padding:0}
+.ds-ac-indicator{display:flex;align-items:center;justify-content:center;width:22px;height:22px;flex:none;border:1px solid var(--ds-colour-border);border-radius:6px;background:var(--ds-colour-panel);color:var(--ds-colour-accent)}
+.ds-ac-indicator .ds-ac-icon svg{width:16px;height:16px;stroke-width:2.5}
+.ds-ac-option[aria-selected=true] .ds-ac-indicator{background:var(--ds-colour-accent);border-color:var(--ds-colour-accent);color:var(--ds-colour-on-accent)}
+.ds-ac-empty{padding:22px 12px;font-size:12px;color:var(--ds-colour-muted)}
+.ds-ac-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:10px 12px;border-top:1px solid var(--ds-colour-divider);background:var(--ds-colour-soft);font-size:11px;color:var(--ds-colour-muted)}
+.ds-ac-summary{font-weight:600;color:var(--ds-colour-text)}
+.ds-ac-help{font-size:10px}
+.ds-ac-chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0}
+.ds-ac-chip{display:inline-flex;align-items:center;gap:6px;max-width:100%;height:24px;padding:1px 4px 1px 7px;border:1px solid var(--ds-colour-divider);border-radius:9px;background:var(--ds-colour-soft);color:var(--ds-colour-text);font-size:11px;line-height:18px;overflow:hidden}
+.ds-ac-chip>.ds-ac-icon svg{width:13px;height:13px;color:var(--ds-colour-accent)}
+.ds-ac-chip button{display:flex;align-items:center;justify-content:center;width:18px;height:18px;flex:none;padding:0;border:0;border-radius:7px;background:transparent;color:var(--ds-colour-muted);cursor:pointer}
+.ds-ac-chip button svg{width:12px;height:12px}
+.ds-ac-chip button:hover{background:var(--ds-colour-hover);color:var(--ds-colour-accent)}
+.ds-ac-chip button:focus-visible,.ds-ac-clear:focus-visible{outline:1px solid var(--ds-colour-accent);outline-offset:1px}
+.ds-ac-status{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.ds-autocomplete[data-size=big] .ds-ac-option{min-height:78px;padding:9px;gap:10px}
+.ds-autocomplete[data-size=big] .ds-ac-media{width:56px;height:56px;flex-basis:56px;border-radius:7px}
+.ds-autocomplete[data-size=big] .ds-ac-media-badge{width:17px;height:17px}
+.ds-autocomplete[data-size=big] .ds-ac-media-badge svg{width:11px;height:11px}
+.ds-autocomplete[data-size=big] .ds-ac-copy{gap:3px}
+.ds-autocomplete[data-size=big] .ds-ac-copy strong{font-size:13px}
+.ds-autocomplete[data-size=big] .ds-ac-copy small{font-size:11px}
+.ds-autocomplete[data-size=big] .ds-ac-category{display:block}
+
+/* Multi-selection is one shared field: chips and query wrap inside its border. */
+.ds-autocomplete[data-multiple=true] .ds-field-body{display:flex;align-items:center;flex-wrap:wrap;gap:6px;min-height:var(--ds-form-field-height);padding:6px 36px;border:1px solid var(--ds-colour-border);border-radius:var(--ds-form-field-radius);background:var(--ds-form-surface);cursor:text}
+.ds-autocomplete[data-multiple=true] .ds-ac-chips{display:contents}
+.ds-autocomplete[data-multiple=true] .ds-field-control{flex:1 1 140px;width:0;min-width:min(140px,100%);min-height:30px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+.ds-autocomplete[data-multiple=true] .ds-field-body:focus-within{border-color:var(--ds-colour-accent);box-shadow:inset 0 0 0 .5px var(--ds-colour-accent)}
+.ds-autocomplete[data-multiple=true] .ds-field[data-invalid=true] .ds-field-body{border-color:var(--ds-form-error);box-shadow:none}
+.ds-autocomplete .ds-field-caption{z-index:1}
+
+.ds-autocomplete[data-multiple=true] .ds-ac-indicator{width:16px;height:16px;border-radius:50%;background:transparent}
+.ds-autocomplete[data-multiple=true] .ds-ac-indicator .ds-ac-icon{font-size:12px}
+.ds-autocomplete[data-multiple=true] .ds-ac-indicator .ds-ac-icon svg{width:11px;height:11px}
+.ds-autocomplete[data-multiple=true] .ds-ac-option[aria-selected=true] .ds-ac-indicator{background:var(--ds-colour-accent)}
+
+.ds-ac-chip>span:not(.ds-ac-icon){min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

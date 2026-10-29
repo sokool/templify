@@ -1,0 +1,70 @@
+{
+  "name": "breadcrumbs",
+  "version": "0.2.0",
+  "status": "extracted",
+  "entry": "breadcrumbs.js",
+  "stylesheet": "breadcrumbs.css",
+  "global": "DesignSystemBreadcrumbs",
+  "runtimeFiles": [
+    "breadcrumbs.js",
+    "breadcrumbs.css"
+  ],
+  "example": "example.html",
+  "dependencies": {
+    "components": [],
+    "packages": [],
+    "requiredHostTokens": [],
+    "platform": [
+      "DOM",
+      "CSS custom properties",
+      "CSS color-mix()",
+      "native details/summary"
+    ],
+    "foundations": [
+      "../../foundations/tokens.css",
+      "../../foundations/primitives.css"
+    ]
+  },
+  "integration": {
+    "requiredData": "items: [{ id?, label, href, emphasisLength? }]",
+    "optionalCallbacks": [
+      "onNavigate(item, event)"
+    ],
+    "lifecycle": [
+      "mount(nav, options)",
+      "update({ items?, appearance?, label?, onNavigate? })",
+      "destroy()"
+    ],
+    "persistence": "Owned by caller; component never reads localStorage",
+    "routing": "Owned by caller; normal anchor navigation unless onNavigate is supplied",
+    "fonts": "Shared --ds-font-family; optional per-component --ds-bc-font-family override"
+  },
+  "publicTokens": [
+    "--ds-bc-font-family",
+    "--ds-bc-size",
+    "--ds-bc-brand",
+    "--ds-bc-parent",
+    "--ds-bc-current",
+    "--ds-bc-dot",
+    "--ds-bc-hover",
+    "--ds-bc-accent",
+    "--ds-bc-panel",
+    "--ds-bc-border",
+    "--ds-bc-text",
+    "--ds-bc-soft",
+    "--ds-bc-top-weight",
+    "--ds-bc-brand-weight",
+    "--ds-bc-parent-weight",
+    "--ds-bc-current-weight"
+  ],
+  "tests": "node --test tests/*.test.cjs",
+  "exportFiles": [
+    "breadcrumbs.js",
+    "breadcrumbs.css",
+    "../../foundations/tokens.css",
+    "../../foundations/primitives.css"
+  ],
+  "testSupport": [
+    "../../testing/dom-fixture.cjs"
+  ]
+}

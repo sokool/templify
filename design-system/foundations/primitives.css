@@ -1,0 +1,7 @@
+/* Opt-in primitives only: these rules never reset arbitrary host elements. */
+.ds-component,.ds-component *{box-sizing:border-box}
+.ds-focusable:focus-visible {
+  outline:var(--ds-focus-width) solid var(--ds-focus-colour,var(--ds-colour-accent));
+  outline-offset:var(--ds-focus-offset);
+  border-radius:var(--ds-focus-radius);
+}

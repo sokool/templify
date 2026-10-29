@@ -1,0 +1,10 @@
+/* Host theme → design-system semantics. This adapter is NOT exported with components. */
+:root {
+  --ds-font-family:var(--ui-font),system-ui,sans-serif;
+  --ds-colour-text:var(--text);--ds-colour-muted:var(--muted);--ds-colour-accent:var(--link);
+  --ds-colour-panel:var(--panel);--ds-colour-border:var(--ice);--ds-colour-soft:var(--surface);
+  --ds-accent-1:var(--accent-1);--ds-accent-2:var(--accent-2);--ds-accent-3:var(--accent-3);
+  --ds-accent-4:var(--accent-4);--ds-accent-5:var(--accent-5);--ds-accent-6:var(--accent-6);
+  --ds-grey-400:var(--blue-gray-400);--ds-grey-500:var(--blue-gray-500);
+  --ds-grey-700:var(--blue-gray-700);--ds-grey-900:var(--blue-gray-900);
+}

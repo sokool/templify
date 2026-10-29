@@ -1,0 +1,6 @@
+.ds-accordion{font:13px/1.5 var(--ds-font-family);color:var(--ds-colour-text)}
+.ds-accordion__item{border-bottom:1px solid var(--ds-colour-divider,var(--ds-colour-border));padding:12px 0}
+.ds-accordion__summary{cursor:pointer;font-weight:600}
+.ds-accordion__content{color:var(--ds-colour-muted);font-size:12px;margin-top:10px;overflow-wrap:anywhere}
+.ds-accordion__content p{margin:0}
+

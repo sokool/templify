@@ -1,0 +1,17 @@
+.ds-window{--ds-window-width:480px;--ds-window-duration:220ms;box-sizing:border-box;width:min(var(--ds-window-width),calc(100vw - 32px));max-width:none;max-height:calc(100dvh - 32px);padding:0;border:1px solid var(--ds-colour-border);border-radius:16px;background:var(--ds-colour-panel);color:var(--ds-colour-text);font:14px/1.5 var(--ds-font-family,system-ui,sans-serif);box-shadow:0 18px 60px #0003;overscroll-behavior:contain}
+.ds-window[open]{display:flex;flex-direction:column;animation:ds-window-enter var(--ds-window-duration) ease both}
+.ds-window::backdrop{background:#0006;animation:ds-window-backdrop var(--ds-window-duration) ease both}
+.ds-window.is-closing{animation:ds-window-exit var(--ds-window-duration) ease both}.ds-window.is-closing::backdrop{animation:ds-window-backdrop-out var(--ds-window-duration) ease both}
+.ds-window-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid var(--ds-colour-divider);flex:none}
+.ds-window-title{margin:0;font-size:20px;font-weight:600;overflow-wrap:anywhere}
+.ds-window-close{display:grid;place-items:center;flex:none;width:32px;height:32px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--ds-colour-muted);font-family:inherit;line-height:1;cursor:pointer;font-size:26px}
+.ds-window-close:hover{background:var(--ds-colour-hover);color:var(--ds-colour-accent)}.ds-window-close:focus-visible{outline:2px solid var(--ds-colour-accent);outline-offset:2px}
+.ds-window-body{padding:20px;overflow:auto;min-height:0;overflow-wrap:anywhere}.ds-window-footer{padding:14px 20px;border-top:1px solid var(--ds-colour-divider);flex:none}.ds-window [hidden]{display:none!important}
+.ds-window[data-mode=side]{position:fixed;inset:0 0 0 auto;margin:0;width:min(var(--ds-window-width),100vw);height:100dvh;max-height:100dvh;border-radius:16px 0 0 16px;--ds-window-offset:30px}
+.ds-window[data-mode=side][data-side=left]{inset:0 auto 0 0;border-radius:0 16px 16px 0;--ds-window-offset:-30px}
+.ds-window[data-mode=side] .ds-window-body{flex:1}
+@keyframes ds-window-enter{from{opacity:0;transform:translate(var(--ds-window-offset,0),0) scale(.985)}to{opacity:1;transform:translate(0,0) scale(1)}}
+@keyframes ds-window-exit{to{opacity:0;transform:translate(var(--ds-window-offset,0),0) scale(.985)}}
+@keyframes ds-window-backdrop{from{opacity:0}to{opacity:1}}@keyframes ds-window-backdrop-out{to{opacity:0}}
+@media(max-width:480px){.ds-window{width:calc(100vw - 20px);max-height:calc(100dvh - 20px)}.ds-window-header,.ds-window-body{padding:16px}}
+@media(prefers-reduced-motion:reduce){.ds-window[open],.ds-window::backdrop,.ds-window.is-closing,.ds-window.is-closing::backdrop{animation:none}}

@@ -1,0 +1,14 @@
+/* Catalogue layout and data inspector; not exported with Form. */
+.example-form{min-width:0}
+.form-example-jump{display:flex;flex-wrap:wrap;gap:6px;margin:20px 0 12px}
+.form-example-jump a{font-size:11px;text-decoration:none;color:var(--ds-colour-muted);padding:5px 8px;border:1px solid var(--ds-colour-divider);border-radius:6px}
+.form-example-jump a:hover{color:var(--ds-colour-accent);background:var(--ds-colour-hover)}
+.form-example-tools{display:flex;justify-content:flex-end;margin:12px 0 20px}
+.form-tool-preview{display:flex;align-items:center;gap:7px;color:var(--ds-colour-muted);font-size:12px;cursor:pointer}
+.form-tool-preview input{accent-color:var(--ds-colour-accent)}
+.form-example-section{padding-top:22px;margin:24px 0;border-top:1px solid var(--ds-colour-divider);scroll-margin-top:84px;min-width:0}
+.form-example-section>h2{font-size:19px;margin:0 0 10px}
+.form-example-description{font-size:12px;color:var(--ds-colour-muted);line-height:1.6;margin:0 0 22px;max-width:100ch}
+.form-example-section>.ds-form>.ds-form-status:empty{display:none}
+.form-example-data{font:11px/1.6 ui-monospace,monospace;color:var(--ds-colour-muted);background:var(--ds-colour-hover);padding:12px;border-radius:8px;max-height:320px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.form-example-associated{margin:20px 0}

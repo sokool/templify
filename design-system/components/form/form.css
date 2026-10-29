@@ -1,0 +1,86 @@
+/* Form-local styles. Colours and font come exclusively from shared semantic tokens. */
+.ds-form,.ds-field{font-family:var(--ds-font-family,system-ui,sans-serif);color:var(--ds-colour-text);font-size:14px;--ds-form-error:var(--ds-colour-error,#B43C4A);--ds-form-field-height:44px;--ds-form-field-radius:13px;--ds-form-control-font-size:14px;--ds-form-surface:var(--ds-colour-panel)}
+.ds-form{container:ds-form / inline-size;min-width:0;width:100%}
+.ds-form-section{margin:0 0 24px;min-width:0}
+.ds-form-section>h3{font-size:14px;font-weight:650;margin:0 0 18px}
+.ds-form-description,.ds-form-status{font-size:12px;line-height:1.5;color:var(--ds-colour-muted);margin:8px 0 14px}
+.ds-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 14px;align-items:start}
+.ds-field{position:relative;min-width:0;margin:0;padding:0;border:0;line-height:1.45}
+.ds-field [hidden]{display:none!important}
+.ds-field-caption{position:relative;z-index:2;display:flex;align-items:baseline;flex-wrap:wrap;gap:0 3px;width:fit-content;max-width:calc(100% - 26px);margin:0 0 -8px 11px;padding:0 5px;background:var(--ds-form-surface);font-size:11px;line-height:16px;min-height:16px}
+.ds-field-error{color:var(--ds-form-error);font-weight:500}
+.ds-field-body{position:relative;min-width:0}
+.ds-field-control{display:block;width:100%;min-width:0;min-height:var(--ds-form-field-height);margin:0;border:1px solid var(--ds-colour-border);border-radius:var(--ds-form-field-radius);padding:10px 12px;background:var(--ds-form-surface);color:var(--ds-colour-text);font-family:inherit;font-size:var(--ds-form-control-font-size);font-weight:400;line-height:22px;font-style:normal;outline:none;box-shadow:none}
+.ds-field-control::placeholder{color:var(--ds-colour-muted);opacity:1;font:inherit}
+.ds-field-control:focus,.ds-field-control:focus-visible{border-color:var(--ds-colour-accent);outline:none;box-shadow:inset 0 0 0 .5px var(--ds-colour-accent)}
+.ds-field-control:disabled{color:var(--ds-colour-muted);opacity:.55;cursor:not-allowed}
+.ds-field-control[readonly]{background:color-mix(in srgb,var(--ds-colour-hover) 45%,var(--ds-form-surface));color:var(--ds-colour-muted)}
+.ds-field[data-invalid=true] .ds-field-control,.ds-field[data-invalid=true] .ds-field-action-trigger{border-color:var(--ds-form-error);box-shadow:none}
+.ds-field[data-invalid=true] input:disabled{opacity:1}
+.ds-field-hint,.ds-field-output{display:block;color:var(--ds-colour-muted);font-size:11px;line-height:1.5;margin:6px 0 0;overflow-wrap:anywhere}
+.ds-field textarea{resize:vertical;min-height:88px}
+.ds-field[data-kind=textarea] .ds-field-output{text-align:right}
+.ds-field-full{grid-column:1/-1}
+.ds-field-unit .ds-field-control{padding-right:52px}
+.ds-field-unit-text{position:absolute;top:12px;right:12px;color:var(--ds-colour-muted);font-size:12px;pointer-events:none}
+.ds-field-choice-group>.ds-field-caption{margin:0 0 10px;padding:0;max-width:100%;font-size:12px;font-weight:600;background:transparent}
+.ds-field-choice-group .ds-field-body{display:grid;gap:8px}
+.ds-field-choice{display:flex;align-items:center;gap:9px;min-width:0;font-size:13px;cursor:pointer}
+.ds-field-choice:has(:disabled){color:var(--ds-colour-muted);cursor:not-allowed}
+.ds-field-choice input{appearance:none;width:18px;height:18px;min-height:18px;flex:none;margin:0;padding:0;border-radius:3px;background:var(--ds-form-surface);accent-color:var(--ds-colour-accent)}
+.ds-field-choice input:checked{border-color:var(--ds-colour-accent);background:var(--ds-colour-accent) center/14px 14px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 10 4 4 8-8'/%3E%3C/svg%3E")}
+.ds-field-choice input[type=radio]{border-radius:50%}
+.ds-field-choice input[type=radio]:checked{background:var(--ds-colour-accent);box-shadow:inset 0 0 0 3px var(--ds-form-surface)}
+.ds-field-check>.ds-field-caption{margin:0 0 5px 0;padding:0;max-width:100%;background:transparent}
+.ds-field-check>.ds-field-caption .ds-field-label{display:none}
+.ds-field-check:not([data-invalid=true])>.ds-field-caption{display:none}
+.ds-field-choice input.ds-field-switch{width:36px;height:22px;border-radius:12px;background:var(--ds-colour-hover);position:relative}
+.ds-field-switch:before{content:'';position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:var(--ds-colour-panel);box-shadow:0 1px 3px #0003;transition:transform 180ms ease}
+.ds-field-switch:checked:before{transform:translateX(14px);background:white}
+.ds-field-choice input.ds-field-switch:checked{background:var(--ds-colour-accent)}
+.ds-field[data-type=range]>.ds-field-caption,.ds-field[data-type=color]>.ds-field-caption{margin:0 0 8px;padding:0;max-width:100%;background:transparent;font-size:12px}
+.ds-field input[type=range]{appearance:auto;height:22px;min-height:22px;padding:0;border:0;accent-color:var(--ds-colour-accent);background:transparent;box-shadow:none}
+.ds-field[data-invalid=true] input[type=range]{accent-color:var(--ds-form-error)}
+.ds-field input[type=color]{height:44px;max-width:100%;padding:5px;cursor:pointer}
+.ds-field input[type=file]{font-size:12px;line-height:24px;padding:8px}
+.ds-field input[type=file]::file-selector-button{border:0;border-right:1px solid var(--ds-colour-divider);margin:-8px 10px -8px -8px;padding:10px 12px;background:var(--ds-colour-hover);color:var(--ds-colour-accent);font:inherit;cursor:pointer}
+.ds-field-button .ds-field-control{width:auto;cursor:pointer;background:var(--ds-colour-accent);border-color:var(--ds-colour-accent);color:var(--ds-colour-on-accent,white);font-weight:600;padding:10px 16px}
+.ds-field-button .ds-field-control[type=reset],.ds-field-button .ds-field-control[type=button]{background:var(--ds-form-surface);color:var(--ds-colour-accent);border-color:var(--ds-colour-border)}
+.ds-field-button input[type=image]{width:44px;height:44px;padding:9px}
+.ds-field-quantity .ds-field-body{display:flex;align-items:center;gap:5px}
+.ds-field-stepper{width:36px;height:36px;flex:none;border:1px solid var(--ds-colour-divider);border-radius:8px;background:var(--ds-colour-panel);color:var(--ds-colour-accent);font:inherit;cursor:pointer}
+.ds-field-stepper:disabled{opacity:.5;cursor:not-allowed}
+.ds-form-footer{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+/* The single-select surface is shared by every mount; no per-tool dropdown implementation. */
+.ds-select{position:relative}
+.ds-select-native{position:absolute!important;width:1px!important;height:1px!important;min-height:0!important;padding:0!important;clip-path:inset(50%);overflow:hidden;opacity:0;pointer-events:none}
+.ds-select-trigger{display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left;cursor:pointer}
+.ds-select-value{min-width:0;overflow-wrap:anywhere}
+.ds-select-trigger[data-placeholder=true],.ds-select-option[data-placeholder=true]{color:var(--ds-colour-muted)}
+.ds-field-chevron{display:inline-block;flex:none;width:8px;height:8px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);margin:-4px 3px 0}
+.ds-select[data-open=true]{z-index:15}
+.ds-select[data-open=true] .ds-select-trigger{border-color:var(--ds-colour-accent);border-radius:var(--ds-form-field-radius) var(--ds-form-field-radius) 0 0}
+.ds-select[data-open=true] .ds-field-chevron{transform:rotate(225deg);margin:4px 3px 0}
+.ds-select-list{position:absolute;top:calc(100% - 1px);inset-inline:0;max-height:260px;overflow:auto;border:1px solid var(--ds-colour-accent);border-top-color:var(--ds-colour-divider);border-radius:0 0 var(--ds-form-field-radius) var(--ds-form-field-radius);background:var(--ds-form-surface);color:var(--ds-colour-text);font-size:var(--ds-form-control-font-size);font-weight:400;line-height:22px;padding:0;box-shadow:0 8px 18px #0000000a}
+.ds-select-option{position:relative;min-height:38px;padding:8px 34px 8px 12px;cursor:pointer;border-top:1px solid var(--ds-colour-divider);font:inherit}
+.ds-select-option:first-child{border-top:0}
+.ds-select-option[aria-selected=true]{background:var(--ds-colour-selection);font-weight:400}
+.ds-select-option[aria-selected=true]:after{content:'';position:absolute;right:13px;top:14px;width:9px;height:5px;border-left:1.8px solid var(--ds-colour-accent);border-bottom:1.8px solid var(--ds-colour-accent);transform:rotate(-45deg)}
+.ds-select-option[data-active=true]{background:var(--ds-colour-hover)}
+.ds-select-option[aria-disabled=true]{color:var(--ds-colour-muted);opacity:.45;cursor:not-allowed}
+.ds-select-group{padding:6px 12px;font-size:11px;font-weight:600;color:var(--ds-colour-muted);background:var(--ds-colour-hover)}
+.ds-field select[multiple]{min-height:138px;padding:0}
+.ds-field select[multiple] option{font:inherit;padding:8px 12px;border-bottom:1px solid var(--ds-colour-divider)}
+.ds-field select[multiple] optgroup{font:inherit;font-weight:600}
+.ds-field-actions{position:relative}
+.ds-field-action-trigger{display:flex;align-items:center;justify-content:space-between;list-style:none;min-height:44px;padding:10px 12px;border:1px solid var(--ds-colour-border);border-radius:var(--ds-form-field-radius);font:inherit;cursor:pointer}
+.ds-field-action-trigger::-webkit-details-marker{display:none}
+.ds-field-action-list{position:absolute;z-index:5;inset-inline:0;top:100%;padding:0;border:1px solid var(--ds-colour-border);border-radius:8px;background:var(--ds-colour-panel);overflow:hidden}
+.ds-field-action{display:block;border:0;border-top:1px solid var(--ds-colour-divider);background:transparent;color:inherit;width:100%;text-align:left;font:inherit;padding:10px 12px;cursor:pointer}
+.ds-field-action:hover{background:var(--ds-colour-hover)}
+@container ds-form (max-width:560px){.ds-form-grid{grid-template-columns:1fr}.ds-field-full{grid-column:auto}}
+@media(prefers-reduced-motion:reduce){.ds-field-switch:before{transition:none}}
+.ds-field:not(.ds-field-choice-group,.ds-field-check,.ds-field-button):has(>.ds-field-caption[hidden]){padding-top:8px}
+.ds-select[data-open=true]{z-index:auto}
+.ds-field:has(.ds-select[data-open=true]){z-index:20}
+.ds-select-list{z-index:3}

@@ -1,0 +1,24 @@
+/* DTCG palette primitives and semantic aliases. No DOM, storage or colour library. */
+(function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./tokens.js'):root.DesignSystemTokens);if(typeof module==='object'&&module.exports)module.exports=api;else root.DesignSystemColourSystem=api;})(globalThis,function(Tokens){
+'use strict';
+const categories=['brand','accent','greys'],own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k),valid=v=>typeof v==='string'&&/^#[a-f0-9]{6}$/i.test(v);
+function colourNode(hex,label){if(!valid(hex))throw new TypeError('Use a six-digit HEX colour.');return {$type:'color',$description:label,$value:Tokens.colour(hex)};}
+function read(doc,id){const groups=doc.themes[id].colors||{},out={},paths=categories.flatMap(category=>Object.keys(groups[category]||{}).filter(k=>!k.startsWith('$')).map(key=>`themes.${id}.colors.${category}.${key}`)),resolved=Tokens.resolveAll(doc,paths);for(const category of categories){out[category]=Object.entries(groups[category]||{}).filter(([key])=>!key.startsWith('$')).map(([key,node])=>{if(!/^[a-z][a-z0-9-]*$/.test(key))throw new TypeError('Invalid palette colour ID');if(node.$description!==undefined&&(typeof node.$description!=='string'||node.$description.length>80))throw new TypeError('Invalid colour label');return {id:key,label:node.$description||key,value:Tokens.cssColour(resolved[`themes.${id}.colors.${category}.${key}`])};});}return out;}
+function normalise(document,registry,defaults){const doc=Tokens.copy(document);for(const id of Object.keys(doc.themes).filter(k=>!k.startsWith('$'))){
+ const group=doc.themes[id];if(!group.colors){group.colors={$type:'color',brand:{},accent:{},greys:{}};const used=new Map();
+  const base=group.$extensions?.['org.topschrank.theme']?.base||id,reference=defaults?.themes?.[base]?.colors?.accent||{};
+  for(const [key,node] of Object.entries(reference)){if(key.startsWith('$'))continue;const value=Tokens.cssColour(Tokens.resolve(defaults,`themes.${base}.colors.accent.${key}`));group.colors.accent[key]=colourNode(value,node.$description||key);used.set(value,`themes.${id}.colors.accent.${key}`);}
+  for(const role of registry){const hex=Tokens.cssColour(Tokens.resolve(doc,`themes.${id}.${role.id}`));let ref=used.get(hex);
+   if(!ref){const cat=role.category,key='colour-'+(Object.keys(group.colors[cat]).length+1);group.colors[cat][key]=colourNode(hex,role.label);ref=`themes.${id}.colors.${cat}.${key}`;used.set(hex,ref);}
+   group[role.id]={...group[role.id],$value:'{'+ref+'}'};
+  }
+ }else{for(const category of categories){if(!group.colors[category])group.colors[category]={};}read(doc,id);}
+ }Tokens.validate(doc);return doc;}
+function add(doc,id,category,hex,label){if(!categories.includes(category))throw new TypeError('Unknown colour category');const group=doc.themes[id]?.colors?.[category];if(!group)throw new TypeError('Unknown theme');label=String(label||'New colour').trim();if(!label||label.length>80)throw new TypeError('Enter a colour name (1–80 characters).');let n=1;while(own(group,'colour-'+n))n++;const key='colour-'+n;group[key]=colourNode(hex,label);return key;}
+function detach(doc,path){const original=Tokens.copy(doc);function walk(group){for(const [key,node] of Object.entries(group)){if(key.startsWith('$')||!node||typeof node!=='object')continue;if(node.$value==='{'+path+'}')node.$value=Tokens.resolve(original,path);else if(!own(node,'$value'))walk(node);}}walk(doc);}
+function remove(doc,id,category,key){if(!categories.includes(category)||!own(doc.themes[id]?.colors?.[category]||{},key))return false;detach(doc,`themes.${id}.colors.${category}.${key}`);delete doc.themes[id].colors[category][key];return true;}
+function assign(doc,id,role,category,key){if(!categories.includes(category)||!own(doc.themes[id]?.colors?.[category]||{},key))throw new TypeError('Choose an existing palette colour.');doc.themes[id][role]={$type:'color',$value:`{themes.${id}.colors.${category}.${key}}`};}
+function replace(doc,id,values){for(const category of categories){if(!Array.isArray(values[category]))throw new TypeError('Supply all three colour categories.');for(const item of values[category])colourNode(item.value,item.label||'Colour');}
+ for(const category of categories){for(const key of Object.keys(doc.themes[id].colors[category]).filter(k=>!k.startsWith('$')))remove(doc,id,category,key);values[category].forEach(item=>add(doc,id,category,item.value,item.label));}}
+function assignments(doc,id,registry){const result={};for(const role of registry){const value=doc.themes[id][role.id].$value;const prefix=`{themes.${id}.colors.`;if(typeof value==='string'&&value.startsWith(prefix)){const parts=value.slice(prefix.length,-1).split('.');result[role.id]={category:parts[0],id:parts[1]};}else result[role.id]=null;}return result;}
+return Object.freeze({categories,read,normalise,add,remove,assign,replace,assignments,colourNode});});

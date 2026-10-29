@@ -1,0 +1,11 @@
+/* Optional Badge and colour-swatch composition belongs to this example only. */
+.example-list .ds-list .ds-badge{max-width:100%;padding:3px 6px;font-size:11px;white-space:normal;line-height:16px;vertical-align:middle}
+.example-list .ds-list[data-density=compact] .ds-badge{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.example-list .ds-list[data-device=mobile] .ds-badge{font-size:10px;padding:3px 5px}
+.example-list-colour{display:flex;align-items:center;gap:6px;font-size:10px;min-width:0}
+.example-list-colour i{display:block;flex:none;width:8px;height:20px;border-radius:3px}
+.example-list-colour span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+
+.example-list-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px}
+.example-list-search{min-width:0;flex:1;max-width:640px}
+.example-list-results{font-size:12px;color:var(--ds-colour-muted)}

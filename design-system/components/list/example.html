@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>List · isolated example</title>
+<link rel="stylesheet" href="../../foundations/tokens.css"><link rel="stylesheet" href="../../foundations/primitives.css"><link rel="stylesheet" href="list.css">
+<style>body{margin:24px;font:14px/1.5 var(--ds-font-family);color:var(--ds-colour-text);background:var(--ds-colour-page)}main{max-width:1100px;margin:auto;min-width:0}</style></head>
+<body><main><h1>List</h1><p>Resize this page to compare responsive columns. Normal and Compact work without a tool or storage.</p><div id="list"></div></main>
+<script src="list.js"></script><script>
+DesignSystemList.mount(document.getElementById('list'),{
+ label:'Project list',pageSize:6,
+ columns:[{id:'name',label:'Project',secondaryKey:'location'},{id:'reference',label:'Reference'},{id:'stage',label:'Stage'},{id:'owner',label:'Owner'},{id:'due',label:'Due date'},{id:'notes',label:'Notes'}],
+ rows:Array.from({length:19},(_,i)=>({id:'project-'+i,name:'Project '+(i+1),location:'Workshop '+(i+1),reference:'P-'+String(i+1).padStart(3,'0'),stage:i%2?'Design':'New',owner:'Project team',due:'4 November 2026',notes:'An independent List example.'}))
+});
+</script></body></html>

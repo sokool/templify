@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Breadcrumbs · isolated component</title>
+<link rel="stylesheet" href="../../foundations/tokens.css">
+<link rel="stylesheet" href="../../foundations/primitives.css">
+<link rel="stylesheet" href="./breadcrumbs.css">
+<style>
+body{margin:0;padding:clamp(16px,4vw,48px);font:15px/1.5 system-ui,sans-serif;color:#1B2D50;background:#FFF}main{max-width:1000px;margin:auto}section{padding:24px 0;border-bottom:1px solid #CAD8EA}h1{font-size:26px}h2{font-size:14px;font-weight:500;color:#617086;margin:0 0 16px}.actions{display:flex;flex-wrap:wrap;gap:12px;margin:20px 0}button{font:inherit;border:1px solid #8895A7;border-radius:8px;padding:7px 12px;background:#FFF;color:#22447F;cursor:pointer}#navigation-result{min-height:24px}
+</style>
+<script src="./breadcrumbs.js"></script>
+</head>
+<body><main>
+<h1>Breadcrumbs</h1>
+<p>This page loads the shared foundation and the component JavaScript/CSS. No application styles, menu, form controls, font downloads or storage are required.</p>
+<div class="actions"><button id="collapse" type="button" aria-pressed="true">Collapse middle levels</button><button id="theme" type="button">Toggle local theme</button></div>
+<div id="examples"></div><p id="navigation-result" role="status" aria-live="polite"></p>
+</main>
+<script>
+const components=[],parts=['components','forms','playground','specifications','cabinet','width'];
+let collapsed=true,dark=false;
+for(let depth=1;depth<=7;depth++){
+ const section=document.createElement('section'),heading=document.createElement('h2'),nav=document.createElement('nav');heading.textContent=depth+' '+(depth===1?'level':'levels');
+ section.append(heading,nav);document.getElementById('examples').append(section);
+ const items=[{id:'home',label:'topschrank',emphasisLength:3,href:'#home'},...parts.slice(0,depth-1).map((label,index)=>({id:label,label,href:'#'+parts.slice(0,index+1).join('.')}))];
+ components.push(DesignSystemBreadcrumbs.mount(nav,{items,onNavigate:item=>{document.getElementById('navigation-result').textContent='Selected: '+item.label+' → '+item.href}}));
+}
+document.getElementById('collapse').addEventListener('click',event=>{collapsed=!collapsed;event.currentTarget.setAttribute('aria-pressed',String(collapsed));components.forEach(instance=>instance.update({appearance:{longPaths:collapsed?'collapse':'full'}}))});
+document.getElementById('theme').addEventListener('click',()=>{dark=!dark;const colours=dark?{brand:'#D7D9DE',parent:'#AAAEB5',current:'#D7D9DE',dot:'#AAAEB5',hover:'#78A9ED'}:DesignSystemBreadcrumbs.defaults.colours;document.body.style.background=dark?'#2B2B2B':'#FFF';document.body.style.color=dark?'#D7D9DE':'#1B2D50';components.forEach(instance=>instance.update({appearance:{colours,accent:dark?'#78A9ED':'#22447F',panel:dark?'#2B2B2B':'#FFF',text:dark?'#D7D9DE':'#1B2D50',soft:dark?'#3C3F41':'#F3F6FA'}}))});
+</script></body></html>

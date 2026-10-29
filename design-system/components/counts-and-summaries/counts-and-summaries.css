@@ -1,0 +1,2 @@
+.ds-counts-and-summaries{min-width:0;color:var(--ds-colour-text);font-family:var(--ds-font-family,system-ui,sans-serif)}
+.ds-counts-and-summaries dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(120px,100%),1fr));gap:12px;margin:0}.ds-counts-and-summaries dt{font-size:12px;color:var(--ds-colour-muted)}.ds-counts-and-summaries dd{margin:5px 0 0;font-size:30px;line-height:1.3;font-weight:600;font-variant-numeric:tabular-nums}.ds-counts-and-summaries .ds-count-description{font-size:11px;font-weight:400;color:var(--ds-colour-muted)}

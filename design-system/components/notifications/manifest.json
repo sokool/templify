@@ -1,0 +1,57 @@
+{
+  "name": "notifications",
+  "version": "0.1.0",
+  "status": "extracted",
+  "entry": "notifications.js",
+  "stylesheet": "notifications.css",
+  "global": "DesignSystemNotifications",
+  "runtimeFiles": [
+    "notifications.js",
+    "notifications.css"
+  ],
+  "exportFiles": [
+    "notifications.js",
+    "notifications.css",
+    "../../foundations/tokens.css",
+    "../../foundations/primitives.css"
+  ],
+  "dependencies": {
+    "components": [],
+    "packages": [],
+    "foundations": [
+      "../../foundations/tokens.css",
+      "../../foundations/primitives.css"
+    ],
+    "platform": [
+      "DOM",
+      "CSS custom properties"
+    ]
+  },
+  "integration": {
+    "lifecycle": [
+      "mount(element, options)",
+      "update(options)",
+      "destroy()"
+    ],
+    "persistence": "Caller-owned; no runtime localStorage",
+    "content": "Plain strings or explicit DOM Nodes; no HTML string evaluation",
+    "data": "`kind: info | success | warning | error`, `title`, `message: string | Node`, optional `action: {label, onClick}`, `dismissible`, `onDismiss`.",
+    "api": "`mount(element, options)` \u2192 `update(options)`, `destroy()`. `createToaster({document, container?, duration?})` \u2192 `show(options)` returning an id, `dismiss(id)`, `destroy()`. Duration defaults to 2400 ms; 0 keeps a toast until dismissed. Host owns when messages appear."
+  },
+  "excluded": [
+    "tool.js",
+    "tool.css",
+    "examples",
+    "tests"
+  ],
+  "tests": "node --test tests/*.test.cjs",
+  "example": "../../examples/index.html#topschrank.components.notifications",
+  "publicTokens": [
+    "--ds-colour-text",
+    "--ds-colour-accent",
+    "--ds-colour-page",
+    "--ds-colour-panel",
+    "--ds-colour-divider",
+    "--ds-accent-1"
+  ]
+}

@@ -1,0 +1,83 @@
+[
+  {
+    "id": "page",
+    "label": "Page",
+    "category": "greys",
+    "purpose": "background",
+    "css": "--ds-colour-page",
+    "section": "Workspace",
+    "description": "Background of the workspace around its content and panels."
+  },
+  {
+    "id": "panel",
+    "label": "Panel",
+    "category": "greys",
+    "purpose": "background",
+    "css": "--ds-colour-panel",
+    "section": "Workspace",
+    "description": "Surface behind content panels, cards and dialogs."
+  },
+  {
+    "id": "text",
+    "label": "Text",
+    "category": "brand",
+    "purpose": "text",
+    "css": "--ds-colour-text",
+    "section": "Workspace",
+    "description": "Primary text used for headings, labels and body content."
+  },
+  {
+    "id": "muted",
+    "label": "Secondary text",
+    "category": "greys",
+    "purpose": "muted",
+    "css": "--ds-colour-muted",
+    "section": "Workspace",
+    "description": "Secondary text, supporting descriptions and placeholders."
+  },
+  {
+    "id": "border",
+    "label": "Border",
+    "category": "greys",
+    "purpose": "border",
+    "css": "--ds-colour-border",
+    "section": "Workspace",
+    "description": "Outlines around controls and interface surfaces."
+  },
+  {
+    "id": "divider",
+    "label": "Divider",
+    "category": "greys",
+    "purpose": "divider",
+    "css": "--ds-colour-divider",
+    "section": "Workspace",
+    "description": "Lines separating sections, rows and related content."
+  },
+  {
+    "id": "accent",
+    "label": "Primary accent",
+    "category": "brand",
+    "purpose": "accent",
+    "css": "--ds-colour-accent",
+    "section": "Workspace",
+    "description": "Primary interactive accent used for actions and emphasis."
+  },
+  {
+    "id": "selection",
+    "label": "Selection",
+    "category": "greys",
+    "purpose": "selection",
+    "css": "--ds-colour-selection",
+    "section": "Workspace",
+    "description": "Background indicating a selected item or active option."
+  },
+  {
+    "id": "hover",
+    "label": "Hover",
+    "category": "greys",
+    "purpose": "hover",
+    "css": "--ds-colour-hover",
+    "section": "Workspace",
+    "description": "Background shown when pointing at an interactive item."
+  }
+]

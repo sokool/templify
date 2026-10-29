@@ -1,0 +1,58 @@
+{
+  "name": "icons",
+  "type": "asset-library",
+  "version": "0.2.0",
+  "entry": "icons.js",
+  "stylesheet": "icons.css",
+  "global": "DesignSystemIcons",
+  "runtimeFiles": [
+    "icons.js",
+    "icons.css"
+  ],
+  "exportFiles": [
+    "icons.js",
+    "icons.css",
+    "LICENSE"
+  ],
+  "individualAssets": "svg/{name}.svg",
+  "dependencies": {
+    "components": [],
+    "foundations": [],
+    "packages": []
+  },
+  "source": {
+    "original": "144 Lucide SVG definitions from the existing playground; version 0.468.0",
+    "applicationUtilities": [
+      "type",
+      "moon",
+      "monitor",
+      "tablet",
+      "smartphone",
+      "shapes",
+      "square-terminal"
+    ],
+    "expanded": "Lucide 0.468.0: https://github.com/lucide-icons/lucide/tree/0.468.0/icons"
+  },
+  "api": [
+    "svg(name, {size = 20, label?})",
+    "has(name)",
+    "names"
+  ],
+  "presentation": "24 \u00d7 24 viewBox, currentColor, default 20 px, 1.75 stroke; decorative by default",
+  "excluded": [
+    "catalogue UI",
+    "search",
+    "size slider",
+    "clipboard",
+    "routing",
+    "theme selection",
+    "font selection"
+  ],
+  "count": 482,
+  "catalogue": {
+    "categories": 15,
+    "iconsPerCategory": 32,
+    "duplicates": false,
+    "searchMetadata": "../icon-categories.js"
+  }
+}
