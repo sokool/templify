@@ -1,0 +1,40 @@
+/* Authoring only. Form owns the controls; this component only arranges them. */
+.shortcuts-tool {
+  max-width: 640px;
+}
+
+.shortcuts-tool-rows {
+  display: grid;
+  gap: 18px;
+}
+
+.shortcuts-tool-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 6px 12px;
+}
+
+.shortcuts-tool-row > .ds-button {
+  margin-top: 8px;
+}
+
+.shortcuts-recorder .ds-field-control[readonly] {
+  cursor: pointer;
+  color: var(--ds-colour-text);
+}
+
+.shortcuts-tool-reference,
+.shortcuts-tool-status {
+  margin: 0;
+  color: var(--ds-colour-muted);
+  font-size: 10px;
+}
+
+.shortcuts-tool-reference {
+  grid-column: 1 / -1;
+}
+
+.shortcuts-tool-status {
+  margin-top: 16px;
+}

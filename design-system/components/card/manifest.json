@@ -5,6 +5,12 @@
   "entry": "card.js",
   "stylesheet": "card.css",
   "global": "DesignSystemCard",
+  "tool": {
+    "entry": "tool.js",
+    "stylesheet": "tool.css",
+    "global": "DesignSystemCardTool",
+    "export": false
+  },
   "runtimeFiles": [
     "card.js",
     "card.css"

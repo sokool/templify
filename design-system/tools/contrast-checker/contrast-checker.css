@@ -1,0 +1,28 @@
+/* Compact contrast authoring controls and a small, independent comparison preview. */
+.contrast-tool-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+  align-items: center;
+  gap: 12px;
+  max-width: 800px;
+  margin: 14px 0;
+}
+
+.contrast-tool-controls > div {
+  min-width: 0;
+}
+
+.contrast-tool-preview {
+  max-width: 640px;
+  padding: 16px;
+  border: 1px solid var(--ds-colour-divider);
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.contrast-tool-result {
+  margin: 10px 0;
+  font-size: 12px;
+  font-weight: 600;
+}

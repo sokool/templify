@@ -1,0 +1,68 @@
+/* Compact generic shadow editor, never exported with component runtimes. */
+.palette-shadow-section {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--ds-colour-divider);
+}
+
+.palette-shadow-samples {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 14px 0;
+  padding: 20px 16px;
+  border: 1px solid var(--ds-colour-divider);
+  border-radius: 12px;
+  background: var(--ds-colour-page);
+}
+
+.palette-shadow-sample {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  min-width: 0;
+  color: var(--ds-colour-muted);
+  font-size: 11px;
+}
+
+.palette-shadow-surface {
+  display: grid;
+  place-items: center;
+  width: min(100%, 80px);
+  height: 48px;
+  border: 1px solid var(--ds-colour-divider);
+  border-radius: 8px;
+  background: var(--ds-colour-panel);
+  color: var(--ds-colour-text);
+  font: 600 20px var(--ds-font-family);
+}
+
+.palette-shadow-editor {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.palette-shadow-selection,
+.palette-shadow-sliders {
+  display: contents;
+}
+
+.palette-shadow-selection > div {
+  min-width: 0;
+}
+
+.palette-shadow-actions,
+.palette-shadow-editor > p {
+  grid-column: 1 / -1;
+}
+
+@container ds-shell-content (max-width: 500px) {
+  .palette-shadow-samples {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    padding: 16px;
+  }
+}

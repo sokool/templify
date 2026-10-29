@@ -1,0 +1,16 @@
+/* Authoring controls only; excluded from Kanban runtime exports. */
+.kanban-board-tool {
+  margin: 16px 0;
+}
+
+.kanban-board-tool-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.kanban-board-tool > p {
+  margin: 8px 0 0;
+  color: var(--ds-colour-muted);
+  font-size: 11px;
+}

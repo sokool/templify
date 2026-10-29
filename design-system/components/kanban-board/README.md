@@ -55,7 +55,9 @@ Column and scroll colours use shared semantic tokens (`--ds-colour-lane`, `--ds-
 
 `examples/kanban.js` composes both modules and owns filtering, multi-selection chips, add/details dialogs and storage. `examples/kanban-data.js` supplies the 19 sample cards. These files are not exported with either component. That example toolbar is an integration harness, not an extracted Autocomplete/Form component; migration of those controls remains separate.
 
-There is no Kanban configurator yet. Any future configurator goes in `tool.js` beside this component and stays excluded from runtime exports.
+`tool.js` / `tool.css` provide preview-only **Randomise card borders** and **Reset borders** controls, excluded from runtime exports. The host injects `themes`, `getItems()` and an optional tool-only `settings` scope into `DesignSystemKanbanBoardTool.mount`, then binds each rendered Card with `bind(element, item.id)` and destroys that binding with the renderer. Randomisation covers every item, including filtered-out cards, using Brand/Accent/Greys references from the active Palette. Colours stay with IDs across movement, filtering and renderer recreation; theme edits update through CSS variables, while deleted references fall back to the shared Card border.
+
+The example saves the latest assignments per theme at `preview.kanban-board.borders` in the shared workspace settings. They restore after page navigation and reload, but belong only to the tool: no Kanban/Card component settings or runtime persistence are introduced. They are excluded from template/token/CSS exports; full workspace backups retain them. Reset restores Card's shared outline/lower edge and saves that reset for the active theme, without clearing other themes. Without an injected settings scope the tool works in memory.
 
 ## Verification
 

@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en" data-ds-theme="light" data-theme="light"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Navigation · standalone</title>
-<link rel="stylesheet" href="../../foundations/tokens.css"><link rel="stylesheet" href="../../foundations/primitives.css"><link rel="stylesheet" href="../breadcrumbs/breadcrumbs.css"><link rel="stylesheet" href="navigation.css"><link rel="stylesheet" href="../../icons/assets/icons.css">
+<link rel="stylesheet" href="../../foundations/tokens.css"><link rel="stylesheet" href="../../foundations/primitives.css"><link rel="stylesheet" href="../breadcrumbs/breadcrumbs.css"><link rel="stylesheet" href="../form/form.css"><link rel="stylesheet" href="navigation.css"><link rel="stylesheet" href="../../icons/assets/icons.css">
 <style>
 body{margin:0;background:var(--ds-colour-panel);font-family:var(--ds-font-family)}
 #viewport{container:ui-preview / inline-size;width:100%;min-height:100dvh}
@@ -8,7 +8,7 @@ body{margin:0;background:var(--ds-colour-panel);font-family:var(--ds-font-family
 .example-utilities{display:flex;flex-direction:column;gap:3px}.example-utilities button{min-height:36px;border:0;background:transparent;color:var(--ds-colour-muted)}
 </style>
 <div id="viewport"><div id="menu-live" data-sidebar-collapsed="false"></div></div>
-<script src="../../icons/assets/icons.js"></script><script src="../breadcrumbs/breadcrumbs.js"></script><script src="navigation.js"></script>
+<script src="../../icons/assets/icons.js"></script><script src="../breadcrumbs/breadcrumbs.js"></script><script src="../shortcuts/shortcuts.js"></script><script src="../form/validation.js"></script><script src="../form/field.js"></script><script src="navigation.js"></script>
 <script>
 const root=document.getElementById('menu-live'),viewport=document.getElementById('viewport');
 DesignSystemNavigation.renderStructure(root,{user:{initials:'AK',label:'Account'}});
@@ -17,7 +17,7 @@ const navigation=[{page:'dashboard',label:'Dashboard',icon:'dashboard'},{group:'
 DesignSystemNavigation.renderNavigation(root,navigation,{renderIcon:icon,submenuIcons:{forms:'type',tabs:'folder',breadcrumbs:'type',board:'folder',list:'folder'}});
 const shell=DesignSystemNavigation.mount(root,{viewport,renderIcon:icon,storage:{getItem:key=>localStorage.getItem(key),setItem:(key,value)=>localStorage.setItem(key,value)},storageKey:'standalone-shell',onNavigate:navigate});
 root.dataset.popupPattern='soft';shell.slots.header.prepend(shell.sidebarToggle);
-const items=document.createElement('div');items.className='workspace-nav-items';Array.from(shell.slots.navigation.children).filter(node=>node!==shell.slots.footer).forEach(node=>items.append(node));shell.slots.navigation.prepend(items);
+const items=document.createElement('div');items.className='workspace-nav-items';Array.from(shell.slots.navigation.children).filter(node=>node!==shell.slots.footer&&node!==shell.slots.search).forEach(node=>items.append(node));shell.slots.navigation.insertBefore(items,shell.slots.footer);
 const utilities=document.createElement('div');utilities.className='example-utilities';shell.slots.footer.append(utilities);
 ['Light','Dark','Matrix'].forEach(theme=>{const button=document.createElement('button');button.type='button';button.textContent=theme;button.setAttribute('aria-label',theme+' theme');button.addEventListener('click',()=>{document.documentElement.dataset.dsTheme=theme.toLowerCase();document.documentElement.dataset.theme=theme.toLowerCase()});utilities.append(button)});
 const mobile=shell.installMobile();shell.installOverflow({items,footer:shell.slots.footer,nav:shell.slots.navigation});

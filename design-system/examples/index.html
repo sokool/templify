@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="../foundations/tokens.css">
   <link rel="stylesheet" href="../foundations/primitives.css">
   <link rel="stylesheet" href="../components/navigation/navigation.css">
+  <link rel="stylesheet" href="../components/navigation/tool.css">
+  <link rel="stylesheet" href="../components/shortcuts/tool.css">
   <link rel="stylesheet" href="../components/breadcrumbs/breadcrumbs.css">
   <link rel="stylesheet" href="../icons/assets/icons.css">
   <link rel="stylesheet" href="../icons/icons.css">
@@ -22,7 +24,9 @@
   <link rel="stylesheet" href="../components/surface/tool.css">
   <link rel="stylesheet" href="../components/tooltip/tool.css">
   <link rel="stylesheet" href="../components/card/card.css">
+  <link rel="stylesheet" href="../components/card/tool.css">
   <link rel="stylesheet" href="../components/kanban-board/kanban-board.css">
+  <link rel="stylesheet" href="../components/kanban-board/tool.css">
   <link rel="stylesheet" href="kanban.css">
   <link rel="stylesheet" href="../components/form/form.css">
   <link rel="stylesheet" href="form.css">
@@ -38,13 +42,19 @@
   <link rel="stylesheet" href="workspace.css">
   <link rel="stylesheet" href="../fonts/fonts.css">
   <link rel="stylesheet" href="../palette/tool.css">
-  <link rel="stylesheet" href="../palette/picker.css">
+  <link rel="stylesheet" href="../tools/palette-picker/palette-picker.css">
+  <link rel="stylesheet" href="../tools/tools.css">
+  <link rel="stylesheet" href="../tools/shadows/shadows.css">
+  <link rel="stylesheet" href="../tools/contrast-checker/contrast-checker.css">
   <link rel="stylesheet" href="../components/progress/tool.css">
 </head>
 <body>
   <div id="example-viewport" data-device="desktop">
     <div id="menu-live"></div>
   </div>
+  <script src="../components/shortcuts/shortcuts.js"></script>
+  <script src="../components/form/validation.js"></script>
+  <script src="../components/form/field.js"></script>
   <script src="../components/navigation/navigation.js"></script>
   <script src="../components/breadcrumbs/breadcrumbs.js"></script>
   <script src="../icons/assets/icons.js"></script>
@@ -55,6 +65,7 @@
   <script src="../tokens/defaults.js"></script>
   <script src="../tokens/colour-system.js"></script>
   <script src="../foundations/colour-roles.js"></script>
+  <script src="../foundations/shadows.js"></script>
   <script src="../foundations/themes.js"></script>
   <script src="../palette/palette-data.js"></script>
   <script src="../palette/vendor/chroma.min.js"></script>
@@ -75,10 +86,11 @@
   <script src="../components/card/card.js"></script>
   <script src="../components/kanban-board/model.js"></script>
   <script src="../components/kanban-board/kanban-board.js"></script>
+  <script src="../components/kanban-board/tool.js"></script>
   <script src="kanban-data.js"></script>
   <script src="kanban.js"></script>
-  <script src="../components/form/validation.js"></script>
-  <script src="../components/form/field.js"></script>
+  <script src="../components/shortcuts/tool.js"></script>
+  <script src="../components/navigation/tool.js"></script>
   <script src="../components/form/form.js"></script>
   <script src="../components/form/tool.js"></script>
   <script src="form-data.js"></script>
@@ -94,13 +106,17 @@
   <script src="../components/counts-and-summaries/counts-and-summaries.js"></script>
   <script src="../components/window/window.js"></script>
   <script src="../components/window/tool.js"></script>
-  <script src="../palette/picker.js"></script>
+  <script src="../tools/palette-picker/palette-picker.js"></script>
+  <script src="../tools/shadows/shadows.js"></script>
+  <script src="../tools/contrast-checker/contrast-checker.js"></script>
+  <script src="../components/card/tool.js"></script>
   <script src="../components/progress/tool.js"></script>
   <script src="extended-components.js"></script>
   <script src="../storage/settings.js"></script>
   <script src="settings.js"></script>
   <script src="../components/list/list.js"></script>
   <script src="list.js"></script>
+  <script src="tools.js"></script>
   <script src="workspace.js"></script>
 </body>
 </html>

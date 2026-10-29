@@ -81,7 +81,7 @@ for adjustment. Window handles Escape, backdrop dismissal and focus restoration.
 
 ## Shared popup picker
 
-`picker.js` / `picker.css` are a reusable editor tool, first integrated in Progress.
+`../tools/palette-picker/palette-picker.js` / `.css` are the reusable editor tool, first integrated in Progress and also exposed under **Tools → Palette picker**.
 `PalettePicker.mount(host, {themes, label, value, defaultValue, onChange})` renders
 one compact trigger and an anchored, non-modal Popover with Brand/Accent/Greys and custom colour/HEX.
 Selections may be semantic (`{kind:'semantic',role:'accent'}`), palette references
@@ -91,3 +91,22 @@ References follow the active theme; a saved fallback covers missing colours. The
 component receiving CSS does not import this tool or understand these references.
 The picker subscribes to the injected theme controller, and `destroy()` unsubscribes
 and removes its popup. FormField is an editor-only dependency. The Popover opens near its trigger, flips above when necessary, fits the viewport and dismisses on outside click or Escape. It has no backdrop, focus trap or scroll lock.
+
+Pass `paletteOnly:true` (used by Card) to exclude custom colour controls and reject custom/missing references. Supply a semantic `defaultValue` so unavailable selections fall back to the active theme, never a saved HEX. `validForTheme` and `resolveTheme` expose the same policy for injected authoring controllers. Other tools retain their existing custom-colour support.
+
+## Shared shadows
+
+**Shadows** provides None, Soft, Medium and Strong previews. Choose an editable profile with the shared Form select; Form sliders edit X/Y offsets, blur, spread and opacity. The palette-only picker supplies the shadow colour. None is always shadow-free; **Reset shadow profile** restores only the selected definition in the active theme.
+
+`foundations/shadows.js` contains validation/defaults and CSS generation, without editor or storage dependencies. `../tools/shadows/shadows.js` / `.css` implement the compact editor under **Tools → Shadows**, outside the Palette page. Components consume `--ds-shadow-none`, `--ds-shadow-soft`, `--ds-shadow-medium` and `--ds-shadow-strong`, never import the tool, and opt in individually; this change integrates Card only.
+
+Definitions are theme-specific metadata under `$extensions["org.topschrank.shadows"]`, not a new DTCG token type. The existing colour-token profile is unchanged. Definitions survive theme copies, persistence and DTCG JSON import/export; CSS export emits the resolved shadow variables. Deleted palette references return to the active Text role, never an old HEX. Invalid shadow imports are rejected atomically.
+
+Theme-specific component tool preferences use `$extensions["org.topschrank.components"]`; Card stores its colours, square preview size and chosen shadow profiles there. Safe CSS-variable bindings also export with each theme. Unconfigured themes clear those bindings rather than inheriting another theme's choices.
+
+Run `node --test design-system/testing/shadows.test.cjs design-system/components/card/tests/*.test.cjs`.
+
+**Contrast checker** has also moved from Palette to **Tools → Contrast checker**.
+Its implementation is `../tools/contrast-checker/`, using the shared picker and
+the existing injected contrast calculator. Palette now focuses on themes, colour
+categories and semantic applications rather than embedding generic editors.

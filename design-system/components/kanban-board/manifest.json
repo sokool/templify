@@ -48,6 +48,12 @@
     "examples",
     "tests"
   ],
+  "tool": {
+    "entry": "tool.js",
+    "stylesheet": "tool.css",
+    "global": "DesignSystemKanbanBoardTool",
+    "export": false
+  },
   "example": "../../examples/index.html#topschrank.components.kanbanboard",
   "tests": "node --test tests/*.test.cjs",
   "colourRoles": [

@@ -1722,12 +1722,16 @@ html,body{max-width:100%;overflow-x:clip}
 <link rel="stylesheet" href="./design-system/components/tabs/tabs.css">
 <link rel="stylesheet" href="./design-system/icons/assets/icons.css">
 <link rel="stylesheet" href="./design-system/components/navigation/navigation.css">
+<link rel="stylesheet" href="./design-system/components/form/form.css">
 <link rel="stylesheet" href="./playground/breadcrumbs/editor.css">
 <script src="./design-system/components/breadcrumbs/breadcrumbs.js"></script>
 <script src="./design-system/components/tabs/tabs.js"></script>
 <script src="./design-system/icons/assets/icons.js"></script>
 <script src="./design-system/icons/icon-categories.js"></script>
 <script src="./design-system/icons/icons.js"></script>
+<script src="./design-system/components/shortcuts/shortcuts.js"></script>
+<script src="./design-system/components/form/validation.js"></script>
+<script src="./design-system/components/form/field.js"></script>
 <script src="./design-system/components/navigation/navigation.js"></script>
 <script src="./playground/tabs/example.js"></script>
 <script src="./playground/breadcrumbs/editor.js"></script>
@@ -2248,7 +2252,10 @@ viewportButtons.forEach(button=>{const mode=button.dataset.viewport,label=viewpo
 // Only navigation items scroll; appearance controls stay in the sidebar footer.
 const workspaceNavItems=document.createElement('div');workspaceNavItems.className='workspace-nav-items';
 const pinnedNav=document.getElementById('menu-live-nav'),pinnedFooter=pinnedNav.querySelector('.menu-sidebar-footer');
-Array.from(pinnedNav.children).filter(node=>node!==pinnedFooter).forEach(node=>workspaceNavItems.append(node));pinnedNav.insertBefore(workspaceNavItems,pinnedFooter);
+Array.from(pinnedNav.children)
+ .filter(node=>node!==pinnedFooter&&node!==appShell.slots.search)
+ .forEach(node=>workspaceNavItems.append(node));
+pinnedNav.insertBefore(workspaceNavItems,pinnedFooter);
 
 // Expose device, palette and font controls directly in the bottom navigation.
 const bottomDeviceControls=workspacePreferencesPanel.querySelector('.viewport-buttons');bottomDeviceControls.classList.add('bottom-device-controls');workspacePreferences.prepend(bottomDeviceControls);

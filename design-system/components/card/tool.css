@@ -1,0 +1,94 @@
+/* Card authoring layout only; excluded from component exports. */
+.card-tool-section {
+  padding: 16px;
+  border: 1px solid var(--ds-colour-divider);
+  border-radius: 12px;
+  background: var(--ds-colour-panel);
+}
+
+.card-tool-section > header h2,
+.card-preview-section > header h2 {
+  margin: 0 0 5px;
+  font-size: 16px;
+}
+
+.card-tool-section > header p,
+.card-preview-section > header p {
+  margin: 0;
+  color: var(--ds-colour-muted);
+  font-size: 12px;
+  line-height: var(--ds-line-height);
+}
+
+.card-tool {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  margin-top: 14px;
+}
+
+.card-tool-colours,
+.card-tool-fields {
+  display: contents;
+}
+
+.card-tool-colours > div {
+  min-width: 0;
+}
+
+.card-tool-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.card-tool-note {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--ds-colour-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.card-preview-section {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--ds-colour-divider);
+}
+
+.card-tool-stage {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  margin-top: 14px;
+  padding: 24px 16px;
+  border: 1px dashed var(--ds-colour-divider);
+  border-radius: 12px;
+  background: var(--ds-colour-page);
+}
+
+.card-tool-preview {
+  width: min(100%, var(--card-preview-size, 360px));
+  aspect-ratio: 1;
+  min-width: 0;
+}
+
+.card-tool-preview > .ds-card {
+  box-sizing: border-box;
+  height: 100%;
+  overflow: auto;
+}
+
+@container ds-shell-content (max-width: 480px) {
+  .card-tool-section {
+    padding: 12px;
+  }
+
+  .card-tool-stage {
+    padding: 20px 12px;
+  }
+}

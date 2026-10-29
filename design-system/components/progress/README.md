@@ -19,6 +19,6 @@ exists in the runtime.
 
 `tool.js` / `tool.css` provide three compact palette-popup triggers. The host
 injects `themes`, shared `settings` scope and the Progress instances to update.
-The tool reuses `palette/picker.js`, FormField and a non-modal, anchored Popover. Config stores palette
+The tool reuses `tools/palette-picker/palette-picker.js`, FormField and a non-modal, anchored Popover. Config stores palette
 references plus a generic `appearance` map for runtime/template consumers. These
 editor dependencies remain excluded from `manifest.json` runtime/export files.

@@ -34,6 +34,12 @@ The icon catalogue contains 15 categories × 32 unique icons (480 total). Search
 
 ## Palette
 
+The **Tools** submenu exposes **Contrast checker**, **Palette picker** and **Shadows**.
+Their implementation lives in `../tools/`, not in Palette or component runtime
+directories. Generic editors are no longer embedded in Palette; component configurators reuse
+the same picker and shadow definitions. Authoring controls are compact (`../tools/tools.css`, `ds-tool`)
+and keep state in the selected Palette theme. See `../tools/README.md`.
+
 Open `index.html#topschrank.palette`. Palette is an application configuration tool,
 like Fonts, not a component. `../palette/tool.js` and `../palette/tool.css` render the
 compact theme sectors (initially Light/Dark/Matrix) with colour and HEX editors, per-theme reset, adding/removing themes and a dynamic footer theme cycle,
@@ -80,10 +86,21 @@ The toolbar composes Autocomplete (small, multiple) with Kanban board filtering.
 Add/details dialogs and saved placement are host responsibilities, excluded from runtime exports.
 Autocomplete supplies the shared field, suggestions and chips; this example supplies card data and the filtering predicate.
 
+The Kanban-only border tool (`../components/kanban-board/tool.js`) randomises each card's outline/lower edge from the active Palette, including hidden cards. Colours stay with card IDs during movement and filtering. The latest assignments are saved per theme at `preview.kanban-board.borders`, restoring on page navigation and reload. **Reset borders** restores the shared Card appearance and saves the reset for that theme. These are tool preferences, not Kanban/Card component settings: template/token/CSS exports exclude them, while full workspace backups retain them.
+
 Global device controls notify the mounted board/Card. Shared theme/font tokens are
 inherited directly. This example does not read or mutate the original HTML or its saved
 Kanban state. New cards last for the session; placement of sample cards is saved under
 `session.kanban.placement` in the unified document (excluded from template export).
+
+## Shortcuts catalogue
+
+`#topschrank.components.shortcuts` lists registered application shortcuts. The host
+shares one `DesignSystemShortcuts` registry/dispatcher with Navigation and one
+theme-aware tool adapter. Navigation's `Search shortcut` field references
+`navigation.search`; editing either page changes the same binding. Existing
+per-theme Navigation preferences are migrated, including disabled shortcuts,
+without overriding central settings. Both editors reuse compact Form controls.
 
 ## Form catalogue
 

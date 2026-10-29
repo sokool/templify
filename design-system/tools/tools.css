@@ -1,0 +1,86 @@
+/* Compact authoring controls only. Never applied to component previews or exports. */
+.ds-tool .ds-field {
+  --ds-form-field-height: 34px;
+  --ds-form-field-radius: 8px;
+  --ds-form-control-font-size: 12px;
+  font-size: 12px;
+}
+
+.ds-tool .ds-field-control:not([type='checkbox'], [type='radio'], [type='range']) {
+  min-height: 34px;
+  padding: 6px 10px;
+  line-height: 20px;
+}
+
+.ds-tool .ds-field-caption {
+  font-size: 10px;
+}
+
+.ds-tool .ds-field-output {
+  margin-top: 3px;
+  font-size: 10px;
+}
+
+.ds-tool .ds-field input[type='range'] {
+  height: 18px;
+  min-height: 18px;
+  padding: 0;
+}
+
+.ds-tool .ds-select-option {
+  min-height: 32px;
+  padding: 5px 30px 5px 10px;
+}
+
+.ds-tool .palette-picker-trigger {
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+
+.ds-tool .palette-picker-trigger i {
+  flex-basis: 20px;
+  width: 20px;
+  height: 24px;
+}
+
+.ds-tool .palette-picker-trigger strong {
+  font-size: 11px;
+}
+
+.ds-tool .palette-picker-trigger small {
+  margin-top: 1px;
+}
+
+.ds-tool .ds-button {
+  min-height: 32px;
+  padding: 6px 10px;
+  border-width: 1px;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.ds-tool .example-link {
+  font-size: 11px;
+}
+
+.example-tools-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+  align-items: center;
+  gap: 12px;
+  max-width: 800px;
+  margin-top: 16px;
+}
+
+.example-tools-controls > div {
+  min-width: 0;
+}
+
+.example-tools-index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 16px;
+  font-size: 13px;
+}
