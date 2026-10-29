@@ -1,0 +1,16 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tabs · isolated component</title>
+<link rel="stylesheet" href="../../defaults.css"><link rel="stylesheet" href="../../primitives.css"><link rel="stylesheet" href="./tabs.css">
+<style>body{margin:0;padding:clamp(16px,4vw,48px);background:var(--ds-colour-panel);color:var(--ds-colour-text);font:14px/1.5 var(--ds-font-family)}main{max-width:800px;margin:auto}section{margin-top:32px}button[data-theme]{margin:12px 0;font:inherit;padding:7px 12px}h2{font-size:16px}#status{min-height:24px}</style>
+<script src="./tabs.js"></script></head><body><main>
+<h1>Tabs</h1><p>Only Tabs and its two shared foundation stylesheets are loaded. No application code is required.</p>
+<button data-theme type="button">Change theme</button>
+<section><h2>Automatic activation</h2><div id="automatic-tabs"></div></section>
+<section><h2>Independent instance · manual keyboard activation</h2><div id="manual-tabs"></div></section>
+<p id="status" role="status" aria-live="polite"></p>
+</main><script>
+const items=[{id:'materials',label:'Materials',content:'Materials and finishes available for your project.'},{id:'details',label:'Details',content:'Dimensions, drawings and selected details.'},{id:'service',label:'Service',content:'Consultation, measurement, production and installation.'},{id:'archive',label:'Unavailable',content:'Archived information.',disabled:true}];
+DesignSystemTabs.mount(document.getElementById('automatic-tabs'),{label:'Product details',items,onChange:id=>document.getElementById('status').textContent='Automatic: '+id});
+DesignSystemTabs.mount(document.getElementById('manual-tabs'),{label:'Manual product details',items,activation:'manual',onChange:id=>document.getElementById('status').textContent='Manual: '+id});
+let theme=0;document.querySelector('[data-theme]').addEventListener('click',()=>{theme=(theme+1)%3;document.documentElement.dataset.dsTheme=['light','dark','matrix'][theme]});
+</script></body></html>

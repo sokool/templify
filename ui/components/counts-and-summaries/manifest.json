@@ -1,0 +1,33 @@
+{
+  "name": "counts-and-summaries",
+  "version": "0.1.0",
+  "status": "extracted",
+  "entry": "counts-and-summaries.js",
+  "stylesheet": "counts-and-summaries.css",
+  "global": "DesignSystemCountsAndSummaries",
+  "runtimeFiles": [
+    "counts-and-summaries.js",
+    "counts-and-summaries.css"
+  ],
+  "exportFiles": [
+    "counts-and-summaries.js",
+    "counts-and-summaries.css",
+    "../../defaults.css",
+    "../../primitives.css"
+  ],
+  "dependencies": {
+    "components": [],
+    "packages": [],
+    "foundations": [
+      "../../defaults.css",
+      "../../primitives.css"
+    ]
+  },
+  "excluded": [
+    "tool.js",
+    "tool.css",
+    "tests",
+    "examples"
+  ],
+  "example": "../../../app/index.html#topschrank.components.countsandsummaries"
+}

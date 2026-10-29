@@ -1,0 +1,23 @@
+{
+  "name": "tokens",
+  "version": "0.1.0",
+  "format": "DTCG 2025.10",
+  "supportedProfile": "sRGB color tokens, inherited types, whole-token curly-brace aliases",
+  "entry": "tokens.js",
+  "global": "DesignSystemTokens",
+  "authoredDefaults": "palette.tokens.json",
+  "generatedDefaults": "defaults.js",
+  "dependencies": {
+    "components": [],
+    "packages": []
+  },
+  "platform": [
+    "JavaScript"
+  ],
+  "exports": [
+    "tokens.js",
+    "palette.tokens.json",
+    "../../colours/colour-system.js"
+  ],
+  "notes": "Optional translation layer. Components using compiled CSS do not import this module or the Palette tool. This is not a full DTCG implementation."
+}

@@ -1,0 +1,58 @@
+{
+  "name": "buttons",
+  "version": "0.1.0",
+  "status": "extracted",
+  "entry": "buttons.js",
+  "stylesheet": "buttons.css",
+  "global": "DesignSystemButtons",
+  "tool": { "entry": "configurator/configurator.js", "stylesheet": "configurator/configurator.css", "global": "DesignSystemButtonsTool", "export": false },
+  "runtimeFiles": [
+    "buttons.js",
+    "buttons.css"
+  ],
+  "exportFiles": [
+    "buttons.js",
+    "buttons.css",
+    "../../defaults.css",
+    "../../primitives.css"
+  ],
+  "dependencies": {
+    "components": [],
+    "packages": [],
+    "foundations": [
+      "../../defaults.css",
+      "../../primitives.css"
+    ],
+    "platform": [
+      "DOM",
+      "CSS custom properties"
+    ]
+  },
+  "integration": {
+    "lifecycle": [
+      "mount(element, options)",
+      "update(options)",
+      "destroy()"
+    ],
+    "persistence": "Caller-owned; no runtime localStorage",
+    "content": "Plain strings or explicit DOM Nodes; no HTML string evaluation",
+    "data": "label, disabled, type, onClick, appearance: {fill, ink, border, shadow}, variant: primary | split | secondary | ghost",
+    "api": "`mount(container, options)` \u2192 `element` (the native button), `update(options)`, `destroy()`. The Split action arrow is decorative; the entire button invokes one action. Disabled state uses native button semantics."
+  },
+  "excluded": [
+    "configurator/configurator.js",
+    "configurator/configurator.css",
+    "examples",
+    "tests"
+  ],
+  "tests": "node --test tests/*.test.cjs",
+  "example": "../../../app/index.html#topschrank.components.buttons",
+  "publicTokens": [
+    "--ds-button-fill",
+    "--ds-button-ink",
+    "--ds-colour-accent",
+    "--ds-colour-on-accent",
+    "--ds-button-border",
+    "--ds-button-shadow"
+  ]
+}

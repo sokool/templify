@@ -1,0 +1,97 @@
+{
+  "name": "kanban-board",
+  "version": "0.1.0",
+  "status": "extracted",
+  "entry": "kanban-board.js",
+  "stylesheet": "kanban-board.css",
+  "global": "DesignSystemKanbanBoard",
+  "runtimeFiles": [
+    "model.js",
+    "kanban-board.js",
+    "kanban-board.css"
+  ],
+  "exportFiles": [
+    "model.js",
+    "kanban-board.js",
+    "kanban-board.css",
+    "../../defaults.css",
+    "../../primitives.css"
+  ],
+  "dependencies": {
+    "components": [],
+    "packages": [],
+    "foundations": [
+      "../../defaults.css",
+      "../../primitives.css"
+    ],
+    "platform": [
+      "DOM",
+      "CSS custom properties",
+      "Pointer Events",
+      "ResizeObserver",
+      "CSS scroll snap"
+    ]
+  },
+  "integration": {
+    "persistence": "Caller-owned. Runtime never reads or writes storage.",
+    "lifecycle": [
+      "mount(element, options)",
+      "update(options)",
+      "destroy()"
+    ],
+    "data": "columns [{id,label}], items [{id,columnId,...opaqueData}], renderItem(item,context)",
+    "composition": "Injected renderer contract: {element,destroy?,update?,focus?,canDrag?,closeMenu?}. The examples use Card; it is not imported by the board."
+  },
+  "excluded": [
+    "configurator/configurator.js",
+    "configurator/configurator.css",
+    "examples",
+    "tests"
+  ],
+  "tool": {
+    "entry": "configurator/configurator.js",
+    "stylesheet": "configurator/configurator.css",
+    "global": "DesignSystemKanbanBoardTool",
+    "export": false
+  },
+  "example": "../../../app/index.html#topschrank.components.kanbanboard",
+  "tests": "node --test tests/*.test.cjs",
+  "colourRoles": [
+    {
+      "id": "lane",
+      "label": "Column background",
+      "css": "--ds-colour-lane",
+      "category": "greys",
+      "purpose": "background",
+      "section": "Kanban board",
+      "description": "Background behind the cards in each Kanban column."
+    },
+    {
+      "id": "laneHeader",
+      "label": "Column header",
+      "css": "--ds-colour-lane-header",
+      "category": "greys",
+      "purpose": "hover",
+      "section": "Kanban board",
+      "description": "Background of the column heading and item count."
+    },
+    {
+      "id": "scrollIndicator",
+      "label": "Scroll indicator",
+      "css": "--ds-colour-scroll-indicator",
+      "category": "greys",
+      "purpose": "border",
+      "section": "Kanban board",
+      "description": "Fill of the desktop edge indicators used for horizontal scrolling."
+    },
+    {
+      "id": "scrollBorder",
+      "label": "Scroll outline",
+      "css": "--ds-colour-scroll-border",
+      "category": "greys",
+      "purpose": "muted",
+      "section": "Kanban board",
+      "description": "Outline of the Kanban horizontal scrolling indicators."
+    }
+  ]
+}

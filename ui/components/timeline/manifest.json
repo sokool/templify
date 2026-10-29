@@ -1,0 +1,33 @@
+{
+  "name": "timeline",
+  "version": "0.1.0",
+  "status": "extracted",
+  "entry": "timeline.js",
+  "stylesheet": "timeline.css",
+  "global": "DesignSystemTimeline",
+  "runtimeFiles": [
+    "timeline.js",
+    "timeline.css"
+  ],
+  "exportFiles": [
+    "timeline.js",
+    "timeline.css",
+    "../../defaults.css",
+    "../../primitives.css"
+  ],
+  "dependencies": {
+    "components": [],
+    "packages": [],
+    "foundations": [
+      "../../defaults.css",
+      "../../primitives.css"
+    ]
+  },
+  "excluded": [
+    "tool.js",
+    "tool.css",
+    "tests",
+    "examples"
+  ],
+  "example": "../../../app/index.html#topschrank.components.timeline"
+}

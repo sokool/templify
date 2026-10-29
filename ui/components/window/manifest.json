@@ -1,0 +1,41 @@
+{
+  "name": "window",
+  "version": "0.1.0",
+  "status": "extracted",
+  "entry": "window.js",
+  "stylesheet": "window.css",
+  "global": "DesignSystemWindow",
+  "tool": { "entry": "configurator/configurator.js", "global": "DesignSystemWindowTool", "export": false },
+  "runtimeFiles": [
+    "window.js",
+    "window.css"
+  ],
+  "exportFiles": [
+    "window.js",
+    "window.css",
+    "../../defaults.css",
+    "../../primitives.css"
+  ],
+  "dependencies": {
+    "components": [],
+    "packages": [],
+    "foundations": [
+      "../../defaults.css",
+      "../../primitives.css"
+    ],
+    "platform": [
+      "HTMLDialogElement.showModal",
+      "DOM",
+      "CSS custom properties"
+    ]
+  },
+  "excluded": [
+    "configurator/configurator.js",
+    "tests",
+    "examples"
+  ],
+  "toolDependencies": [
+    "../form/field.js"
+  ],
+  "example": "../../../app/index.html#topschrank.components.window"
+}

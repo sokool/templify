@@ -1715,27 +1715,27 @@ html,body{max-width:100%;overflow-x:clip}
 .preview-viewport[data-mode=mobile] .orders-table[data-density=normal] .order-address{display:block;margin-top:3px;font-size:11px;line-height:1.4;color:var(--muted);white-space:normal;overflow-wrap:anywhere}
 .preview-viewport[data-mode=mobile] .orders-table[data-density=normal] td{padding-block:10px}
 .preview-viewport[data-mode=mobile] .orders-table[data-density=compact] .order-address{display:none}</style>
-<link rel="stylesheet" href="./design-system/foundations/tokens.css">
-<link rel="stylesheet" href="./design-system/foundations/primitives.css">
-<link rel="stylesheet" href="./playground/theme-adapter.css">
-<link rel="stylesheet" href="./design-system/components/breadcrumbs/breadcrumbs.css">
-<link rel="stylesheet" href="./design-system/components/tabs/tabs.css">
-<link rel="stylesheet" href="./design-system/icons/assets/icons.css">
-<link rel="stylesheet" href="./design-system/components/navigation/navigation.css">
-<link rel="stylesheet" href="./design-system/components/form/form.css">
-<link rel="stylesheet" href="./playground/breadcrumbs/editor.css">
-<script src="./design-system/components/breadcrumbs/breadcrumbs.js"></script>
-<script src="./design-system/components/tabs/tabs.js"></script>
-<script src="./design-system/icons/assets/icons.js"></script>
-<script src="./design-system/icons/icon-categories.js"></script>
-<script src="./design-system/icons/icons.js"></script>
-<script src="./design-system/components/shortcuts/shortcuts.js"></script>
-<script src="./design-system/components/form/validation.js"></script>
-<script src="./design-system/components/form/field.js"></script>
-<script src="./design-system/components/navigation/navigation.js"></script>
-<script src="./playground/tabs/example.js"></script>
-<script src="./playground/breadcrumbs/editor.js"></script>
-<script src="./playground/breadcrumbs/workspace-adapter.js"></script>
+<link rel="stylesheet" href="./ui/defaults.css">
+<link rel="stylesheet" href="./ui/primitives.css">
+<link rel="stylesheet" href="./app/workspace/theme-adapter.css">
+<link rel="stylesheet" href="./ui/components/breadcrumbs/breadcrumbs.css">
+<link rel="stylesheet" href="./ui/components/tabs/tabs.css">
+<link rel="stylesheet" href="./ui/assets/icons/icons.css">
+<link rel="stylesheet" href="./ui/components/navigation/navigation.css">
+<link rel="stylesheet" href="./ui/components/form/form.css">
+<link rel="stylesheet" href="./ui/components/breadcrumbs/configurator/configurator.css">
+<script src="./ui/components/breadcrumbs/breadcrumbs.js"></script>
+<script src="./ui/components/tabs/tabs.js"></script>
+<script src="./ui/assets/icons/icons.js"></script>
+<script src="./ui/tools/icons/icon-categories.js"></script>
+<script src="./ui/tools/icons/icons.js"></script>
+<script src="./ui/components/shortcuts/shortcuts.js"></script>
+<script src="./ui/components/form/validation.js"></script>
+<script src="./ui/components/form/field.js"></script>
+<script src="./ui/components/navigation/navigation.js"></script>
+<script src="./app/workspace/tabs.js"></script>
+<script src="./ui/components/breadcrumbs/configurator/configurator.js"></script>
+<script src="./app/workspace/breadcrumbs-adapter.js"></script>
 </head>
 <body>
 <div class="viewport-toolbar"><span class="viewport-label">Preview</span><div class="viewport-buttons" role="group" aria-label="Preview mode"><button type="button" data-viewport="desktop" aria-pressed="true" aria-controls="preview-viewport">Desktop <small>1440</small></button><button type="button" data-viewport="tablet" aria-pressed="false" aria-controls="preview-viewport">Tablet <small>768</small></button><button type="button" data-viewport="mobile" aria-pressed="false" aria-controls="preview-viewport">Mobile <small>390</small></button></div><div class="theme-switcher" role="group" aria-label="Colour theme"><button type="button" data-theme-choice="light" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg>Light</button><button type="button" data-theme-choice="dark" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.1A8.5 8.5 0 0 1 9.9 3.5a8.5 8.5 0 1 0 10.6 10.6Z"/></svg>Dark</button></div><div class="toolbar-pickers"><details class="appearance-picker" id="palette-picker"><summary><span class="picker-field-label">Palette</span><span class="picker-current"><i class="picker-palette-dot" aria-hidden="true"></i><span id="toolbar-palette-name">Silver</span></span><span aria-hidden="true">⌄</span></summary><div class="appearance-menu"><div class="appearance-menu-title">Choose palette <small>8 variations</small></div><div class="palette-options" id="palette-options" role="group" aria-label="Alternative colour palettes"></div></div></details><details class="appearance-picker" id="font-picker"><summary><span class="picker-field-label">Font</span><span class="picker-current" id="quick-font-name">Manrope</span><span aria-hidden="true">⌄</span></summary><div class="appearance-menu font-menu"><div class="appearance-menu-title">Choose font <small>16 typefaces</small></div><div class="font-options" id="font-options" role="group" aria-label="Interface font"></div></div></details></div><span class="sr-only" id="palette-status" aria-live="polite"></span><span class="sr-only" id="font-status" aria-live="polite"></span><output class="viewport-size" id="viewport-size" aria-live="polite">Desktop</output></div><div class="preview-viewport" id="preview-viewport" data-mode="desktop" data-button-design="split">

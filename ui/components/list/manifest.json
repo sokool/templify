@@ -1,0 +1,47 @@
+{
+  "name": "list",
+  "version": "0.1.0",
+  "status": "extracted",
+  "entry": "list.js",
+  "stylesheet": "list.css",
+  "global": "DesignSystemList",
+  "runtimeFiles": [
+    "list.js",
+    "list.css"
+  ],
+  "exportFiles": [
+    "list.js",
+    "list.css",
+    "../../defaults.css",
+    "../../primitives.css"
+  ],
+  "dependencies": {
+    "components": [],
+    "packages": [],
+    "foundations": [
+      "../../defaults.css",
+      "../../primitives.css"
+    ],
+    "platform": [
+      "DOM",
+      "ResizeObserver",
+      "CSS custom properties"
+    ]
+  },
+  "integration": {
+    "persistence": "Caller-owned, optional settings injection through callbacks.",
+    "composition": "Caller-supplied column renderers; no hidden runtime component dependencies.",
+    "lifecycle": [
+      "mount(host, options)",
+      "update(patch)",
+      "destroy()"
+    ]
+  },
+  "excluded": [
+    "tool.js",
+    "examples",
+    "tests"
+  ],
+  "example": "../../../app/index.html#topschrank.components.list",
+  "tests": "node --test tests/*.test.cjs"
+}

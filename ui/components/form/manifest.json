@@ -1,0 +1,104 @@
+{
+  "name": "form",
+  "version": "0.1.0",
+  "status": "extracted-and-extended",
+  "entry": "form.js",
+  "stylesheet": "form.css",
+  "global": "DesignSystemForm",
+  "tool": { "entry": "configurator/configurator.js", "global": "FormTool", "export": false },
+  "runtimeFiles": [
+    "validation.js",
+    "field.js",
+    "form.js",
+    "form.css"
+  ],
+  "exportFiles": [
+    "validation.js",
+    "field.js",
+    "form.js",
+    "form.css",
+    "../../defaults.css",
+    "../../primitives.css"
+  ],
+  "dependencies": {
+    "components": [],
+    "packages": [],
+    "foundations": [
+      "../../defaults.css",
+      "../../primitives.css"
+    ],
+    "platform": [
+      "DOM",
+      "FormData(form, submitter)",
+      "Constraint Validation API",
+      "CSS custom properties",
+      "CSS container queries"
+    ]
+  },
+  "submodules": {
+    "field.js": {
+      "global": "DesignSystemFormField",
+      "dependencies": [
+        "validation.js",
+        "form.css"
+      ],
+      "purpose": "Standalone native field or shared select, fed with data only"
+    },
+    "validation.js": {
+      "global": "DesignSystemFormValidation",
+      "dependencies": [],
+      "purpose": "Native validity messages and checkbox/radio group validation"
+    },
+    "form.js": {
+      "dependencies": [
+        "field.js"
+      ],
+      "purpose": "Form sections, validation, submission, FormData and reset lifecycle"
+    }
+  },
+  "integration": {
+    "persistence": "Caller-owned; no storage in runtime.",
+    "submission": "Always prevented; onSubmit receives FormData and the native submitter. Host owns network requests.",
+    "fontAndTheme": "Inherited semantic tokens, no Fonts or Palette tool dependency.",
+    "fieldLifecycle": [
+      "mount(host, data)",
+      "sync()",
+      "getValue()",
+      "validate()",
+      "setError(message)",
+      "reset()",
+      "destroy()"
+    ],
+    "formLifecycle": [
+      "mount(host, {sections})",
+      "getField(name)",
+      "attachField(field)",
+      "addField(data)",
+      "validate(focus)",
+      "formData(submitter)",
+      "reset()",
+      "destroy()"
+    ]
+  },
+  "excluded": [
+    "configurator/configurator.js",
+    "examples",
+    "tests"
+  ],
+  "example": "../../../app/index.html#topschrank.components.forms",
+  "tests": [
+    "node --test tests/validation.test.cjs",
+    "tests/browser.html"
+  ],
+  "colourRoles": [
+    {
+      "id": "error",
+      "label": "Error text & outline",
+      "css": "--ds-colour-error",
+      "category": "accent",
+      "purpose": "error",
+      "section": "Form",
+      "description": "Text and control outlines indicating form validation errors."
+    }
+  ]
+}

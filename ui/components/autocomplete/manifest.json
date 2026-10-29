@@ -1,0 +1,55 @@
+{
+  "name": "autocomplete",
+  "version": "0.1.0",
+  "status": "extracted",
+  "entry": "autocomplete.js",
+  "stylesheet": "autocomplete.css",
+  "global": "DesignSystemAutocomplete",
+  "tool": { "entry": "configurator/configurator.js", "global": "DesignSystemAutocompleteTool", "export": false },
+  "runtimeFiles": [
+    "autocomplete.js",
+    "autocomplete.css"
+  ],
+  "exportFiles": [
+    "autocomplete.js",
+    "autocomplete.css",
+    "../form/field.js",
+    "../form/validation.js",
+    "../form/form.css",
+    "../../defaults.css",
+    "../../primitives.css"
+  ],
+  "dependencies": {
+    "components": [
+      "form/field.js",
+      "form/validation.js",
+      "form/form.css"
+    ],
+    "packages": [],
+    "foundations": [
+      "../../defaults.css",
+      "../../primitives.css"
+    ],
+    "platform": [
+      "DOM",
+      "CSS custom properties"
+    ]
+  },
+  "integration": {
+    "persistence": "Caller-owned; no runtime storage",
+    "icons": "Optional renderIcon(name) provider; no asset catalogue dependency",
+    "data": "items: [{id,label,detail?,group?,keywords?,image?,icon?,disabled?}]",
+    "lifecycle": [
+      "mount(host, options)",
+      "update(patch)",
+      "destroy()"
+    ]
+  },
+  "excluded": [
+    "configurator/configurator.js",
+    "examples",
+    "tests"
+  ],
+  "tests": "node --test tests/*.test.cjs; open tests/browser.html",
+  "example": "../../../app/index.html#topschrank.components.autocomplete"
+}

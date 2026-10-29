@@ -1,0 +1,33 @@
+{
+  "name": "loading-state",
+  "version": "0.1.0",
+  "status": "extracted",
+  "entry": "loading-state.js",
+  "stylesheet": "loading-state.css",
+  "global": "DesignSystemLoadingState",
+  "runtimeFiles": [
+    "loading-state.js",
+    "loading-state.css"
+  ],
+  "exportFiles": [
+    "loading-state.js",
+    "loading-state.css",
+    "../../defaults.css",
+    "../../primitives.css"
+  ],
+  "dependencies": {
+    "components": [],
+    "packages": [],
+    "foundations": [
+      "../../defaults.css",
+      "../../primitives.css"
+    ]
+  },
+  "excluded": [
+    "tool.js",
+    "tool.css",
+    "tests",
+    "examples"
+  ],
+  "example": "../../../app/index.html#topschrank.components.loadingstate"
+}

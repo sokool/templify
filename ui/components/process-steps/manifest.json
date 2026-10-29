@@ -1,0 +1,33 @@
+{
+  "name": "process-steps",
+  "version": "0.1.0",
+  "status": "extracted",
+  "entry": "process-steps.js",
+  "stylesheet": "process-steps.css",
+  "global": "DesignSystemProcessSteps",
+  "runtimeFiles": [
+    "process-steps.js",
+    "process-steps.css"
+  ],
+  "exportFiles": [
+    "process-steps.js",
+    "process-steps.css",
+    "../../defaults.css",
+    "../../primitives.css"
+  ],
+  "dependencies": {
+    "components": [],
+    "packages": [],
+    "foundations": [
+      "../../defaults.css",
+      "../../primitives.css"
+    ]
+  },
+  "excluded": [
+    "tool.js",
+    "tool.css",
+    "tests",
+    "examples"
+  ],
+  "example": "../../../app/index.html#topschrank.components.processsteps"
+}

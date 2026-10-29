@@ -1,0 +1,21 @@
+{
+  "name": "shortcuts",
+  "version": "0.1.0",
+  "entry": "shortcuts.js",
+  "global": "DesignSystemShortcuts",
+  "runtimeFiles": ["shortcuts.js"],
+  "exportFiles": ["shortcuts.js"],
+  "tool": {
+    "entry": "configurator/configurator.js",
+    "stylesheet": "configurator/configurator.css",
+    "global": "DesignSystemShortcutsTool",
+    "export": false,
+    "dependencies": ["form", "buttons", "../../themes/themes.js", "../../tools/shared/tools.css"]
+  },
+  "dependencies": {
+    "components": [],
+    "packages": [],
+    "platform": ["DOM KeyboardEvent"]
+  },
+  "tests": "node --test tests/*.test.cjs"
+}
