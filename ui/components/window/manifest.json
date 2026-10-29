@@ -25,6 +25,8 @@
     ],
     "platform": [
       "HTMLDialogElement.showModal",
+      "HTMLDialogElement.show",
+      "Pointer Events",
       "DOM",
       "CSS custom properties"
     ]

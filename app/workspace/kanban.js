@@ -15,6 +15,7 @@
       cardTool,
       themes,
       borderToolSettings,
+      windows,
       standalone = false,
     },
   ) {
@@ -293,16 +294,14 @@
     });
     results.textContent = 'Results: ' + current.length + ' / ' + current.length;
     const off = subscribeDevice((device) => board.setDevice(device));
-    const usage = make('section', 'example-card kanban-used-components');
-    const usageTitle = make('h2', '', 'Used components');
-    usageTitle.id = 'kanban-used-components-title';
-    usage.setAttribute('aria-labelledby', usageTitle.id);
+    const usage = make('div', 'kanban-used-components');
     const componentList = make('ul');
     for (const [label, anchor, description] of [
       ['Card', 'card', 'Injected renderer for board items, including content, metadata and action menus.'],
       ['Autocomplete', 'autocomplete', 'Card search, filtering and multiple selection in the host toolbar.'],
       ['Form', 'forms', 'Fields and validation used indirectly by Autocomplete.'],
-      ['Buttons', 'buttons', 'Randomise card borders and Reset borders controls in the configurator.'],
+      ['Buttons', 'buttons', 'The Used components edge tab and the Randomise card borders and Reset borders controls in the configurator.'],
+      ['Window', 'window', 'The right sidebar displaying this list; composed by the host, not the board runtime.'],
     ]) {
       const item = make('li');
       const link = make('a', 'example-link', label);
@@ -311,14 +310,48 @@
       componentList.append(item);
     }
     usage.append(
-      usageTitle,
       make('p', '', 'The board runtime has no direct component dependencies. These components are composed by this page or its configurator; Card is supplied through renderItem and can be replaced.'),
       componentList,
     );
-    element.append(usage);
+    // Host chrome is portalled outside the preview so its edge follows the real
+    // browser viewport, including in Tablet/Mobile preview and while scrolling.
+    const edgeTabs = make('div', 'component-page-edge-tabs');
+    edgeTabs.setAttribute('role', 'group');
+    edgeTabs.setAttribute('aria-label', 'Component panels');
+    const usageIcon = make('span', 'component-page-edge-icon');
+    usageIcon.setAttribute('aria-hidden', 'true');
+    usageIcon.innerHTML = icons.svg('layers');
+    const usagePanel = (windows?.forWindow('kanban.used-components') || DesignSystemWindow).mount(element, {
+      title: 'Used components',
+      mode: 'side',
+      side: 'right',
+      lockScroll: false,
+      content: usage,
+      initialFocus: 'a',
+      onOpen() { usageButton.element.setAttribute('aria-expanded', 'true'); },
+      onClose() { usageButton.element.setAttribute('aria-expanded', 'false'); },
+    });
+    const usageButton = DesignSystemButtons.mount(edgeTabs, {
+      label: 'Used components',
+      icon: usageIcon,
+      variant: 'secondary',
+      onClick: () => usagePanel.open(),
+    });
+    usageButton.element.setAttribute('aria-haspopup', 'dialog');
+    usageButton.element.setAttribute('aria-controls', usagePanel.element.id);
+    usageButton.element.setAttribute('aria-expanded', 'false');
+    doc.body.append(edgeTabs);
+    function navigateDependency(event) {
+      if (event.target.closest('a')) usagePanel.close('navigate', { immediate: true });
+    }
+    componentList.addEventListener('click', navigateDependency);
     return {
       destroy() {
         off();
+        componentList.removeEventListener('click', navigateDependency);
+        usagePanel.destroy();
+        usageButton.destroy();
+        edgeTabs.remove();
         autocomplete.destroy();
         board.destroy();
         borderTool.destroy();

@@ -18,6 +18,14 @@ body{margin:0;background:var(--ds-colour-page,var(--ds-colour-soft));color:var(-
 .example-paths{display:grid;gap:28px;margin-block:24px}
 .example-paths>nav{padding-block:18px;border-bottom:1px solid var(--ds-colour-border);min-width:0}
 .example-status{color:var(--ds-colour-muted);font-size:12px}
+/* Host panel launchers, not ARIA tabs: each button opens a modal Window.
+   Mounted under body to stay on the browser edge, outside preview containers. */
+.component-page-edge-tabs{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:70;display:flex;flex-direction:column;gap:8px}
+.component-page-edge-tabs .ds-button{flex-direction:column;gap:10px;width:44px;max-width:none;min-height:44px;padding:14px 10px;border-width:1px;border-right:0;border-radius:12px 0 0 12px}
+.component-page-edge-tabs .ds-button>span:last-child{writing-mode:vertical-rl;white-space:nowrap}
+.component-page-edge-icon{display:flex;align-items:center;justify-content:center;width:20px;height:20px;flex:none}
+.component-page-edge-icon .ui-icon{width:20px;height:20px}
+.component-page-edge-tabs .ds-button:focus-visible{outline:2px solid var(--ds-colour-accent);outline-offset:-4px}
 .example-composition{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:24px 0;padding:16px 0;border-block:1px solid var(--ds-colour-border);font-weight:600}
 .example-composition span[aria-hidden]{color:var(--ds-colour-muted)}
 .example-utilities{display:flex;flex-direction:column;gap:3px;width:100%}

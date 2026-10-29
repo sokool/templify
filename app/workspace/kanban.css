@@ -38,6 +38,19 @@
   color: var(--ds-colour-text);
   font-size: 12px;
 }
+.kanban-used-components p {
+  margin: 0 0 20px;
+  color: var(--ds-colour-muted);
+}
+.kanban-used-components ul {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding-left: 20px;
+}
+.kanban-used-components li span {
+  color: var(--ds-colour-muted);
+}
 .example-kanban-dialog {
   width: min(460px, calc(100vw - 32px));
   box-sizing: border-box;

@@ -7,9 +7,12 @@ const Tool = require('../configurator.js');
 const Board = require('../../kanban-board.js');
 const Card = require('../../../card/card.js');
 const Button = require('../../../buttons/buttons.js');
+const Window = require('../../../window/window.js');
 const Themes = require('../../../../themes/themes.js');
 const Settings = require('../../../../../app/storage/settings.js');
+const Windows = require('../../../../../app/workspace/windows.js');
 const { createFixture } = require('../../../../testing/kanban-fixture.cjs');
+const { createWindowFixture } = require('../../../../testing/window-fixture.cjs');
 
 const token = '--ds-card-accent';
 const items = [
@@ -282,13 +285,16 @@ test('an empty Palette disables randomisation and leaves inherited Card appearan
 });
 
 test('the composed Kanban mounts the tool and disposes bindings, subscriptions and menus', () => {
-  const { element, document } = createFixture();
+  const { element, document } = createWindowFixture();
+  const settings = Settings.create();
+  settings.set('components.window.lockScroll', true);
   const themes = Themes.create({ target: document.createElement('html') });
   const borderToolSettings = Settings.create().scope('preview.kanban-board');
   const context = {
     DesignSystemCard: Card,
     DesignSystemKanbanBoard: Board,
     DesignSystemButtons: Button,
+    DesignSystemWindow: Window,
     DesignSystemAutocomplete: {
       mount(host, options) {
         const input = document.createElement('input');
@@ -308,14 +314,29 @@ test('the composed Kanban mounts the tool and disposes bindings, subscriptions a
     document,
     themes,
     borderToolSettings,
+    windows: Windows.create({ settings, Window }),
     icons: { svg: () => '' },
     getDevice: () => 'desktop',
     subscribeDevice(listener) { device = listener; return () => { device = null; }; },
   };
   let view = context.ExampleKanban.mount(element, options);
-  const usage = element.querySelector('.kanban-used-components');
-  assert.equal(usage.querySelector('h2').textContent, 'Used components');
-  assert.equal(usage.getAttribute('aria-labelledby'), usage.querySelector('h2').id);
+  const edgeTabs = document.querySelector('.component-page-edge-tabs');
+  const usageButton = edgeTabs.querySelector('button');
+  const panel = document.querySelector('.ds-window');
+  const usage = panel.querySelector('.kanban-used-components');
+  assert.equal(edgeTabs.parentNode, document.body);
+  assert.equal(edgeTabs.getAttribute('aria-label'), 'Component panels');
+  assert.equal(usageButton.textContent, 'Used components');
+  assert.equal(usageButton.getAttribute('aria-haspopup'), 'dialog');
+  assert.equal(usageButton.getAttribute('aria-controls'), panel.id);
+  assert.equal(usageButton.getAttribute('aria-expanded'), 'false');
+  assert.equal(panel.querySelector('h2').textContent, 'Used components');
+  assert.equal(panel.getAttribute('aria-labelledby'), panel.querySelector('h2').id);
+  assert.equal(panel.dataset.mode, 'side');
+  assert.equal(panel.dataset.side, 'right');
+  assert.equal(panel.parentNode, document.body);
+  assert.equal(panel.open, false);
+  assert.equal(element.querySelector('.kanban-used-components'), null);
   assert.match(usage.querySelector('p').textContent, /no direct component dependencies/);
   assert.deepEqual(usage.querySelectorAll('a').map((link) => [
     link.textContent, link.getAttribute('href'),
@@ -324,9 +345,41 @@ test('the composed Kanban mounts the tool and disposes bindings, subscriptions a
     ['Autocomplete', '#topschrank.components.autocomplete'],
     ['Form', '#topschrank.components.forms'],
     ['Buttons', '#topschrank.components.buttons'],
+    ['Window', '#topschrank.components.window'],
   ]);
   assert.match(usage.querySelectorAll('li')[2].textContent, /indirectly by Autocomplete/);
   assert.match(usage.querySelectorAll('li')[3].textContent, /in the configurator/);
+  const openUsage = () => {
+    usageButton.focus();
+    usageButton.emit('click');
+    assert.equal(panel.open, true);
+    assert.equal(usageButton.getAttribute('aria-expanded'), 'true');
+    assert.equal(document.activeElement, usage.querySelector('a'));
+    assert.equal(panel.modal, false);
+    assert.equal(panel.getAttribute('aria-modal'), 'false');
+    assert.equal(document.documentElement.style.overflow, undefined);
+  };
+  const assertClosed = () => {
+    assert.equal(panel.open, false);
+    assert.equal(usageButton.getAttribute('aria-expanded'), 'false');
+    assert.equal(document.activeElement, usageButton);
+    assert.equal(document.documentElement.style.overflow, undefined);
+  };
+  openUsage();
+  document.emit('keydown', { key: 'Escape', preventDefault() {} });
+  assertClosed();
+  openUsage();
+  panel.querySelector('button').emit('click');
+  assertClosed();
+  openUsage();
+  document.emit('pointerdown', { target: element, clientX: 0, clientY: 0 });
+  document.emit('pointerup', { target: element, clientX: 0, clientY: 0 });
+  assert.equal(panel.open, true, 'interacting with Kanban does not dismiss the panel');
+  panel.querySelector('button').emit('click');
+  assertClosed();
+  openUsage();
+  usage.querySelector('ul').emit('click', { target: usage.querySelector('a') });
+  assertClosed();
   let controls = element.querySelector('.kanban-board-tool');
   controls.querySelector('button').emit('click');
   assert.equal(element.querySelectorAll('.ds-card').length, 19);
@@ -334,9 +387,17 @@ test('the composed Kanban mounts the tool and disposes bindings, subscriptions a
   const colours = () => element.querySelectorAll('.ds-card')
     .map((card) => card.style.getPropertyValue(token));
   const saved = colours();
+  openUsage();
   view.destroy();
+  assert.equal(document.querySelector('.component-page-edge-tabs'), null);
+  assert.equal(document.querySelector('.ds-window'), null);
+  assert.equal(document.documentElement.style.overflow, undefined);
+  assert.equal(usageButton.listeners.get('click').size, 0);
+  assert.equal(usage.querySelector('ul').listeners.get('click').size, 0);
   view = context.ExampleKanban.mount(element, options);
-  assert.equal(element.querySelectorAll('.kanban-used-components').length, 1);
+  assert.equal(document.querySelectorAll('.kanban-used-components').length, 1);
+  assert.equal(document.querySelectorAll('.component-page-edge-tabs').length, 1);
+  assert.equal(document.querySelector('.ds-window').open, false);
   assert.deepEqual(colours(), saved);
   controls = element.querySelector('.kanban-board-tool');
   device('mobile');

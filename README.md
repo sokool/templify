@@ -61,10 +61,21 @@ lokalnych plików fontów powstaną, kiedy faktycznie będą miały własną zaw
 - Komponenty mogą korzystać z innych komponentów Templify przez ich publiczne API
   lub jawnie przekazany renderer. Zależności są jawne, zadeklarowane w manifeście
   i nie tworzą cykli.
-- Strona każdego komponentu w Templify musi zawierać sekcję „Używane komponenty”:
-  listę komponentów, z których korzysta, krótki opis ich zastosowania oraz linki
-  do ich stron w Templify. Jeśli nie korzysta z innych komponentów, sekcja musi
-  to jasno wskazywać.
+- Strona każdego komponentu w Templify udostępnia „Used components” (używane
+  komponenty) w prawym panelu komponentu Window (`mode: 'side'`, `side: 'right'`),
+  zamiast stałej sekcji pod podglądem. Panel otwiera pionowa zakładka z ikoną
+  i etykietą, przyklejona do prawej krawędzi okna przeglądarki, nie podglądu.
+  Zakładka pozostaje na miejscu podczas przewijania i zmiany rozmiaru podglądu;
+  układ pozwala dodawać kolejne zakładki paneli. Są to przyciski otwierające okna,
+  nie przełączniki ARIA Tabs.
+- Panel zawiera listę komponentów z opisami zastosowania i linkami do ich stron
+  w Templify. Rozróżnia zależności runtime od kompozycji hosta, konfiguratora
+  i zależności pośrednich; brak zależności runtime wskazuje wprost. Panel i jego
+  zakładka należą do aplikacji, nie runtime ani eksportu prezentowanego komponentu.
+  Escape, przycisk zamknięcia i tło zamykają panel; focus wraca do zakładki.
+  Wzorzec jest wdrożony pilotażowo na stronie Kanban, pozostałe strony będą
+  dostosowywane osobno. Panel Kanbana jest zawsze nieblokujący (`lockScroll: false`),
+  niezależnie od globalnej blokady scrolla Window, aby można było przewijać tablicę.
 - Dane demonstracyjne, routing i logika edytora pozostają poza kodem komponentu.
 - Dostępność, klawiatura, focus, responsywność i poprawne sprzątanie po demontażu
   są częścią projektu, a nie dodatkiem.
@@ -121,6 +132,11 @@ uzależniać komponentu od hosta Templify.
   nie zawiera DOM, funkcji ani obiektów wykonawczych.
 - Stan edytora, rozmiar podglądu i przykładowe dane sesji nie należą do konfiguracji
   przeznaczonej do eksportu.
+- Ręcznie zmieniony rozmiar Window jest preferencją użytkownika zapisywaną osobno
+  dla konkretnego okna (stabilne ID), poza theme i eksportem template. Przywracamy
+  go po ponownym otwarciu, nawigacji i odświeżeniu. Dostosowanie do mniejszego ekranu
+  nie nadpisuje zapamiętanego rozmiaru. Blokadę scrolla i możliwość ręcznego resize
+  ustawia konfigurator Window; wyłączenie blokady pozostawia stronę interaktywną.
 - Przenoszenie katalogów nie zmienia automatycznie identyfikatorów, publicznych
   nazw JS, schematów ani kluczy zapisanych ustawień.
 

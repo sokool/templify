@@ -6,6 +6,8 @@ No package installation or build is required. Google Fonts previews need network
 - `workspace/workspace.js` composes Navigation, Breadcrumbs, routes, component
   previews, configurators and global tools through their public APIs.
 - `workspace/` also owns page-specific composition, sample datasets and preview CSS.
+- `workspace/windows.js` composes Window with shared scroll/resize behaviour and
+  per-user sizes keyed by stable window ID under `preview.windows`, outside template exports.
 - `storage/settings.js` provides injectable persistence; `storage/workspace-settings.js`
   owns host scopes and compatibility mappings. Runtime components never import them.
 - UI definitions, assets, components and authoring tools live under `../ui/`.

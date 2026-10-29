@@ -10,6 +10,18 @@ The renderer is injected. The example composes **Card + Kanban board**; exportin
 
 ## Used components
 
+The page exposes this list in a **Window right sidebar**, opened by the vertical
+**Used components** tab with a layers icon fixed to the browser's right edge.
+The tab follows the real viewport, not the emulated device or board, and stays
+in place while scrolling. Escape and the close button dismiss the panel
+and restore focus to the opener; dependency links close it before navigation.
+The tab/panel belong only to the host and are cleaned up when leaving the page.
+The panel is always non-modal (`lockScroll: false`): Kanban remains scrollable and
+interactive, even when Window's global scroll lock is enabled. It follows the
+shared resize setting. Drag its left edge
+to resize; its width is remembered separately as a user preference under
+`preview.windows.kanban.used-components.size`, never in the Kanban export.
+
 The board runtime has **no direct component dependencies**. The following components
 are used by the [Templify page](../../../app/index.html#topschrank.components.kanbanboard)
 or its configurator, not imported by the board itself:
@@ -19,7 +31,8 @@ or its configurator, not imported by the board itself:
 | [Card](../../../app/index.html#topschrank.components.card) | Injected through `renderItem` to display item content, metadata and action menus. Replaceable with another renderer. |
 | [Autocomplete](../../../app/index.html#topschrank.components.autocomplete) | Host toolbar: card search, filtering and multiple selection. |
 | [Form](../../../app/index.html#topschrank.components.forms) | Indirect dependency of Autocomplete: shared fields and validation. |
-| [Buttons](../../../app/index.html#topschrank.components.buttons) | Configurator: **Randomise card borders** and **Reset borders** controls. |
+| [Buttons](../../../app/index.html#topschrank.components.buttons) | Host: **Used components** edge tab. Configurator: **Randomise card borders** and **Reset borders** controls. |
+| [Window](../../../app/index.html#topschrank.components.window) | Host: right sidebar showing this list. |
 
 The add/details dialogs currently use native HTML elements, not the Window component.
 

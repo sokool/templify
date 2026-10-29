@@ -8,6 +8,7 @@
       Generator = global.PaletteGenerator,
       Field = global.DesignSystemFormField,
       Buttons = global.DesignSystemButtons,
+      Window = global.DesignSystemWindow,
     } = {},
   ) {
     const doc = element.ownerDocument,
@@ -211,7 +212,7 @@
       },
     });
     controls.push(customHex);
-    const pickerWindow = global.DesignSystemWindow.mount(element, {
+    const pickerWindow = Window.mount(element, {
       title: 'Choose colour',
       content: assignment,
       width: 560,

@@ -12,6 +12,7 @@
   const persistence = ExampleSettings.create({ storage: browserStorage });
   const settings = persistence.settings,
     storage = persistence.storage;
+  const windows = ExampleWindows.create({ settings });
   const saved = (key, fallback) => {
     try {
       return storage.getItem(prefix + '-' + key) || fallback;
@@ -175,6 +176,7 @@
               ExampleExtendedComponents.mount(page, id, {
                 settings: settings.scope('components.' + id),
                 themes,
+                windows,
               }),
             ),
         },
@@ -586,6 +588,7 @@
         cardTool,
         themes,
         borderToolSettings: settings.scope('preview.kanban-board'),
+        windows,
         getDevice: () => viewport.dataset.device,
         subscribeDevice(listener) {
           deviceListeners.add(listener);
@@ -708,7 +711,7 @@
   function renderPalettePage(page) {
     const tool = document.createElement('div');
     page.append(tool);
-    contentComponents.push(PaletteTool.mount(tool, { themes }));
+    contentComponents.push(PaletteTool.mount(tool, { themes, Window: windows.forWindow('palette.colour-picker') }));
   }
   function renderToolsIndex(page) {
     page.insertAdjacentHTML(
