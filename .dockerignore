@@ -1,0 +1,7 @@
+**
+!app/
+!app/**
+!ui/
+!ui/**
+!nginx/
+!nginx/default.conf

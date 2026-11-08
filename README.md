@@ -21,6 +21,16 @@ pakietów. Podgląd fontów Google wymaga połączenia z siecią.
 [top-schrank-ui.html](top-schrank-ui.html) pozostaje historycznym playgroundem,
 korzystającym ze współdzielonych plików. Główną aplikacją jest `app/`.
 
+## Wdrożenie
+
+Główny `Dockerfile` buduje statyczny serwer HTTP na porcie kontenera `8080`.
+Repozytoryjny `compose.yaml` jest opcjonalny; bez niego Compose generuje centralny
+deployer i publikuje port hosta tylko na `127.0.0.1`.
+
+Nowy tag `templify.mintsoft.eu@v1.0.0` uruchamia build, start kontenera i
+kontrolę HTTP. Centralny deployer obsługuje istniejącą trasę Cloudflare Tunnel
+i DNS dla `templify.mintsoft.eu`.
+
 ## Struktura
 
 ```text
