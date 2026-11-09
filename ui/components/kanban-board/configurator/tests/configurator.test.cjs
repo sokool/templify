@@ -295,14 +295,6 @@ test('the composed Kanban mounts the tool and disposes bindings, subscriptions a
     DesignSystemKanbanBoard: Board,
     DesignSystemButtons: Button,
     DesignSystemWindow: Window,
-    DesignSystemAutocomplete: {
-      mount(host, options) {
-        const input = document.createElement('input');
-        input.value = '';
-        host.append(input);
-        return { input, getQuery: () => '', update() {}, destroy() { input.remove(); } };
-      },
-    },
   };
   for (const file of [
     '../configurator.js', '../../../../../workspace/kanban-data.js', '../../../../../workspace/kanban.js',
@@ -342,13 +334,14 @@ test('the composed Kanban mounts the tool and disposes bindings, subscriptions a
     link.textContent, link.getAttribute('href'),
   ]), [
     ['Card', '#topschrank.components.card'],
-    ['Autocomplete', '#topschrank.components.autocomplete'],
-    ['Form', '#topschrank.components.forms'],
     ['Buttons', '#topschrank.components.buttons'],
     ['Window', '#topschrank.components.window'],
   ]);
-  assert.match(usage.querySelectorAll('li')[2].textContent, /indirectly by Autocomplete/);
-  assert.match(usage.querySelectorAll('li')[3].textContent, /in the configurator/);
+  assert.match(usage.querySelectorAll('li')[1].textContent, /in the configurator/);
+  assert.equal(element.querySelector('.example-kanban-search'), null);
+  assert.equal(element.querySelector('.example-kanban-results'), null);
+  assert(element.querySelector('.example-kanban-add'));
+  assert.equal(element.querySelectorAll('.ds-card').length, 19);
   const openUsage = () => {
     usageButton.focus();
     usageButton.emit('click');

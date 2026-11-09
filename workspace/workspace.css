@@ -20,7 +20,7 @@ body{margin:0;background:var(--ds-colour-page,var(--ds-colour-soft));color:var(-
 .example-status{color:var(--ds-colour-muted);font-size:12px}
 /* Host panel launchers, not ARIA tabs: each button opens a modal Window.
    Mounted under body to stay on the browser edge, outside preview containers. */
-.component-page-edge-tabs{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:70;display:flex;flex-direction:column;gap:8px}
+.component-page-edge-tabs{position:fixed;right:0;top:80px;z-index:70;display:flex;flex-direction:column;gap:8px}
 .component-page-edge-tabs .ds-button{flex-direction:column;gap:10px;width:44px;max-width:none;min-height:44px;padding:14px 10px;border-width:1px;border-right:0;border-radius:12px 0 0 12px}
 .component-page-edge-tabs .ds-button>span:last-child{writing-mode:vertical-rl;white-space:nowrap}
 .component-page-edge-icon{display:flex;align-items:center;justify-content:center;width:20px;height:20px;flex:none}

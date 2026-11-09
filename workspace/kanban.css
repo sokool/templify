@@ -21,23 +21,6 @@
   color: var(--ds-colour-on-accent);
   cursor: pointer;
 }
-.example-kanban-search {
-  position: relative;
-  min-width: 0;
-  flex: 1;
-  max-width: 640px;
-  z-index: 30;
-}
-.example-kanban-results {
-  display: flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 12px;
-  border-radius: 12px;
-  background: var(--ds-colour-selection);
-  color: var(--ds-colour-text);
-  font-size: 12px;
-}
 .kanban-used-components p {
   margin: 0 0 20px;
   color: var(--ds-colour-muted);

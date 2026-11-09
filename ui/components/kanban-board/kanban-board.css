@@ -25,5 +25,6 @@
 .ds-kanban[data-device=tablet] .ds-kanban__scroll{scroll-snap-type:x mandatory;scroll-padding-inline:12px}
 .ds-kanban[data-device=tablet] .ds-kanban__column:nth-child(3n+1){scroll-snap-align:start;scroll-snap-stop:always}
 .ds-kanban[data-device=tablet] .ds-kanban__column:last-child{scroll-snap-align:end;scroll-snap-stop:always}
+.ds-kanban[data-device=mobile][data-dragging=true] .ds-kanban__scroll,.ds-kanban[data-device=tablet][data-dragging=true] .ds-kanban__scroll{scroll-snap-type:none}
 .ds-kanban[data-device=mobile] .ds-kanban__edge,.ds-kanban[data-device=tablet] .ds-kanban__edge{display:none!important}
 @media(prefers-reduced-motion:reduce){.ds-kanban__edge{transition:none}}

@@ -28,8 +28,40 @@
   function cancelHold(){if(hold){clearTimeout(hold.timer);hold=null}}
   function preview(source){const clone=source.cloneNode(true),originals=[source,...source.querySelectorAll('*')],copies=[clone,...clone.querySelectorAll('*')];originals.forEach((node,i)=>{const style=win.getComputedStyle(node),copy=copies[i];for(let j=0;j<style.length;j++){const key=style[j];copy.style.setProperty(key,style.getPropertyValue(key))}copy.style.setProperty('pointer-events','none','important');copy.style.transition='none';copy.style.animation='none';['id','aria-describedby','aria-controls','aria-labelledby','popover'].forEach(attr=>copy.removeAttribute(attr));copy.tabIndex=-1});clone.inert=true;clone.setAttribute('aria-hidden','true');clone.classList.add('ds-kanban__ghost');return clone}
   function createDrag(record,event){const box=record.view.element.getBoundingClientRect();return {record,id:record.item.id,pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,x:event.clientX,y:event.clientY,grabX:event.clientX-box.left,grabY:event.clientY-box.top,width:box.width,height:box.height,active:false,target:null,frame:null,touch:event.pointerType!=='mouse'}}
-  function updateDrop(x,y){if(!drag?.active)return;const hit=doc.elementFromPoint(x,y),lane=hit?.closest('.ds-kanban__column');lanes.querySelectorAll('.is-drop-target').forEach(node=>node.classList.remove('is-drop-target'));if(!lane||!lanes.contains(lane)){drag.target=null;marker.remove();return}lane.classList.add('is-drop-target');const candidates=[...lane.querySelectorAll('.ds-kanban__item')].filter(node=>node.dataset.itemId!==drag.id),before=candidates.find(node=>{const box=node.getBoundingClientRect();return y<box.top+box.height/2});drag.target={columnId:lane.dataset.columnId,beforeId:before?.dataset.itemId??null};const stack=lane.querySelector('.ds-kanban__stack');if(before)stack.insertBefore(marker,before);else stack.append(marker)}
-  function dragTick(){if(!drag?.active)return;const rect=scroller.getBoundingClientRect(),{x,y}=drag;if(y>rect.top&&y<rect.bottom){const delta=x<rect.left+40?-12:x>rect.right-40?12:0;if(delta)scroller.scrollLeft+=delta}if(y<60)win.scrollBy(0,-10);else if(y>win.innerHeight-60)win.scrollBy(0,10);updateDrop(x,y);drag.frame=win.requestAnimationFrame(dragTick)}
+  function updateDrop(x,y){if(!drag?.active)return;if(mode==='mobile'&&drag.edgeLocked){const rect=scroller.getBoundingClientRect();x=Math.max(Math.max(0,rect.left)+64,Math.min(Math.min(win.innerWidth,rect.right)-64,x))}const hit=doc.elementFromPoint(x,y),lane=hit?.closest('.ds-kanban__column');lanes.querySelectorAll('.is-drop-target').forEach(node=>node.classList.remove('is-drop-target'));if(!lane||!lanes.contains(lane)){drag.target=null;marker.remove();return}lane.classList.add('is-drop-target');const candidates=[...lane.querySelectorAll('.ds-kanban__item')].filter(node=>node.dataset.itemId!==drag.id),before=candidates.find(node=>{const box=node.getBoundingClientRect();return y<box.top+box.height/2});drag.target={columnId:lane.dataset.columnId,beforeId:before?.dataset.itemId??null};const stack=lane.querySelector('.ds-kanban__stack');if(before)stack.insertBefore(marker,before);else stack.append(marker)}
+  // Approach a clipped neighbouring column to reveal it once. Keep the exit
+  // boundary fixed while scrolling so columns moving under the pointer cannot rearm it.
+  function scrollCompactDrag(rect,now){
+   const left=Math.max(0,rect.left),right=Math.min(win.innerWidth,rect.right),{x,y}=drag;
+   const inside=y>Math.max(0,rect.top)&&y<Math.min(win.innerHeight,rect.bottom);
+   if(inside&&drag.edgeLocked&&(drag.edgeSide===1?x<drag.edgeExit:x>drag.edgeExit))drag.edgeLocked=false;
+   const columns=[...lanes.children];
+   let direction=0,exit=0;
+   if(inside&&x>=left&&x<=right)for(const column of columns){
+    const box=column.getBoundingClientRect();
+    if(x<box.left-24||x>box.right+24)continue;
+    if(box.left<left-2&&box.right>left){direction=-1;exit=box.right+48}
+    else if(box.right>right+2&&box.left<right){direction=1;exit=box.left-48}
+    if(direction)break;
+   }
+   if(drag.pageScroll){
+    const page=drag.pageScroll,t=reduced()?1:Math.min(1,(now-page.started)/280);
+    scroller.scrollLeft=page.from+(page.to-page.from)*(1-Math.pow(1-t,3));
+    if(t===1)drag.pageScroll=null;
+    drag.edgeDirection=0;return;
+   }
+   if(!direction||drag.edgeLocked){drag.edgeDirection=0;return}
+   if(drag.edgeDirection!==direction){drag.edgeDirection=direction;drag.edgeSince=now;return}
+   if(now-drag.edgeSince<350)return;
+   drag.edgeLocked=true;drag.edgeDirection=0;drag.edgeSide=direction;drag.edgeExit=exit;
+   const center=(rect.left+rect.right)/2;
+   let nearest=0,distance=Infinity;
+   columns.forEach((column,i)=>{const box=column.getBoundingClientRect(),delta=Math.abs((box.left+box.right)/2-center);if(delta<distance){nearest=i;distance=delta}});
+   const next=columns[nearest+direction];if(!next)return;
+   const box=next.getBoundingClientRect(),from=scroller.scrollLeft,to=Math.max(0,Math.min(scroller.scrollWidth-scroller.clientWidth,from+(box.left+box.right)/2-center));
+   drag.pageScroll={from,to,started:now};
+  }
+  function dragTick(now=win.performance.now()){if(!drag?.active)return;const rect=scroller.getBoundingClientRect(),{x,y}=drag;if(mode!=='desktop')scrollCompactDrag(rect,now);else if(y>rect.top&&y<rect.bottom){const delta=x<rect.left+40?-12:x>rect.right-40?12:0;if(delta)scroller.scrollLeft+=delta}if(y<60)win.scrollBy(0,-10);else if(y>win.innerHeight-60)win.scrollBy(0,10);updateDrop(x,y);drag.frame=win.requestAnimationFrame(dragTick)}
   function activate(){if(!drag||drag.active)return;drag.record.view.closeMenu?.();drag.record.host.setPointerCapture?.(drag.pointerId);drag.active=true;stopEdge();const ghost=preview(drag.record.view.element);ghost.style.position='fixed';ghost.style.zIndex='10000';ghost.style.width=drag.width+'px';ghost.style.height=drag.height+'px';ghost.style.minHeight='0';ghost.style.maxHeight='none';ghost.style.maxWidth='none';ghost.style.margin='0';ghost.style.overflow='hidden';ghost.style.transformOrigin=drag.grabX+'px '+drag.grabY+'px';ghost.style.left=(drag.x-drag.grabX)+'px';ghost.style.top=(drag.y-drag.grabY)+'px';const transform=drag.touch?'scale(1.025)':'rotate(2deg)';ghost.style.transform=transform;ghost.style.opacity=drag.touch?'1':'.94';const shadow='0 20px 48px rgb(20 28 42 / .30),0 4px 12px rgb(20 28 42 / .18)';ghost.style.boxShadow=shadow;doc.body.append(ghost);drag.ghost=ghost;drag.record.host.classList.add('is-dragging');element.dataset.dragging='true';if(drag.touch&&!reduced()&&ghost.animate)ghost.animate([{transform:'scale(1)',boxShadow:'0 0 0 transparent'},{transform,boxShadow:shadow}],{duration:320,easing:'cubic-bezier(.22,1,.36,1)'});status.textContent='Card picked up. Drag to move it, then release to drop. Escape cancels.';drag.frame=win.requestAnimationFrame(dragTick)}
   function finish(commit){cancelHold();if(!drag)return;const previous=drag;drag=null;win.cancelAnimationFrame(previous.frame);marker.remove();lanes.querySelectorAll('.is-drop-target').forEach(node=>node.classList.remove('is-drop-target'));previous.record.host.classList.remove('is-dragging');delete element.dataset.dragging;previous.ghost?.remove();if(previous.record.host.hasPointerCapture?.(previous.pointerId))previous.record.host.releasePointerCapture(previous.pointerId);if(previous.active){suppressClick=Date.now()+450;if(commit&&previous.target)move(previous.id,previous.target.columnId,previous.target.beforeId);else{focusItem(previous.id);status.textContent='Move cancelled.'}}}
   listen(lanes,'pointerdown',event=>{const host=event.target.closest('.ds-kanban__item'),record=host&&records.get(host.dataset.itemId);if(!record||event.button!==0||event.isPrimary===false||record.view.canDrag?.(event.target)===false)return;finish(false);if(event.pointerType!=='mouse'&&!record.armed){hold={record,event:{pointerId:event.pointerId,clientX:event.clientX,clientY:event.clientY,pointerType:event.pointerType},timer:setTimeout(()=>{if(!hold||!record.host.isConnected)return;const held=hold;hold=null;drag=createDrag(record,held.event);record.host.setPointerCapture?.(drag.pointerId);activate()},450)};return}record.armed=false;drag=createDrag(record,event)});

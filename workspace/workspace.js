@@ -300,7 +300,7 @@
   navigation
     .find((entry) => entry.group === 'components')
     .pages.sort((a, b) => a[1].localeCompare(b[1], 'en', { sensitivity: 'base' }));
-  const releaseVersion = 'v0.1.1';
+  const releaseVersion = 'v0.1.2';
   DesignSystemNavigation.renderStructure(root, {
     user: { initials: releaseVersion, label: 'Templify ' + releaseVersion },
   });
