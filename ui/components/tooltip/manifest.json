@@ -55,7 +55,7 @@
     "export": false,
     "hostHelper": "../../tools/shared/appearance/appearance.js"
   },
-  "example": "../../../app/index.html#topschrank.components.tooltip",
+  "example": "../../../index.html#topschrank.components.tooltip",
   "publicTokens": [
     "--ds-tooltip-bg",
     "--ds-tooltip-text",

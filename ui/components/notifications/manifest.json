@@ -45,7 +45,7 @@
     "tests"
   ],
   "tests": "node --test tests/*.test.cjs",
-  "example": "../../../app/index.html#topschrank.components.notifications",
+  "example": "../../../index.html#topschrank.components.notifications",
   "publicTokens": [
     "--ds-colour-text",
     "--ds-colour-accent",

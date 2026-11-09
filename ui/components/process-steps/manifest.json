@@ -29,5 +29,5 @@
     "tests",
     "examples"
   ],
-  "example": "../../../app/index.html#topschrank.components.processsteps"
+  "example": "../../../index.html#topschrank.components.processsteps"
 }

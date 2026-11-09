@@ -30,5 +30,5 @@
     "tests",
     "examples"
   ],
-  "example": "../../../app/index.html#topschrank.components.progress"
+  "example": "../../../index.html#topschrank.components.progress"
 }

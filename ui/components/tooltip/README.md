@@ -16,7 +16,7 @@ Load `../../defaults.css` and `../../primitives.css` once, then `tooltip.css` an
 
 Public appearance tokens: `--ds-tooltip-bg`, `--ds-tooltip-text`, `--ds-tooltip-border`, `--ds-tooltip-accent`, `--ds-tooltip-weight`, `--ds-tooltip-style`, `--ds-tooltip-padding`, `--ds-tooltip-size`.
 
-Examples and their data live in `../../../app/workspace/components.js`; open `../../../app/index.html#topschrank.components.tooltip`. Behaviour and export-boundary tests live in `../../testing/migrated-components.test.cjs`.
+Examples and their data live in `../../../workspace/components.js`; open `../../../index.html#topschrank.components.tooltip`. Behaviour and export-boundary tests live in `../../testing/migrated-components.test.cjs`.
 
 ## Development tool — excluded from the component
 

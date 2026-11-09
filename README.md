@@ -14,16 +14,32 @@ użytkownikowi. Narzędzia i konfiguratory nie mają osobnego, równoległego ze
 
 ## Uruchomienie
 
-Otwórz [app/index.html](app/index.html) w przeglądarce. Można też udostępnić katalog
+Otwórz [index.html](index.html) w przeglądarce. Można też udostępnić katalog
 repozytorium przez dowolny serwer statyczny. Nie jest wymagany bundler ani instalacja
 pakietów. Podgląd fontów Google wymaga połączenia z siecią.
 
-[top-schrank-ui.html](top-schrank-ui.html) pozostaje historycznym playgroundem,
-korzystającym ze współdzielonych plików. Główną aplikacją jest `app/`.
+Główna aplikacja ma jedno wejście w katalogu głównym. Kod hosta jest w `workspace/` i `storage/`,
+a samodzielne przykłady komponentów w `ui/examples/` nie zależą od aplikacji.
+
+### Kompozycja aplikacji
+
+- `workspace/workspace.js` składa Navigation, Breadcrumbs, routing, podglądy,
+  konfiguratory i narzędzia przez ich publiczne API.
+- `workspace/` zawiera też dane demonstracyjne i style podglądów stron.
+- `workspace/windows.js` składa Window ze wspólnymi ustawieniami scrolla/resize
+  i rozmiarami okien zapisywanymi pod stabilnym ID w `preview.windows`, poza eksportem.
+- `storage/settings.js` dostarcza wstrzykiwany zapis ustawień;
+  `storage/workspace-settings.js` zarządza zakresami i migracją starych kluczy.
+  Komponenty runtime nigdy nie importują tych modułów.
+- Definicje UI, zasoby, komponenty i narzędzia znajdują się w `ui/`.
+
+Zmiana położenia wejścia nie zmienia istniejących kotwic routingu, kluczy zapisu
+ani publicznych nazw JavaScript. Przegląd Theme jest pod `#templify.theme`.
 
 ## Wdrożenie
 
 Główny `Dockerfile` buduje statyczny serwer HTTP na porcie kontenera `8080`.
+Kopiuje `index.html`, `workspace/`, `storage/` i `ui/`; Nginx udostępnia aplikację bezpośrednio pod `/`.
 Repozytoryjny `compose.yaml` jest opcjonalny; bez niego Compose generuje centralny
 deployer i publikuje port hosta tylko na `127.0.0.1`.
 
@@ -31,9 +47,18 @@ Nowy tag `templify.mintsoft.eu@v1.0.0` uruchamia build, start kontenera i
 kontrolę HTTP. Centralny deployer obsługuje istniejącą trasę Cloudflare Tunnel
 i DNS dla `templify.mintsoft.eu`.
 
+### Wersja wydania w interfejsie
+
+Przy każdym wydaniu oznaczanym tagiem należy zadbać, aby aplikacja z tego tagu
+wyświetlała numer jego wersji w prawym górnym rogu nagłówka, zamiast litery „T”.
+Przykład: tag `templify.mintsoft.eu@v1.0.0` oznacza widoczną etykietę `v1.0.0`.
+Numer musi odpowiadać wersji faktycznie budowanego wydania, a nie najnowszemu
+tagowi w repozytorium. Przed publikacją należy sprawdzić etykietę w obrazie Dockera.
+
 ## Struktura
 
 ```text
+index.html                     wejście do Templify
 ui/
   defaults.css                 domyślne zmienne wyglądu
   primitives.css               bazowe reguły CSS, m.in. focus i box-sizing
@@ -49,10 +74,8 @@ ui/
   examples/                    samodzielne przykłady integracji
   testing/                     wspólne testy i środowisko testowe
   scripts/                     generatory i kontrole developerskie
-app/
-  index.html                   wejście do Templify
-  workspace/                   menu, routing, kompozycja i podglądy
-  storage/                     zapis konfiguracji i sesji, adaptery hosta
+workspace/                     menu, routing, kompozycja i podglądy
+storage/                       zapis konfiguracji i sesji, adaptery hosta
 ```
 
 Nie tworzymy pustych katalogów na zapas. Osobne obszary typografii, odstępów lub
@@ -187,5 +210,3 @@ wizualna, rzeczywisty layout i interakcje przeglądarkowe wymagają osobnego spr
 
 - Test Navigation „fold and unfold retain the open submenu in both presentations”
   nie przechodzi również na wersji sprzed przenosin.
-- Historyczny `top-schrank-ui.html` zgłasza `menuScrollResizeObserver is not defined`.
-  Problem nie występuje przy uruchamianiu głównej aplikacji `app/index.html`.

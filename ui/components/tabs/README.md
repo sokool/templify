@@ -8,7 +8,7 @@ Local runtime: `tabs.js` and `tabs.css`.
 
 Shared runtime: `../../defaults.css` and `../../primitives.css`, **loaded once per page**, including when Breadcrumbs is present. No dependency on Breadcrumbs, Forms, icons, routing, storage, a framework or a package manager.
 
-`manifest.json` lists local files, shared dependencies, export files and test-only support. The playground copy and its product text live in `../../../app/workspace/tabs.js` and are excluded from the runtime/export.
+`manifest.json` lists local files, shared dependencies, export files and test-only support. The playground copy and its product text live in `../../../workspace/tabs.js` and are excluded from the runtime/export.
 
 ## Use
 
@@ -61,7 +61,7 @@ Optional per-component CSS tokens are listed in the manifest. They fall back to 
 }
 ```
 
-Colours and fonts in the historical playground are mapped by `app/workspace/theme-adapter.css`. That application adapter is not a dependency of Tabs and is excluded from export. Focus comes from `../../primitives.css`; timing values come from `../../defaults.css`. The active underline, spacing specific to tabs and panel layout stay in `tabs.css`.
+Legacy playground colour and font mappings remain in `../../../workspace/theme-adapter.css`. That application adapter is not a dependency of Tabs and is excluded from export. Focus comes from `../../primitives.css`; timing values come from `../../defaults.css`. The active underline, spacing specific to tabs and panel layout stay in `tabs.css`.
 
 ## Verify
 

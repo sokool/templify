@@ -8,4 +8,4 @@ Data: `label, items: [{title, date?, datetime?, description?}]`. Text renders sa
 
 Load foundations `tokens.css` and `primitives.css` once, then `timeline.css` and `timeline.js`. There are no component or package dependencies. Colours and fonts inherit semantic tokens. The manifest lists the full export.
 
-Example: `../../../app/index.html#topschrank.components.timeline`.
+Example: `../../../index.html#topschrank.components.timeline`.

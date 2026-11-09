@@ -12,6 +12,6 @@ function tests(directory) {
   });
 }
 const result = spawnSync(process.execPath, ['--test', ...tests(path.join(root, 'ui')),
-  ...tests(path.join(root, 'app'))], { cwd: root, stdio: 'inherit' });
+  ...tests(path.join(root, 'workspace')), ...tests(path.join(root, 'storage'))], { cwd: root, stdio: 'inherit' });
 if (result.error) throw result.error;
 process.exitCode = result.status ?? 1;

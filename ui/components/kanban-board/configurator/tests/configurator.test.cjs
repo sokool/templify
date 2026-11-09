@@ -9,8 +9,8 @@ const Card = require('../../../card/card.js');
 const Button = require('../../../buttons/buttons.js');
 const Window = require('../../../window/window.js');
 const Themes = require('../../../../themes/themes.js');
-const Settings = require('../../../../../app/storage/settings.js');
-const Windows = require('../../../../../app/workspace/windows.js');
+const Settings = require('../../../../../storage/settings.js');
+const Windows = require('../../../../../workspace/windows.js');
 const { createFixture } = require('../../../../testing/kanban-fixture.cjs');
 const { createWindowFixture } = require('../../../../testing/window-fixture.cjs');
 
@@ -305,7 +305,7 @@ test('the composed Kanban mounts the tool and disposes bindings, subscriptions a
     },
   };
   for (const file of [
-    '../configurator.js', '../../../../../app/workspace/kanban-data.js', '../../../../../app/workspace/kanban.js',
+    '../configurator.js', '../../../../../workspace/kanban-data.js', '../../../../../workspace/kanban.js',
   ]) {
     vm.runInNewContext(fs.readFileSync(path.join(__dirname, file), 'utf8'), context);
   }

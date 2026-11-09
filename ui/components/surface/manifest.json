@@ -52,7 +52,7 @@
     "export": false,
     "hostHelper": "../../tools/shared/appearance/appearance.js"
   },
-  "example": "../../../app/index.html#topschrank.components.surface",
+  "example": "../../../index.html#topschrank.components.surface",
   "publicTokens": [
     "--ds-surface-bg",
     "--ds-surface-text",

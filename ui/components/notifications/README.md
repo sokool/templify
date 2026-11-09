@@ -16,4 +16,4 @@ Load `../../defaults.css` and `../../primitives.css` once, then `notifications.c
 
 Public appearance tokens: `--ds-colour-text`, `--ds-colour-accent`, `--ds-colour-page`, `--ds-colour-panel`, `--ds-colour-divider`, `--ds-accent-1`.
 
-Examples and their data live in `../../../app/workspace/components.js`; open `../../../app/index.html#topschrank.components.notifications`. Behaviour and export-boundary tests live in `../../testing/migrated-components.test.cjs`.
+Examples and their data live in `../../../workspace/components.js`; open `../../../index.html#topschrank.components.notifications`. Behaviour and export-boundary tests live in `../../testing/migrated-components.test.cjs`.

@@ -8,7 +8,7 @@ Data: `label, value (0–100), max (100), indeterminate (false)`. Text renders s
 
 Load foundations `tokens.css` and `primitives.css` once, then `progress.css` and `progress.js`. There are no component or package dependencies. Colours and fonts inherit semantic tokens. The manifest lists the full export.
 
-Example: `../../../app/index.html#topschrank.components.progress`.
+Example: `../../../index.html#topschrank.components.progress`.
 
 Appearance is optional: `appearance: {fill, border, shadow}` takes generic CSS
 colour values or `var(...)` references. These map to `--ds-progress-fill`,

@@ -8,4 +8,4 @@ Data: `label, items: [{label, description?, status: done | current | pending}]`.
 
 Load foundations `tokens.css` and `primitives.css` once, then `process-steps.css` and `process-steps.js`. There are no component or package dependencies. Colours and fonts inherit semantic tokens. The manifest lists the full export.
 
-Example: `../../../app/index.html#topschrank.components.processsteps`.
+Example: `../../../index.html#topschrank.components.processsteps`.

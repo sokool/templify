@@ -1,6 +1,6 @@
 # Navigation
 
-The responsive application frame: header, expanded sidebar, 45 px icon rail, connected flyouts, mobile hamburger navigation and independently scrolling navigation/footer regions. This is the implementation used by `top-schrank-ui.html`, not a second simplified copy.
+The responsive application frame: header, expanded sidebar, 45 px icon rail, connected flyouts, mobile hamburger navigation and independently scrolling navigation/footer regions. This is the implementation used by the main application in `../../../index.html`, not a second simplified copy.
 
 ## Files and dependencies
 

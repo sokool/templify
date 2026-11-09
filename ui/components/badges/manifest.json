@@ -45,7 +45,7 @@
     "tests"
   ],
   "tests": "node --test tests/*.test.cjs",
-  "example": "../../../app/index.html#topschrank.components.badges",
+  "example": "../../../index.html#topschrank.components.badges",
   "publicTokens": [
     "--ds-badge-fill",
     "--ds-badge-ink",

@@ -12,8 +12,9 @@ function files(directory) {
     return entry.isDirectory() ? files(file) : [file];
   });
 }
-const sources = [...files(path.join(root, 'ui')), ...files(path.join(root, 'app')),
-  path.join(root, 'top-schrank-ui.html')];
+const sources = [...files(path.join(root, 'ui')), ...files(path.join(root, 'workspace')),
+  ...files(path.join(root, 'storage')),
+  path.join(root, 'index.html')];
 
 test('HTML assets, CSS URLs and static relative requires resolve after relocation', () => {
   for (const file of sources) {
@@ -36,13 +37,16 @@ test('component exports contain only existing runtime files, never configurators
   for (const file of sources.filter((file) => /\/components\/[^/]+\/manifest\.json$/.test(file))) {
     const manifest = JSON.parse(fs.readFileSync(file, 'utf8'));
     const base = path.dirname(file);
+    if (manifest.example) {
+      assert(fs.existsSync(path.resolve(base, manifest.example.split('#')[0])), manifest.example);
+    }
     for (const entry of [...manifest.runtimeFiles, ...manifest.exportFiles]) {
       const target = path.resolve(base, entry);
       assert(fs.existsSync(target), file + ' → ' + entry);
-      assert(!/\/(?:configurator|tools|app)\//.test(target), entry);
+      assert(!/\/(?:configurator|tools|workspace|storage)\//.test(target), entry);
       if (entry.endsWith('.js')) {
         const source = fs.readFileSync(target, 'utf8');
-        assert(!/require\(["'][^"']*(?:configurator|tools|app)\//.test(source), target);
+        assert(!/require\(["'][^"']*(?:configurator|tools|workspace|storage)\//.test(source), target);
       }
     }
     if (fs.existsSync(path.join(base, 'configurator'))) assert(manifest.tool, file);
@@ -74,7 +78,7 @@ test('generators resolve their inputs and reproduce checked-in bundles exactly',
 });
 
 test('Theme and Tools navigation reflect user tasks rather than implementation directories', () => {
-  const source = fs.readFileSync(path.join(root, 'app/workspace/workspace.js'), 'utf8');
+  const source = fs.readFileSync(path.join(root, 'workspace/workspace.js'), 'utf8');
   const declaration = source.match(/const navigation = (\[[\s\S]*?\n  \]);/)[1];
   const navigation = vm.runInNewContext(declaration);
   const pages = (group) => Array.from(navigation.find((entry) => entry.group === group).pages,

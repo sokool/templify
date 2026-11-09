@@ -25,7 +25,7 @@ Creation does not open the window. Header, scrollable body and optional footer a
 
 Load foundations `tokens.css` / `primitives.css`, `window.css` and `window.js`. No other component or package is required. `manifest.json` lists the export. `configurator/configurator.js` is an optional development configurator that reuses FormField; it is excluded from runtime/export. Examples compose User identity, FormField and Buttons inside Window without making them runtime dependencies.
 
-Open `../../../app/index.html#topschrank.components.window`. The Window uses the real browser viewport, including when examples emulate a narrower device. Test real device widths for full-screen side panels.
+Open `../../../index.html#topschrank.components.window`. The Window uses the real browser viewport, including when examples emulate a narrower device. Test real device widths for full-screen side panels.
 
 The optional tool accepts an injected `settings` scope (`defaults`, `snapshot`, `set`). The example host supplies it from the shared store and restores appearance/behaviour after reload. The tool exports its default configuration as `defaults`; runtime configuration can be passed directly through `update()` without loading the tool. Selection/demo content is not persisted as template configuration.
 
@@ -34,7 +34,7 @@ these two behaviour settings across its Window instances and enables resize by
 default. Explicit per-window options take precedence over shared settings,
 including live updates: Kanban's Used components panel always uses
 `lockScroll: false` so the board stays scrollable and interactive.
-`app/workspace/windows.js` persists manually chosen sizes separately at
+`workspace/windows.js` persists manually chosen sizes separately at
 `preview.windows.<stable-window-id>.size`: the Window demo, Kanban dependencies
 and Palette colour picker each retain their own size across navigation/reload.
 Preferences belong to the current browser profile, not a theme; they never alter

@@ -1,11 +1,11 @@
 # Theme runtime
 
 `themes.js` to opcjonalny kontroler wspólnego look and feel, bez interfejsu edytora.
-Edytory znajdują się w `../tools/`, a aplikacja w `../../app/`.
+Edytory znajdują się w `../tools/`, a kod aplikacji w `../../workspace/` i `../../storage/`.
 
 Kontroler korzysta z `../colours/colour-roles.js`, `../colours/colour-system.js`,
 `../shadows/shadows.js` i modułów `tokens/`. W przeglądarce należy załadować te
-zależności przed kontrolerem; przykład kolejności jest w `../../app/index.html`.
+zależności przed kontrolerem; przykład kolejności jest w `../../index.html`.
 
 `DesignSystemThemes.create({target, settings?, storage?, initialTheme?})` tworzy
 kontroler dla wskazanego elementu. Host przekazuje zapis ustawień; bez niego

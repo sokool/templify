@@ -42,6 +42,6 @@
     "examples",
     "tests"
   ],
-  "example": "../../../app/index.html#topschrank.components.list",
+  "example": "../../../index.html#topschrank.components.list",
   "tests": "node --test tests/*.test.cjs"
 }

@@ -1,5 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const {Document}=require('./dom-fixture.cjs'),Settings=require('../../app/storage/settings.js'),Button=require('../components/buttons/buttons.js'),Tool=require('../components/buttons/configurator/configurator.js');
+const {Document}=require('./dom-fixture.cjs'),Settings=require('../../storage/settings.js'),Button=require('../components/buttons/buttons.js'),Tool=require('../components/buttons/configurator/configurator.js');
 test('button editor preserves a primary, saves independent variants and resets overrides to theme inheritance',()=>{
  global.DesignSystemThemes={tokens:{accent:'--ds-colour-accent',page:'--ds-colour-page',border:'--ds-colour-border',muted:'--ds-colour-muted'}};
  const settings=Settings.create().scope('components.buttons'),doc=new Document(),host=doc.createElement('div');let pickers=[];

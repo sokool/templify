@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 const Window = require('../../window.js');
-const Settings = require('../../../../../app/storage/settings.js');
+const Settings = require('../../../../../storage/settings.js');
 const { createWindowFixture, pointer } = require('../../../../testing/window-fixture.cjs');
 
 test('Window tool exposes scroll/resize switches, persists behaviour and shows manual width without exporting it', () => {

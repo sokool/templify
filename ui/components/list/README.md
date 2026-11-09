@@ -57,5 +57,5 @@ is persisted through `components.list` in the shared store; rows/query/page stay
 outside template configuration. No `tool.js` is needed for the built-in density
 control, which is part of the usable List UI.
 
-Open `../../../app/index.html#topschrank.components.list`.
+Open `../../../index.html#topschrank.components.list`.
 Run `node --test tests/*.test.cjs` for responsiveness, paging, lifecycle and safety.

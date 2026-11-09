@@ -16,4 +16,4 @@ Load `../../defaults.css` and `../../primitives.css` once, then `badges.css` and
 
 Public appearance tokens: `--ds-badge-fill`, `--ds-badge-ink`, `--ds-badge-edge`.
 
-Examples and their data live in `../../../app/workspace/components.js`; open `../../../app/index.html#topschrank.components.badges`. Behaviour and export-boundary tests live in `../../testing/migrated-components.test.cjs`.
+Examples and their data live in `../../../workspace/components.js`; open `../../../index.html#topschrank.components.badges`. Behaviour and export-boundary tests live in `../../testing/migrated-components.test.cjs`.

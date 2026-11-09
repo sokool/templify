@@ -219,3 +219,5 @@ body{margin:0;background:var(--ds-colour-page,var(--ds-colour-soft));color:var(-
  content:'';position:absolute;left:-1px;top:-1px;bottom:-1px;width:3px;
  background:var(--link,var(--ds-colour-accent));border-radius:0;opacity:1;pointer-events:none;
 }
+/* The host header shows the release version rather than account initials. */
+#menu-live .menu-avatar{width:auto;min-width:30px;padding-inline:8px;white-space:nowrap}

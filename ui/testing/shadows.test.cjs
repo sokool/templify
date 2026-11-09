@@ -2,7 +2,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const Themes = require('../themes/themes.js');
 const Shadows = require('../shadows/shadows.js');
-const Settings = require('../../app/storage/settings.js');
+const Settings = require('../../storage/settings.js');
 const { Document } = require('./dom-fixture.cjs');
 
 function create(settings) {

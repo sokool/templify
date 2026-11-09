@@ -4,4 +4,4 @@
 zmiennych CSS, bez aplikacji Templify i jej konfiguratorów.
 
 Izolowane przykłady poszczególnych komponentów pozostają przy komponentach.
-Pełny workspace przeniesiono do `../../app/index.html`.
+Pełny workspace jest dostępny w `../../index.html`.

@@ -85,7 +85,7 @@
     "examples",
     "tests"
   ],
-  "example": "../../../app/index.html#topschrank.components.forms",
+  "example": "../../../index.html#topschrank.components.forms",
   "tests": [
     "node --test tests/validation.test.cjs",
     "tests/browser.html"

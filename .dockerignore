@@ -1,6 +1,9 @@
 **
-!app/
-!app/**
+!index.html
+!workspace/
+!workspace/**
+!storage/
+!storage/**
 !ui/
 !ui/**
 !nginx/

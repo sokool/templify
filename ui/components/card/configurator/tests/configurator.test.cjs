@@ -7,7 +7,7 @@ const Tool = require('../configurator.js');
 const Card = require('../../card.js');
 const Picker = require('../../../../tools/palette-picker/palette-picker.js');
 const Themes = require('../../../../themes/themes.js');
-const Settings = require('../../../../../app/storage/settings.js');
+const Settings = require('../../../../../storage/settings.js');
 const Field = require('../../../form/field.js');
 const Button = require('../../../buttons/buttons.js');
 const { createFixture } = require('../../../../testing/kanban-fixture.cjs');
@@ -273,7 +273,7 @@ test('standalone page puts labelled Configuration above one clearly separated Pr
   const context = { DesignSystemCard: Card };
   for (const file of ['kanban-data.js', 'kanban.js']) {
     vm.runInNewContext(
-      fs.readFileSync(path.join(__dirname, '../../../../../app/workspace', file), 'utf8'),
+      fs.readFileSync(path.join(__dirname, '../../../../../workspace', file), 'utf8'),
       context,
     );
   }

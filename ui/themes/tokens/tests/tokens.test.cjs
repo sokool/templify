@@ -1,5 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
-const Tokens=require('../tokens.js'),Themes=require('../../themes.js'),Settings=require('../../../../app/storage/settings.js'),{Document}=require('../../../testing/dom-fixture.cjs');
+const Tokens=require('../tokens.js'),Themes=require('../../themes.js'),Settings=require('../../../../storage/settings.js'),{Document}=require('../../../testing/dom-fixture.cjs');
 const defaults=JSON.parse(fs.readFileSync(path.join(__dirname,'../palette.tokens.json'),'utf8'));
 test('authored DTCG defaults, generated file bundle and existing CSS share exactly the same colours',()=>{
  assert.deepEqual(defaults,require('../defaults.js'));assert.equal(Tokens.validate(defaults),true);
@@ -21,7 +21,7 @@ test('v1 workspace palette migrates to DTCG once, retaining all other component 
  const data={layout:{palette:{theme:'matrix',palettes:{matrix:{accent:'#123456'}}}},components:{surface:{radius:28}},preview:{device:'tablet'}};
  const values=new Map([['design-system-workspace',JSON.stringify({schema:'design-system-workspace',version:1,data})]]);let writes=0;
  const storage={getItem:key=>values.get(key)??null,setItem(key,value){writes++;values.set(key,value)}};
- const context={DesignSystemSettings:Settings,DesignSystemThemes:Themes,DesignSystemTokens:Tokens};vm.createContext(context);vm.runInContext(fs.readFileSync(path.join(__dirname,'../../../../app/storage/workspace-settings.js'),'utf8'),context);
+ const context={DesignSystemSettings:Settings,DesignSystemThemes:Themes,DesignSystemTokens:Tokens};vm.createContext(context);vm.runInContext(fs.readFileSync(path.join(__dirname,'../../../../storage/workspace-settings.js'),'utf8'),context);
  const {settings}=context.ExampleSettings.create({storage});assert.equal(settings.snapshot().version,2);assert.equal(settings.has('layout.palette'),false);assert.equal(settings.get('layout.theme'),'matrix');assert.equal(Tokens.cssColour(Tokens.resolve(settings.get('tokens'),'themes.matrix.accent')),'#123456');assert.equal(settings.get('components.surface.radius'),28);assert.equal(settings.exportTemplate().preview,undefined);
  const before=writes;context.ExampleSettings.create({storage});assert.equal(writes,before);
 });
@@ -36,7 +36,7 @@ test('earlier Buttons choices migrate once to an independent editable instance',
  const old=Tokens.copy(defaults);old.themes.dark.buttonFill={$type:'color',$value:Tokens.colour('#123456')};
  const data={tokens:old,layout:{theme:'dark'},components:{buttons:{colours:{ink:{kind:'semantic',role:'panel'}}}}};
  const values=new Map([['design-system-workspace',JSON.stringify({schema:'design-system-workspace',version:2,data})]]),storage={getItem:key=>values.get(key)??null,setItem(key,value){values.set(key,value)}};
- const context={DesignSystemSettings:Settings,DesignSystemThemes:Themes,DesignSystemTokens:Tokens};vm.createContext(context);vm.runInContext(fs.readFileSync(path.join(__dirname,'../../../../app/storage/workspace-settings.js'),'utf8'),context);const {settings}=context.ExampleSettings.create({storage});
+ const context={DesignSystemSettings:Settings,DesignSystemThemes:Themes,DesignSystemTokens:Tokens};vm.createContext(context);vm.runInContext(fs.readFileSync(path.join(__dirname,'../../../../storage/workspace-settings.js'),'utf8'),context);const {settings}=context.ExampleSettings.create({storage});
  assert.equal(settings.get('components.buttons.items')[0].colours.fill.value,'#123456');
  assert.equal(settings.get('components.buttons.items')[0].colours.ink.role,'panel');
  settings.set('components.buttons.items',[{id:'custom',label:'Saved'}]);context.ExampleSettings.create({storage});assert.equal(settings.get('components.buttons.items')[0].label,'Saved');

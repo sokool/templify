@@ -9,7 +9,7 @@ Native form controls with the migrated floating fine-line field, divided-row sel
 - `form.js`: optional composition of fields into sections; owns submit/reset and field lifecycle.
 - `form.css`: shared control typography, focus, state and responsive layout. It uses semantic foundation colours and the inherited font.
 - `configurator/configurator.js`: **example-only** visual error preview. Not part of the runtime or export.
-- `../../../app/workspace/form-data.js`, `form.js`, `form.css`: catalogue, local submission inspector, demo data and playground. Not a component dependency.
+- `../../../workspace/form-data.js`, `form.js`, `form.css`: catalogue, local submission inspector, demo data and playground. Not a component dependency.
 
 The old monolithic prototype remains untouched. New examples consume this module.
 

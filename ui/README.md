@@ -18,7 +18,7 @@ docelowe granice eksportu opisuje [główny README](../README.md).
 - `testing/`: współdzielone testy i fixtures; poza kodem produkcyjnym.
 - `scripts/`: generatory i skrypt uruchamiający testy.
 
-Główna aplikacja jest w [app/index.html](../app/index.html), nie w `examples/`.
+Główna aplikacja jest w [index.html](../index.html), nie w `examples/`.
 Host odpowiada za routing, zapis ustawień i kompozycję publicznych API.
 
 ## Komponenty i eksport

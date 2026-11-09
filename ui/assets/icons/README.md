@@ -24,4 +24,4 @@ Fonts, theme selection, storage, routing and catalogue controls are not dependen
 
 `../../tools/icons/icon-categories.js` organizes the catalogue and provides tags/aliases for searching; it is not needed by the asset runtime. `../../tools/icons/icons.js` renders the catalogue and accepts the SVG library, optional existing controls and a clipboard callback. Both the main playground and the shared examples use that tool and the same asset source.
 
-Open `../../../app/index.html#topschrank.iconsandglyphs` to browse, search, resize and copy icon names. Configuration/presentation code must not be imported into production components.
+Open `../../../index.html#topschrank.iconsandglyphs` to browse, search, resize and copy icon names. Configuration/presentation code must not be imported into production components.

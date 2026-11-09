@@ -48,10 +48,10 @@ test('all-disabled state and destruction are safe; duplicate IDs are rejected',(
  control.destroy();assert.equal(host.children.length,0);assert.equal(host.listeners.get('keydown').size,0);assert.throws(()=>control.update({}),/destroyed/);
  assert.throws(()=>setup({items:[items[0],items[0]]}),/Duplicate tab id/);
 });
-test('playground supplies data to the extracted component and does not duplicate its logic',()=>{
- const root=path.resolve(__dirname,'../../../..'),html=readFileSync(path.join(root,'top-schrank-ui.html'),'utf8'),source=readFileSync(path.join(root,'app/workspace/tabs.js'),'utf8');
+test('standalone example and demo adapter reuse the extracted component',()=>{
+ const root=path.resolve(__dirname,'../../../..'),html=readFileSync(path.join(__dirname,'../example.html'),'utf8'),source=readFileSync(path.join(root,'workspace/tabs.js'),'utf8');
  const scope={};vm.runInNewContext(source,{globalThis:scope});const doc=new Document(),host=doc.createElement('div');scope.TabsPlayground.mount(host,tabs);
  assert.equal(buttons(host).length,3);assert.equal(buttons(host)[0].textContent,'Materials');
- assert(html.includes('TabsPlayground.mount'));assert(!html.includes('function activateTab('));assert(!html.includes('class="tab"'));assert(!/\.tabs\{|\.tab\[/.test(html));
+ assert(html.includes('./tabs.js'));assert(html.includes('DesignSystemTabs.mount'));assert(!html.includes('function activateTab('));assert(!html.includes('class="tab"'));assert(!/\.tabs\{|\.tab\[/.test(html));
  const css=readFileSync(path.join(__dirname,'../tabs.css'),'utf8');assert(!/--(?:link|muted|ice)|menu-live|workspace/.test(css));assert(!css.includes(':focus-visible'));assert(css.includes('--ds-colour-accent'));
 });

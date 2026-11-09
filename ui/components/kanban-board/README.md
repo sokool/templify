@@ -23,16 +23,16 @@ to resize; its width is remembered separately as a user preference under
 `preview.windows.kanban.used-components.size`, never in the Kanban export.
 
 The board runtime has **no direct component dependencies**. The following components
-are used by the [Templify page](../../../app/index.html#topschrank.components.kanbanboard)
+are used by the [Templify page](../../../index.html#topschrank.components.kanbanboard)
 or its configurator, not imported by the board itself:
 
 | Component | Where and why it is used |
 | --- | --- |
-| [Card](../../../app/index.html#topschrank.components.card) | Injected through `renderItem` to display item content, metadata and action menus. Replaceable with another renderer. |
-| [Autocomplete](../../../app/index.html#topschrank.components.autocomplete) | Host toolbar: card search, filtering and multiple selection. |
-| [Form](../../../app/index.html#topschrank.components.forms) | Indirect dependency of Autocomplete: shared fields and validation. |
-| [Buttons](../../../app/index.html#topschrank.components.buttons) | Host: **Used components** edge tab. Configurator: **Randomise card borders** and **Reset borders** controls. |
-| [Window](../../../app/index.html#topschrank.components.window) | Host: right sidebar showing this list. |
+| [Card](../../../index.html#topschrank.components.card) | Injected through `renderItem` to display item content, metadata and action menus. Replaceable with another renderer. |
+| [Autocomplete](../../../index.html#topschrank.components.autocomplete) | Host toolbar: card search, filtering and multiple selection. |
+| [Form](../../../index.html#topschrank.components.forms) | Indirect dependency of Autocomplete: shared fields and validation. |
+| [Buttons](../../../index.html#topschrank.components.buttons) | Host: **Used components** edge tab. Configurator: **Randomise card borders** and **Reset borders** controls. |
+| [Window](../../../index.html#topschrank.components.window) | Host: right sidebar showing this list. |
 
 The add/details dialogs currently use native HTML elements, not the Window component.
 
@@ -83,8 +83,8 @@ Column and scroll colours use shared semantic tokens (`--ds-colour-lane`, `--ds-
 
 ## Examples and tooling boundary
 
-`app/workspace/kanban.js` composes both modules and owns filtering through Autocomplete,
-multi-selection chips, native add/details dialogs and storage. `app/workspace/kanban-data.js`
+`workspace/kanban.js` composes both modules and owns filtering through Autocomplete,
+multi-selection chips, native add/details dialogs and storage. `workspace/kanban-data.js`
 supplies the 19 sample cards. These host files are not exported with either component.
 
 `configurator/configurator.js` / `configurator/configurator.css` provide preview-only **Randomise card borders** and **Reset borders** controls, excluded from runtime exports. The host injects `themes`, `getItems()` and an optional tool-only `settings` scope into `DesignSystemKanbanBoardTool.mount`, then binds each rendered Card with `bind(element, item.id)` and destroys that binding with the renderer. Randomisation covers every item, including filtered-out cards, using Brand/Accent/Greys references from the active Palette. Colours stay with IDs across movement, filtering and renderer recreation; theme edits update through CSS variables, while deleted references fall back to the shared Card border.
@@ -95,4 +95,4 @@ The example saves the latest assignments per theme at `preview.kanban-board.bord
 
 Node tests cover model validation, immutable reorder, responsive sizing, filtering, renderer cleanup, keyboard movement, pointer anchor/ghost size, touch hold/cancel and export boundaries. Browser checks exercise the composed page, action menu, details, actual mouse drag/drop, keyboard movement, filtering, tablet three-column geometry and mobile column/snap/hidden-edge geometry. Physical finger swipes and pickup on real tablet/phone hardware still require a device check; DOM tests are not a substitute for that.
 
-[Open composition](../../../app/index.html#topschrank.components.kanbanboard).
+[Open composition](../../../index.html#topschrank.components.kanbanboard).

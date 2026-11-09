@@ -8,4 +8,4 @@ Data: `label, items: [{label, value, description?}]`. Text renders safely as tex
 
 Load foundations `tokens.css` and `primitives.css` once, then `counts-and-summaries.css` and `counts-and-summaries.js`. There are no component or package dependencies. Colours and fonts inherit semantic tokens. The manifest lists the full export.
 
-Example: `../../../app/index.html#topschrank.components.countsandsummaries`.
+Example: `../../../index.html#topschrank.components.countsandsummaries`.

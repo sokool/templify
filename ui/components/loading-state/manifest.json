@@ -29,5 +29,5 @@
     "tests",
     "examples"
   ],
-  "example": "../../../app/index.html#topschrank.components.loadingstate"
+  "example": "../../../index.html#topschrank.components.loadingstate"
 }

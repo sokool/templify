@@ -300,8 +300,9 @@
   navigation
     .find((entry) => entry.group === 'components')
     .pages.sort((a, b) => a[1].localeCompare(b[1], 'en', { sensitivity: 'base' }));
+  const releaseVersion = 'v0.1.1';
   DesignSystemNavigation.renderStructure(root, {
-    user: { initials: 'T', label: 'Templify' },
+    user: { initials: releaseVersion, label: 'Templify ' + releaseVersion },
   });
   const submenuIcons = {
     palette: 'palette',
@@ -776,7 +777,7 @@
     });
     page.append(samples);
   }
-  const defaultRoute = 'palette';
+  const defaultRoute = 'dashboard';
   function restoreRoute() {
     if (location.hash === '#topschrank.components.loadingstate')
       history.replaceState(null, '', '#topschrank.components.progress');

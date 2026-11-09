@@ -54,4 +54,4 @@ All preferences, including preview size and menu visibility, belong to the selec
 
 The compact control layout uses `tools/tools.css` (`ds-tool`), independently of the preview. Generic picker/shadow editors live under `tools/` and can also be opened from the **Tools** submenu.
 
-[Composed example](../../../app/index.html#topschrank.components.card). Node tests cover independent content, menu, lifecycle and text safety. Browser checks are documented under Kanban board.
+[Composed example](../../../index.html#topschrank.components.card). Node tests cover independent content, menu, lifecycle and text safety. Browser checks are documented under Kanban board.

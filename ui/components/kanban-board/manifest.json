@@ -54,7 +54,7 @@
     "global": "DesignSystemKanbanBoardTool",
     "export": false
   },
-  "example": "../../../app/index.html#topschrank.components.kanbanboard",
+  "example": "../../../index.html#topschrank.components.kanbanboard",
   "tests": "node --test tests/*.test.cjs",
   "colourRoles": [
     {

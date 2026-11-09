@@ -247,16 +247,19 @@ test('export has no demo/router/editor dependency and main uses a single control
   const dir = path.resolve(__dirname, '..'),
     workspace = path.resolve(dir, '../../..'),
     source = readFileSync(path.join(dir, 'navigation.js'), 'utf8'),
-    html = readFileSync(path.join(workspace, 'top-schrank-ui.html'), 'utf8');
+    html = readFileSync(path.join(workspace, 'index.html'), 'utf8'),
+    host = readFileSync(path.join(workspace, 'workspace/workspace.js'), 'utf8');
   assert(
     !/demoOrders|actualWorkspacePages|selectMenuPage\(|BreadcrumbPlayground|localStorage/.test(
       source,
     ),
   );
-  assert(html.includes('DesignSystemNavigation.mount'));
-  assert(html.includes('DesignSystemNavigation.renderStructure'));
-  assert(!html.includes('function setSubmenuVisible('));
-  assert(!html.includes('function positionScrollableSubmenus(){\n const floating'));
+  assert(html.includes('./ui/components/navigation/navigation.js'));
+  assert(html.includes('./workspace/workspace.js'));
+  assert.equal((host.match(/DesignSystemNavigation\.mount\(/g) || []).length, 1);
+  assert(host.includes('DesignSystemNavigation.renderStructure'));
+  assert(!host.includes('function setSubmenuVisible('));
+  assert(!host.includes('function positionScrollableSubmenus(){\n const floating'));
   assert.deepEqual(shell.scrollState(100, 300, 0), { overflow: true, up: false, down: true });
   assert.deepEqual(shell.scrollState(100, 300, 200), { overflow: true, up: true, down: false });
 });

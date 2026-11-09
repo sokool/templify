@@ -8,7 +8,7 @@ Generic editors live here, independently of the components that use them.
 | Shadows | `shadows/shadows.js` + `.css` | `#topschrank.tools.shadows` |
 | Contrast checker | `contrast-checker/contrast-checker.js` + `.css` | `#topschrank.tools.contrastchecker` |
 
-`../../app/workspace/tools.js` only composes their workspace pages. Component
+`../../workspace/tools.js` only composes their workspace pages. Component
 configurators use these same modules, not copies. The menu exposes Shadows under
 Theme, and Contrast checker / Palette picker under Tools. Components never import tools.
 

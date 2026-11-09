@@ -16,7 +16,7 @@ Load `../../defaults.css` and `../../primitives.css` once, then `surface.css` an
 
 Public appearance tokens: `--ds-surface-bg`, `--ds-surface-text`, `--ds-surface-border`, `--ds-surface-radius`, `--ds-surface-padding`, `--ds-surface-border-width`, `--ds-surface-shadow`.
 
-Examples and their data live in `../../../app/workspace/components.js`; open `../../../app/index.html#topschrank.components.surface`. Behaviour and export-boundary tests live in `../../testing/migrated-components.test.cjs`.
+Examples and their data live in `../../../workspace/components.js`; open `../../../index.html#topschrank.components.surface`. Behaviour and export-boundary tests live in `../../testing/migrated-components.test.cjs`.
 
 ## Development tool — excluded from the component
 

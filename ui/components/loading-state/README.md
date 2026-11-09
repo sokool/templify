@@ -8,4 +8,4 @@ Data: `loading (true), label, lines (3, maximum 12), content: string | Node`. Te
 
 Load foundations `tokens.css` and `primitives.css` once, then `loading-state.css` and `loading-state.js`. There are no component or package dependencies. Colours and fonts inherit semantic tokens. The manifest lists the full export.
 
-Example: `../../../app/index.html#topschrank.components.loadingstate`.
+Example: `../../../index.html#topschrank.components.loadingstate`.

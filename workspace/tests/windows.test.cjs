@@ -1,9 +1,9 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const Windows = require('../windows.js');
-const Window = require('../../../ui/components/window/window.js');
+const Window = require('../../ui/components/window/window.js');
 const Settings = require('../../storage/settings.js');
-const { createWindowFixture, pointer } = require('../../../ui/testing/window-fixture.cjs');
+const { createWindowFixture, pointer } = require('../../ui/testing/window-fixture.cjs');
 
 test('sizes persist per window/user, survive reload and remain outside template exports', () => {
   const stored = new Map(), storage = { getItem: key => stored.get(key), setItem: (key, value) => stored.set(key, value) };

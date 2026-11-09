@@ -17,7 +17,7 @@ test('generic tools have one implementation under tools, with no obsolete Palett
   ]) {
     assert.equal(fs.existsSync(path.join(root, file)), false, file);
   }
-  const html = fs.readFileSync(path.join(root, '../app/index.html'), 'utf8');
+  const html = fs.readFileSync(path.join(root, '../index.html'), 'utf8');
   for (const asset of [
     'tools/palette-picker/palette-picker.js',
     'tools/palette-picker/palette-picker.css',
@@ -27,15 +27,15 @@ test('generic tools have one implementation under tools, with no obsolete Palett
     'tools/contrast-checker/contrast-checker.css',
     'tools/shared/tools.css',
   ]) {
-    assert.equal(html.split('../ui/' + asset).length - 1, 1, asset);
+    assert.equal(html.split('./ui/' + asset).length - 1, 1, asset);
   }
   for (const match of html.matchAll(/(?:src|href)="([^"#]+\.(?:js|css))"/g)) {
-    assert(fs.existsSync(path.resolve(root, '../app', match[1])), match[1]);
+    assert(fs.existsSync(path.resolve(root, '..', match[1])), match[1]);
   }
 });
 
 test('Tools has separate submenu routes and generic tools use shared compact controls', () => {
-  const workspace = fs.readFileSync(path.join(root, '../app/workspace/workspace.js'), 'utf8');
+  const workspace = fs.readFileSync(path.join(root, '../workspace/workspace.js'), 'utf8');
   assert.match(workspace, /group:\s*'tools'/);
   for (const anchor of [
     'topschrank.tools',

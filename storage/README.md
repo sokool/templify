@@ -72,4 +72,4 @@ can resolve module manifests/dependencies and apply this snapshot without bundli
 `tool.js`, example datasets or localStorage. Workspace v1 is accepted and upgraded on the next write; the host migrates palette
 colours to DTCG. Import/version migration beyond v2 is a separate operation; do not treat arbitrary JSON as executable code.
 
-Run: `node --test app/storage/tests/*.test.cjs` from the repository root.
+Run: `node --test storage/tests/*.test.cjs` from the repository root.

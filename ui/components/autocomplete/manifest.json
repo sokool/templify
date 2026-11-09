@@ -51,5 +51,5 @@
     "tests"
   ],
   "tests": "node --test tests/*.test.cjs; open tests/browser.html",
-  "example": "../../../app/index.html#topschrank.components.autocomplete"
+  "example": "../../../index.html#topschrank.components.autocomplete"
 }

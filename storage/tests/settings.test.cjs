@@ -55,7 +55,7 @@ test('scope defaults preserve user values; subscriptions can be disposed',()=>{
  assert.equal(calls,1);assert.equal(scope.get('width'),720);assert.equal(scope.get('mode'),'side');
 });
 test('host migration adapter maps actual example keys to canonical scopes',()=>{
- const vm=require('node:vm'),fs=require('node:fs'),context={DesignSystemSettings:{create},DesignSystemTokens:require('../../../ui/themes/tokens/tokens.js'),DesignSystemThemes:require('../../../ui/themes/themes.js')};
+ const vm=require('node:vm'),fs=require('node:fs'),context={DesignSystemSettings:{create},DesignSystemTokens:require('../../ui/themes/tokens/tokens.js'),DesignSystemThemes:require('../../ui/themes/themes.js')};
  vm.createContext(context);vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../workspace-settings.js'),'utf8'),context);
  const storage=memory({'design-system-examples-font':'Inter','design-system-examples-sidebar-collapsed':'true','design-system-examples-device':'tablet'});
  const host=context.ExampleSettings.create({storage});

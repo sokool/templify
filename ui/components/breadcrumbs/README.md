@@ -75,7 +75,7 @@ The component emits semantic `nav > ol > li` markup with links, decorative separ
 - Application adapter: route IDs and URLs, navigation callback, mapping theme tokens.
 - Playground: select controls, colour picker, seven examples, saved settings.
 
-The configurator lives in `configurator/` and is **not** included in a component export. It depends on injected Forms select and palette editor utilities; these legacy playground utilities remain in the historical main HTML for now. The host adapter lives in `../../../app/workspace/breadcrumbs-adapter.js`.
+The configurator lives in `configurator/` and is **not** included in a component export. It depends on injected Forms select and palette editor utilities. The legacy host adapter lives in `../../../workspace/breadcrumbs-adapter.js`; the main application composes Breadcrumbs directly in `../../../workspace/workspace.js`.
 
 ## Verification
 

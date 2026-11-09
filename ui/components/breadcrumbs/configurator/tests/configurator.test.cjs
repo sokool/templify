@@ -21,17 +21,19 @@ test('editor reuses component, restores settings, updates previews and persists 
  assert.equal(page.querySelector('nav').style.get('--ds-bc-size'),'26px');
  editor.destroy();assert.equal(page.children.length,0);assert.equal(doc.listeners.get('pointerdown').size,0);
 });
-test('main playground references real assets and no longer embeds breadcrumb rendering or editor copies',()=>{
-  const root=path.resolve(__dirname,'../../../../..'),html=fs.readFileSync(path.join(root,'top-schrank-ui.html'),'utf8');
- for(const asset of ['ui/components/breadcrumbs/breadcrumbs.js','ui/components/breadcrumbs/breadcrumbs.css','ui/components/breadcrumbs/configurator/configurator.js','ui/components/breadcrumbs/configurator/configurator.css']){
+test('main application references real assets and delegates breadcrumb rendering to the component',()=>{
+  const root=path.resolve(__dirname,'../../../../..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+  const host=fs.readFileSync(path.join(root,'workspace/workspace.js'),'utf8');
+ for(const asset of ['ui/components/breadcrumbs/breadcrumbs.js','ui/components/breadcrumbs/breadcrumbs.css']){
   assert(html.includes('./'+asset));assert(fs.existsSync(path.join(root,asset)));
  }
  assert(!/function (renderBreadcrumbSegments|configureBreadcrumbDepth|createAppBreadcrumbs|breadcrumbLevelColour|renderBreadcrumbEditor)/.test(html));
- assert(html.includes('BreadcrumbWorkspaceAdapter.create'));assert(html.includes('BreadcrumbPlayground.mount'));
+ assert(html.includes('./workspace/workspace.js'));assert(host.includes('DesignSystemBreadcrumbs.mount'));
+ assert(!html.includes('ui/components/breadcrumbs/configurator/'));
  assert(!html.includes('--bc-font-size'));assert(!html.includes('.app-breadcrumbs'));
 });
 test('workspace adapter maps routes and shares appearance without owning storage or menu state',()=>{
- const adapterScope={};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../../../../../app/workspace/breadcrumbs-adapter.js'),'utf8'),{globalThis:adapterScope});
+ const adapterScope={};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../../../../../workspace/breadcrumbs-adapter.js'),'utf8'),{globalThis:adapterScope});
  const doc=new Document(),nav=doc.createElement('nav');doc.append(nav);const selected=[];
  const adapter=adapterScope.BreadcrumbWorkspaceAdapter.create({component,element:nav,getPath:page=>page==='dashboard'?['dashboard']:['components','breadcrumbs'],resolveHref:route=>'#topschrank.'+route,navigate:item=>selected.push(item.id),getTheme:()=>({accent:'#ABCDEF'})});
  adapter.show('dashboard');assert.equal(nav.querySelector('[aria-current=page]').textContent,'dashboard');

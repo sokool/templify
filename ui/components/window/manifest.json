@@ -39,5 +39,5 @@
   "toolDependencies": [
     "../form/field.js"
   ],
-  "example": "../../../app/index.html#topschrank.components.window"
+  "example": "../../../index.html#topschrank.components.window"
 }
