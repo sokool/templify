@@ -1,0 +1,21 @@
+{
+  "name": "templify",
+  "private": true,
+  "scripts": {
+    "build": "node ui/scripts/build-export-tool.cjs",
+    "pretest": "npm run build",
+    "test": "node ui/scripts/check.cjs",
+    "pretest:browser": "npm run build",
+    "test:browser": "playwright test",
+    "export": "node ui/scripts/export.cjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12",
+    "@playwright/test": "1.58.2"
+  },
+  "dependencies": {
+    "esbuild-wasm": "0.25.12",
+    "fflate": "0.8.3",
+    "htmx.org": "2.0.8"
+  }
+}

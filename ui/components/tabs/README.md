@@ -8,7 +8,8 @@ Local runtime: `tabs.js` and `tabs.css`.
 
 Shared runtime: `../../defaults.css` and `../../primitives.css`, **loaded once per page**, including when Breadcrumbs is present. No dependency on Breadcrumbs, Forms, icons, routing, storage, a framework or a package manager.
 
-`manifest.json` lists local files, shared dependencies, export files and test-only support. The playground copy and its product text live in `../../../workspace/tabs.js` and are excluded from the runtime/export.
+For HTML-first export use `tabs.html` and [UI](../../README.md). The client adopts
+the existing tab buttons/panels; the following classic `mount()` API remains supported.
 
 ## Use
 
@@ -51,7 +52,7 @@ Arrow Left/Right wraps between enabled tabs; Home/End moves to the first/last en
 
 The component uses only `.ds-tabs*` styles and the opt-in shared `.ds-component` / `.ds-focusable` primitives. It never resets arbitrary application buttons.
 
-Optional per-component CSS tokens are listed in the manifest. They fall back to the shared semantic foundation:
+Optional per-component CSS tokens fall back to the shared semantic foundation:
 
 ```css
 #product-details {

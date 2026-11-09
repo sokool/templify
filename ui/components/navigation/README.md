@@ -12,9 +12,11 @@ The responsive application frame: header, expanded sidebar, 45 px icon rail, con
   `form.css`. Form owns input geometry, border, typography and focus styling.
 - No npm package, application router, order data, configuration editor or icon library is required.
 - Breadcrumbs is a separate **optional composition**. Mount it into `shell.slots.breadcrumbs`. The live application uses its existing Breadcrumbs adapter and configured appearance unchanged.
-- `configurator/configurator.js` / `configurator/configurator.css` provide optional compact authoring controls and are excluded from runtime exports. They reuse Form and Buttons in the host only.
+- Component configurators have been removed; behaviour remains accessible through the public API.
 
-The manifest lists exact export files. Exporting Navigation together with Breadcrumbs adds Breadcrumbs JS/CSS; include shared foundations only once. Configurators, preview controls and their storage are application code and are not part of this component export.
+For HTML-first export use `navigation.html` and [UI](../../README.md). The exporter
+bundles runtime imports, including shared Form styles, without the workspace or
+its storage. The current controller retains its one-Navigation-per-document ID contract.
 
 ## Integration
 
@@ -89,23 +91,10 @@ mobile toggle buttons. Closing mobile navigation restores focus to its button;
 desktop keeps focus outside Navigation, or moves it to the sidebar toggle when
 the focused menu control might become hidden. `destroy()` unregisters the action.
 
-## Navigation tool
+## Configuration
 
-The workspace Navigation page contains a compact **Menu search** switch,
-**Search shortcut**, **Sidebar shortcut** recorders and **Reset to defaults**.
-Focus the shortcut field and press the desired combination; Backspace/Delete
-clears it. Cmd and Ctrl are recorded as portable `Mod`. Reset restores enabled
-search, Cmd/Ctrl+F and Cmd/Ctrl+B for only the active theme.
-`DesignSystemNavigationTool.create({themes, navigation, shortcuts})`
-receives the shared Shortcuts tool adapter and mounts its Form recorder by ID.
-Search visibility belongs to the selected theme's Navigation settings; bindings
-belong only to `shortcuts.bindings['navigation.search']` and
-`shortcuts.bindings['navigation.toggleSidebar']`. Editing them here or on
-**Components → Shortcuts** changes the same preference. The host migrates previous
-per-theme Navigation shortcut settings, including disabled bindings. Theme
-changes/reloads/copies/exports retain their own setting. The runtime does not
-depend on Palette or either configuration tool; only the shared Form Field runtime
-is needed for search.
+Navigation has no configurator. Use the public API for search, selection,
+collapse and shortcut settings. Shortcuts remains an independent component.
 
 ## Preserved behaviour
 

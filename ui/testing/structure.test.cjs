@@ -34,27 +34,15 @@ test('HTML assets, CSS URLs and static relative requires resolve after relocatio
 });
 
 test('component exports contain only existing runtime files, never configurators or host tools', () => {
-  for (const file of sources.filter((file) => /\/components\/[^/]+\/manifest\.json$/.test(file))) {
-    const manifest = JSON.parse(fs.readFileSync(file, 'utf8'));
-    const base = path.dirname(file);
-    if (manifest.example) {
-      assert(fs.existsSync(path.resolve(base, manifest.example.split('#')[0])), manifest.example);
-    }
-    for (const entry of [...manifest.runtimeFiles, ...manifest.exportFiles]) {
-      const target = path.resolve(base, entry);
-      assert(fs.existsSync(target), file + ' → ' + entry);
-      assert(!/\/(?:configurator|tools|workspace|storage)\//.test(target), entry);
-      if (entry.endsWith('.js')) {
-        const source = fs.readFileSync(target, 'utf8');
-        assert(!/require\(["'][^"']*(?:configurator|tools|workspace|storage)\//.test(source), target);
-      }
-    }
-    if (fs.existsSync(path.join(base, 'configurator'))) assert(manifest.tool, file);
-    if (manifest.tool) {
-      assert.equal(manifest.tool.export, false);
-      assert(manifest.tool.entry.startsWith('configurator/'));
-      assert(fs.existsSync(path.resolve(base, manifest.tool.entry)));
-    }
+  const { available } = require('../scripts/export.cjs');
+  for (const name of available()) {
+    const base = path.join(root, 'ui/components', name);
+    assert(!fs.existsSync(path.join(base, 'manifest.json')));
+    for (const extension of ['html','css','js']) assert(fs.existsSync(path.join(base, name + '.' + extension)));
+    const html = fs.readFileSync(path.join(base, name + '.html'), 'utf8');
+    assert.match(html, /^<!--[\s\S]*Komponent:[\s\S]*Przeznaczenie:[\s\S]*Elementy:[\s\S]*Zachowanie JS:[\s\S]*?-->/);
+    const runtime = fs.readFileSync(path.join(base, name + '.js'), 'utf8');
+    assert(!/require\(["'][^"']*(?:configurator|tools|workspace|storage)\//.test(runtime));
   }
 });
 
@@ -84,7 +72,7 @@ test('Theme and Tools navigation reflect user tasks rather than implementation d
   const pages = (group) => Array.from(navigation.find((entry) => entry.group === group).pages,
     (entry) => entry[0]);
   assert.deepEqual(pages('theme'), ['palette', 'fonts', 'icons', 'shadows']);
-  assert.deepEqual(pages('tools'), ['contrast-checker', 'palette-picker']);
+  assert.deepEqual(pages('tools'), ['contrast-checker', 'palette-picker', 'export']);
   for (const anchor of ['topschrank.palette', 'topschrank.fonts', 'topschrank.iconsandglyphs',
     'topschrank.tools.shadows']) assert(source.includes(anchor));
 });

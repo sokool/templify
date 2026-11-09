@@ -12,7 +12,7 @@ Browser global: `DesignSystemAccordion`. CommonJS is also supported.
 
 ## Dependencies and export
 
-Load `../../defaults.css` and `../../primitives.css` once, then `accordion.css` and `accordion.js`. `manifest.json` lists the complete export. No other component, package, icon registry, routing, storage, font selector or theme editor is required. Fonts and colours are inherited through semantic tokens; optional icons are supplied as DOM Nodes. Text is rendered as text, not HTML.
+For HTML-first export use `accordion.html` and the exporter described in [UI](../../README.md). The following classic `mount()` API remains supported by workspace. Load `../../defaults.css` and `../../primitives.css` once, then `accordion.css` and `accordion.js`.
 
 Public appearance tokens: `--ds-colour-text`, `--ds-colour-muted`, `--ds-colour-divider`.
 

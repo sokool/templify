@@ -23,14 +23,15 @@ Options:
 
 Creation does not open the window. Header, scrollable body and optional footer are separate. Content updates happen only when supplied in a patch; changing appearance preserves embedded controls and their values. Callers mount/destroy any embedded components themselves. Explicit close remains available even when dismissal by Escape/backdrop is disabled. Focus returns to the opener; scroll locking is reference counted across overlapping windows. Destroy closes immediately and releases locks/listeners/timers.
 
-Load foundations `tokens.css` / `primitives.css`, `window.css` and `window.js`. No other component or package is required. `manifest.json` lists the export. `configurator/configurator.js` is an optional development configurator that reuses FormField; it is excluded from runtime/export. Examples compose User identity, FormField and Buttons inside Window without making them runtime dependencies.
+For HTML-first export use `window.html` and [UI](../../README.md). The client adopts
+the existing dialog and preserves its body/controls. Behaviour attributes are
+documented in the HTML comment and map to the same options used by `update()`.
+Classic usage loads foundations, `window.css` and `window.js`.
 
 Open `../../../index.html#topschrank.components.window`. The Window uses the real browser viewport, including when examples emulate a narrower device. Test real device widths for full-screen side panels.
 
-The optional tool accepts an injected `settings` scope (`defaults`, `snapshot`, `set`). The example host supplies it from the shared store and restores appearance/behaviour after reload. The tool exports its default configuration as `defaults`; runtime configuration can be passed directly through `update()` without loading the tool. Selection/demo content is not persisted as template configuration.
-
-The tool exposes **Lock page scroll** and **Allow manual resize**. Templify shares
-these two behaviour settings across its Window instances and enables resize by
+The configurator has been removed; behaviour is controlled through HTML/JS.
+Templify shares scroll-lock and resize settings across its Window instances and enables resize by
 default. Explicit per-window options take precedence over shared settings,
 including live updates: Kanban's Used components panel always uses
 `lockScroll: false` so the board stays scrollable and interactive.

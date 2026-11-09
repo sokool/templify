@@ -13,7 +13,7 @@ specification, not a W3C Recommendation. Workspace schema versions are independe
   They do not parse DTCG, import tools or read localStorage.
 - Behaviour (pagination, Escape dismissal, navigation state), datasets and callbacks
   are not design tokens. Keep these in ordinary component/layout configuration.
-- Component configurators belong to `components/<name>/configurator/` and are excluded
+- Component configurators have been removed; authoring tools remain excluded
   from runtime exports. No runtime -> tool imports.
 
 ## First implemented profile: Palette

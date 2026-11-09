@@ -30,10 +30,10 @@ test('categorized imports, aliases, copies and storage round trip; malformed imp
  const imported=create();imported.importTokens(themes.getTokens());assert.deepEqual(imported.getState().colours,themes.getState().colours);
  const before=imported.exportTokens(),bad=imported.getTokens();bad.themes[id].colors.brand[ref.id].$description={bad:true};assert.throws(()=>imported.importTokens(bad));assert.equal(imported.exportTokens(),before);
 });
-test('component manifests are the source of opt-in colour roles, with no tool dependencies in runtime',()=>{
+test('dedicated colour role documents are the source of opt-in component roles',()=>{
  const foundation=JSON.parse(fs.readFileSync(path.join(__dirname,'../colours/colour-roles.json'))),catalogue=Themes.registry;
  for(const role of foundation)assert(catalogue.some(r=>r.id===role.id));
- for(const component of ['form','kanban-board']){const manifest=JSON.parse(fs.readFileSync(path.join(__dirname,'../components',component,'manifest.json')));for(const role of manifest.colourRoles)assert(catalogue.some(r=>r.id===role.id&&r.css===role.css&&r.owners.includes(component)));assert(!JSON.stringify(manifest.runtimeFiles).includes('chroma'));}
+  for(const component of ['form','kanban-board']){const roles=JSON.parse(fs.readFileSync(path.join(__dirname,'../components',component,'colour-roles.json')));for(const role of roles)assert(catalogue.some(r=>r.id===role.id&&r.css===role.css&&r.owners.includes(component)));}
 });
 test('Buttons inherits foundation roles without adding palette applications',()=>{
  assert(!Themes.registry.some(role=>role.section==='Buttons'));

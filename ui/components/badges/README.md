@@ -12,7 +12,7 @@ Browser global: `DesignSystemBadges`. CommonJS is also supported.
 
 ## Dependencies and export
 
-Load `../../defaults.css` and `../../primitives.css` once, then `badges.css` and `badges.js`. `manifest.json` lists the complete export. No other component, package, icon registry, routing, storage, font selector or theme editor is required. Fonts and colours are inherited through semantic tokens; optional icons are supplied as DOM Nodes. Text is rendered as text, not HTML.
+For HTML-first export use `badges.html` and the exporter described in [UI](../../README.md). Classic workspace usage loads foundations, `badges.css` and `badges.js`. Fonts and colours inherit semantic tokens; optional icons are DOM Nodes.
 
 Public appearance tokens: `--ds-badge-fill`, `--ds-badge-ink`, `--ds-badge-edge`.
 

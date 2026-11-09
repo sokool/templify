@@ -39,33 +39,15 @@ supported. `normalise`, `fromEvent`, `format` and `aria` are shared helpers.
 Already handled events, IME and AltGraph are ignored. Native browser behavior
 remains available when no action confirms success, including disabled menu search.
 
-## Configuration
+## Recorder component
 
-Load Form Field/validation, Buttons, Themes, `configurator/configurator.js`, `configurator/configurator.css` and
-`../../tools/shared/tools.css`. The tool uses compact **Form** fields, not custom inputs.
+Shortcuts is itself the recorder/editor, not a configurator of another component.
+For HTML-first export use `shortcuts.html` and [UI](../../README.md). The client
+adopts the server-rendered recorder rows. The caller handles `ui:shortcut` and
+persists `ui:change` if needed; no theme/storage dependency is included.
 
-```js
-const tool = DesignSystemShortcutsTool.create({ themes, shortcuts });
-const catalogue = tool.mount(host); // All registered actions, per-action Reset.
-const reference = tool.mountField(configurationHost, 'navigation.search', {
-  label: 'Search shortcut',
-});
-```
-
-Both fields edit exactly the same runtime binding. Focus and press a combination;
-Backspace/Delete disables it, Escape clears a validation error, Reset restores the
-action's default. Recording never invokes the action. Each mounted view has
-`destroy()`; the adapter's `destroy()` detaches theme/persistence subscriptions.
-
-Preferences live in the selected Palette theme under
-`$extensions["org.topschrank.components"].shortcuts.bindings`. Theme switching,
-copying, token import/export and reload retain the same scope. Unregistered IDs
-are preserved in storage for components loaded later.
-
-The workspace supplies a migration from `navigation.searchShortcut` to
-`shortcuts.bindings["navigation.search"]` for every palette. This preserves explicit
-`null`, gives existing central preferences precedence, and removes only the old
-shortcut property, keeping Navigation's other settings. Resetting Navigation
-resets this same binding, not a second copy.
+Classic workspace usage: `DesignSystemShortcuts.mount(host, {shortcuts})`, with
+`shortcuts.css`. It displays the supplied catalogue with recording and Reset.
+Backspace/Delete disables a binding; recording never invokes its action.
 
 Run `node --test tests/*.test.cjs`.

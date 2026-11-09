@@ -6,7 +6,8 @@ Independent dot-separated path navigation, extracted from the Top Schrank playgr
 
 Local runtime: **`breadcrumbs.js` + `breadcrumbs.css`**. Shared runtime: **`../../defaults.css` + `../../primitives.css`**, loaded once per page, including when Tabs is present. No other components, packages, icon set, router, font download or storage are required. The workspace header, configurator previews and isolated example all use this implementation.
 
-`manifest.json` is the machine-readable dependency and file inventory. `example.html` demonstrates 1–7 levels with no application assets. Tests use Node's built-in test runner and the shared `ui/testing/dom-fixture.cjs` fixture; they do not prove browser layout or visual fidelity.
+For HTML-first export use `breadcrumbs.html` and [UI](../../README.md). The HTML-first
+client preserves links supplied by the server. Classic API tests use Node's test runner.
 
 The JavaScript is a plain script to preserve opening the existing playground via `file://`, without a server or bundler. It exposes one browser namespace, `DesignSystemBreadcrumbs`; CommonJS exports support tests. This is a source module, not a framework-specific component.
 
@@ -65,7 +66,9 @@ Every instance has its own settings. There are no global document appearance att
 | `accent`, `panel`, `border`, `text`, `soft` | Optional colours for current emphasis and overflow popup |
 | `accents`, `greys` | Optional non-empty colour arrays for the palette-trail / grey-step schemes |
 
-All colours fall back to the shared foundation, rather than duplicating its palette in component CSS. Applications may pass their own CSS custom property values, e.g. `accent: 'var(--app-accent)'`, but these are an optional application adapter contract, not component dependencies. The public `--ds-bc-*` names are listed in the manifest. Instance `appearance` options set the corresponding inline properties; use the API to change them. `--ds-bc-font-family` can be set by the host and falls back to `--ds-font-family` (system font in the foundation).
+All colours fall back to the shared foundation. Applications may supply their own
+`--ds-bc-*` CSS properties. Classic `appearance` options map to these properties;
+`--ds-bc-font-family` falls back to `--ds-font-family`.
 
 The component emits semantic `nav > ol > li` markup with links, decorative separators and a native `details/summary` disclosure. Escape closes the disclosure and returns focus to its summary; clicking outside closes it. CSS respects reduced motion. Long full paths may wrap; host layouts may choose to constrain or locally scroll the example area.
 
@@ -75,7 +78,8 @@ The component emits semantic `nav > ol > li` markup with links, decorative separ
 - Application adapter: route IDs and URLs, navigation callback, mapping theme tokens.
 - Playground: select controls, colour picker, seven examples, saved settings.
 
-The configurator lives in `configurator/` and is **not** included in a component export. It depends on injected Forms select and palette editor utilities. The legacy host adapter lives in `../../../workspace/breadcrumbs-adapter.js`; the main application composes Breadcrumbs directly in `../../../workspace/workspace.js`.
+The configurator has been removed. The legacy host adapter is in
+`../../../workspace/breadcrumbs-adapter.js`; workspace composes Breadcrumbs directly.
 
 ## Verification
 

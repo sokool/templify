@@ -12,7 +12,7 @@ Browser global: `DesignSystemButtons`. CommonJS is also supported.
 
 ## Dependencies and export
 
-Load `../../defaults.css` and `../../primitives.css` once, then `buttons.css` and `buttons.js`. `manifest.json` lists the complete export. No other component, package, icon registry, routing, storage, font selector or theme editor is required. Fonts and colours are inherited through semantic tokens; optional icons are supplied as DOM Nodes. Text is rendered as text, not HTML.
+For HTML-first export use `buttons.html` and the exporter described in [UI](../../README.md). Classic workspace usage loads foundations, `buttons.css` and `buttons.js`. Fonts and colours inherit semantic tokens; optional icons are DOM Nodes.
 
 Public appearance tokens: `--ds-button-fill`, `--ds-button-ink`, `--ds-colour-accent`, `--ds-colour-on-accent`.
 
@@ -23,12 +23,8 @@ values. Partial appearance updates preserve the remaining colours. Public
 `--ds-button-border` and `--ds-button-shadow` tokens control the outline and soft
 shadow. Secondary buttons respect explicit colours too.
 
-The editor is in `configurator/configurator.js` / `configurator/configurator.css`, excluded from runtime exports. It reuses
-PalettePicker and FormField and accepts injected `themes` and scoped `settings`.
-It stores independent `items` (label, style, colour references and generic CSS
-appearance) under `components.buttons`. The first button cannot be removed.
-Additional buttons can be added or removed. Styles: primary, split, secondary
-(outline), ghost. Reset with “Inherit palette”.
+The configurator has been removed. Exported HTML retains its icon/label nodes;
+`Templify.get(button).update({icon, label, disabled, variant})` updates them in place.
 
 Runtime defaults inherit foundation accent (brand background), on-accent text,
 border and muted shadow tokens. Buttons declares no Palette Applications roles.

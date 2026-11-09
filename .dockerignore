@@ -8,3 +8,7 @@
 !ui/**
 !nginx/
 !nginx/default.conf
+!package.json
+!package-lock.json
+!LICENSE
+ui/tools/export/dist/

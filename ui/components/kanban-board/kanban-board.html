@@ -1,0 +1,16 @@
+<!--
+Komponent: Kanban board
+Przeznaczenie: Przenoszenie i porządkowanie kart między kolumnami.
+Elementy: kontener tablicy, kolumny data-column-id, stosy i karty data-item-id.
+Zachowanie JS: drag and drop, dotykowe przytrzymanie, Alt + strzałki, move(id,
+columnId, beforeId), getState(), ui:move. Zapis zmian należy do aplikacji/serwera.
+Karty są osobnym komponentem; ich serwerowy DOM zostaje zachowany przy przenoszeniu.
+-->
+<section class="ds-component ds-kanban" data-ui="kanban-board" aria-label="Project board">
+  <div class="ds-kanban__frame"><div class="ds-kanban__scroll"><div class="ds-kanban__lanes">
+    <section class="ds-kanban__column" data-column-id="todo"><h3 class="ds-kanban__heading"><span>To do</span><span class="ds-kanban__count">1</span></h3><div class="ds-kanban__stack">
+      <div class="ds-kanban__item" data-item-id="project-1"><article class="ds-component ds-card" data-ui="card" data-menu="false"><button type="button" class="ds-card__main"><strong class="ds-card__title">Prepare drawings</strong><span class="ds-card__description">Confirm dimensions.</span></button></article></div>
+    </div></section>
+    <section class="ds-kanban__column" data-column-id="done"><h3 class="ds-kanban__heading"><span>Done</span><span class="ds-kanban__count">0</span></h3><div class="ds-kanban__stack"><div class="ds-kanban__empty">No cards</div></div></section>
+  </div></div></div>
+</section>

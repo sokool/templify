@@ -45,7 +45,7 @@ Official documentation: https://gka.github.io/chroma.js/ .
 ## Opt-in component applications
 
 `../../colours/colour-roles.json` declares shared foundation roles. Components may
-contribute `colourRoles` in their manifest. Form and Kanban board currently opt in.
+contribute dedicated `colour-roles.json` documents. Form and Kanban board currently opt in.
 A declaration has `id`, `label`, `css`, `category` and `purpose`; it must correspond
 to a CSS variable the component actually consumes. Identical IDs share one role
 and list all owners; conflicting CSS bindings fail the build. Components without
@@ -104,7 +104,7 @@ Definitions are theme-specific metadata under `$extensions["org.topschrank.shado
 
 Theme-specific component tool preferences use `$extensions["org.topschrank.components"]`; Card stores its colours, square preview size and chosen shadow profiles there. Safe CSS-variable bindings also export with each theme. Unconfigured themes clear those bindings rather than inheriting another theme's choices.
 
-Run `node --test ui/testing/shadows.test.cjs ui/components/card/tests/*.test.cjs ui/components/card/configurator/tests/*.test.cjs`.
+Run `node --test ui/testing/shadows.test.cjs ui/components/card/tests/*.test.cjs`.
 
 **Contrast checker** has also moved from Palette to **Tools → Contrast checker**.
 Its implementation is `../contrast-checker/`, using the shared picker and

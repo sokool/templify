@@ -6,6 +6,6 @@ Migrated from the original Extended library. Browser global `DesignSystemTimelin
 
 Data: `label, items: [{title, date?, datetime?, description?}]`. Text renders safely as text. No application data, storage, tools, fonts catalogue or icon registry is imported. Host controls state and callbacks; examples own demo buttons.
 
-Load foundations `tokens.css` and `primitives.css` once, then `timeline.css` and `timeline.js`. There are no component or package dependencies. Colours and fonts inherit semantic tokens. The manifest lists the full export.
+For HTML-first export use `timeline.html` and [UI](../../README.md). Classic usage loads `defaults.css`, `primitives.css`, `timeline.css` and `timeline.js`.
 
 Example: `../../../index.html#topschrank.components.timeline`.

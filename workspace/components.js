@@ -1,7 +1,6 @@
 /* Composition examples only. Runtime components receive data and callbacks. */
 (function(global){
  function create({document,storage,icons,tooltip,themes,settings}={}){
-  const surfaceTool=SurfaceTool.create({document,storage}),tooltipTool=TooltipTool.create({document,storage});
   const node=(tag,className,text)=>{const n=document.createElement(tag);if(className)n.className=className;if(text!==undefined)n.textContent=text;return n};
   function button(host,label,onClick,options={}){return DesignSystemButtons.mount(host,{label,onClick,...options})}
   function mount(page,id){const views=[];const add=view=>(views.push(view),view);const section=(title,host=page)=>{const s=node('section','example-component-section');if(title)s.append(node('h2','',title));host.append(s);return s};
@@ -21,19 +20,18 @@
     [{name:'Piotr Zieliński',description:'Owner: Anna Kowalska'},{name:'Anna Kowalska',description:'Project owner'},{name:'Workshop team',initials:'WT',description:'Production and installation'}].forEach(person=>add(DesignSystemUserIdentity.mount(section(''),person)));
    }
    if(id==='surface'){
-    page.append(node('p','example-lead','An optional content container. Configure its colours, corners, border, padding and shadow. The editor is not part of the component.'));
-    const host=node('div');page.append(host);add(surfaceTool.mount(host,{preview(stage){const sample=node('article');sample.append(node('h3','','Content surface'),node('p','','A reusable container for information, actions and forms.'));stage.append(sample);const view=DesignSystemSurface.mount(sample);return ()=>view.destroy()}}));
+     page.append(node('p','example-lead','An optional content container styled through CSS custom properties.'));
+     const host=node('article');host.append(node('h3','','Content surface'),node('p','','A reusable container for information, actions and forms.'));page.append(host);add(DesignSystemSurface.mount(host));
     const inside=section('Composition with User identity and Buttons'),surface=node('div');inside.append(surface);add(DesignSystemSurface.mount(surface));const identity=node('div');surface.append(identity);add(DesignSystemUserIdentity.mount(identity,{name:'Piotr Zieliński',description:'Owner: Anna Kowalska'}));const action=node('div','example-actions');surface.append(action);add(button(action,'Open project',()=>tooltip.hide()));
     const pairings=section('Colour combinations');pairings.append(node('p','example-status','All six accents on base navy and brand blue. These surfaces inherit the configured shape, padding, border and shadow.'));const pairs=node('div','example-surface-pairings');pairings.append(pairs);for(let i=1;i<=6;i++)for(const [label,bg] of [['navy','#1B2D50'],['blue','#22447F']]){const sample=node('article');sample.append(node('span','','Accent '+i+' on '+label),node('small','','Colour pairing'));pairs.append(sample);add(DesignSystemSurface.mount(sample,{bg,text:'var(--ds-accent-'+i+')'}))}
    }
    if(id==='tooltip'){
-    page.append(node('p','example-lead','Side accent and a fine outline. Configure appearance below; the component owns only tooltip behaviour and rendering.'));
-    const host=node('div');page.append(host);add(tooltipTool.mount(host,{preview(stage){stage.classList.add('example-tooltip-stage');const preview=node('span','ds-component ds-tooltip ds-tooltip--preview','Add a new order');preview.setAttribute('role','tooltip');preview.id='example-tooltip-static-preview';const trigger=node('button','example-tooltip-sample');trigger.type='button';trigger.setAttribute('aria-label','Tooltip preview');trigger.setAttribute('aria-describedby',preview.id);trigger.innerHTML=icons.svg('file-plus');stage.append(preview,trigger);return()=>{}}}));
+     page.append(node('p','example-lead','Hover or focus a trigger to show its tooltip. Style tooltips through CSS custom properties.'));
     const samples=section('Hover or focus'),row=node('div','example-actions');samples.append(row);for(const [name,label] of [['file-plus','Add a new order'],['save','Save changes'],['trash-2','Delete project']]){const b=node('button','example-tooltip-sample');b.type='button';b.setAttribute('aria-label',label);b.dataset.tooltip=label;b.innerHTML=icons.svg(name);row.append(b)}
    }
    if(id==='buttons'){
-    page.append(node('p','example-lead','Create button variants. Each button inherits the theme until you override its colours or style.'));
-    const editor=node('div');page.append(editor);add(DesignSystemButtonsTool.mount(editor,{themes,settings:settings?.scope('components.buttons')}));
+     page.append(node('p','example-lead','Button variants inherit the theme. Icons are supplied as DOM nodes.'));
+     const row=node('div','example-actions');page.append(row);for(const variant of ['primary','secondary','ghost','split']){const icon=node('span');icon.innerHTML=icons.svg('save');icon.setAttribute('aria-hidden','true');add(button(row,'Save',()=>{}, {variant,icon}));}
    }
    if(id==='badges'){
     page.append(node('p','example-lead','Curved line badges fit their text. Their lower border adds a quiet accent.'));const row=node('div','example-actions');page.append(row);for(let i=1;i<=6;i++)add(DesignSystemBadges.mount(row,{label:'Accent '+i,fill:'var(--ds-accent-'+i+')',ink:'#1B2D50'}));

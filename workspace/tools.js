@@ -7,6 +7,14 @@
       return root.DesignSystemShadowsTool.mount(host, { themes, title: 'Shadow profiles' });
     if (kind === 'contrast-checker')
       return root.DesignSystemContrastCheckerTool.mount(host, { themes });
+    if (kind === 'export') {
+      if (root.DesignSystemExportTool) return root.DesignSystemExportTool.mount(host);
+      const message = host.ownerDocument.createElement('p');
+      message.setAttribute('role', 'alert');
+      message.textContent = 'Export assets are missing. Run npm ci and npm run build, then reload this page.';
+      host.append(message);
+      return { destroy() { message.remove(); } };
+    }
 
     const document = host.ownerDocument;
     const Picker = root.PalettePicker;

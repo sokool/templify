@@ -1,0 +1,18 @@
+<!--
+Komponent: Autocomplete
+Przeznaczenie: Wyszukiwanie i wybór jednej lub wielu wartości.
+Elementy: pole combobox z etykietą, popup, lista opcji data-value.
+Zachowanie JS: filtrowanie, klawiatura, otwieranie/zamykanie, wybór i usuwalne chips,
+ukryte pola formularza oraz ui:change. API: open, close, choose, update, getValue,
+setQuery. Opcje: data-size="small|big", data-multiple="true|false", data-name.
+Serwer może dostarczyć własne opcje i aria-selected="true" dla wyboru początkowego.
+-->
+<div class="ds-component ds-autocomplete" data-ui="autocomplete" data-size="small" data-multiple="true" data-name="materials">
+  <div class="ds-field"><div class="ds-field-caption"><label class="ds-field-label" for="autocomplete-query">Find material</label></div>
+    <div class="ds-field-body"><input class="ds-field-control" id="autocomplete-query" role="combobox" aria-expanded="false" aria-autocomplete="list" autocomplete="off" placeholder="Type a material…" name="query"></div>
+  </div>
+  <div class="ds-ac-popup" hidden><div class="ds-ac-list" role="listbox" aria-label="Materials">
+    <div class="ds-ac-option" role="option" data-value="oak" data-label="Oak" aria-selected="false"><span class="ds-ac-copy"><strong>Oak</strong><small>Natural wood</small></span></div>
+    <div class="ds-ac-option" role="option" data-value="steel" data-label="Steel" aria-selected="false"><span class="ds-ac-copy"><strong>Steel</strong><small>Metal fittings</small></span></div>
+  </div></div>
+</div>

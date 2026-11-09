@@ -1,0 +1,8 @@
+<!--
+Komponent: Tabs
+Przeznaczenie: Przełączanie paneli treści bez żądania do serwera.
+Elementy: tablist, przyciski tab i powiązane panele tabpanel z unikalnymi ID.
+Zachowanie JS: select(id przycisku), ui:change, strzałki/Home/End, aria-selected
+i widoczność paneli. data-activation="manual" wymaga aktywacji Enter/Spacją.
+-->
+<section class="ds-component ds-tabs" data-ui="tabs"><div class="ds-tabs__list" role="tablist" aria-label="Project"><button type="button" class="ds-tabs__tab ds-focusable" role="tab" id="tabs-overview" aria-controls="tabs-overview-panel" aria-selected="true">Overview</button><button type="button" class="ds-tabs__tab ds-focusable" role="tab" id="tabs-details" aria-controls="tabs-details-panel" aria-selected="false" tabindex="-1">Details</button></div><div class="ds-tabs__panel" role="tabpanel" id="tabs-overview-panel" aria-labelledby="tabs-overview" tabindex="0">Project overview.</div><div class="ds-tabs__panel" role="tabpanel" id="tabs-details-panel" aria-labelledby="tabs-details" tabindex="0" hidden>Materials and dimensions.</div></section>

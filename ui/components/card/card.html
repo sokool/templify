@@ -1,0 +1,14 @@
+<!--
+Komponent: Card
+Przeznaczenie: Karta informacji z opcjonalnym menu akcji.
+Elementy: article, główna akcja, tytuł, opis, metadane, opcjonalny przycisk menu i menu.
+Zachowanie JS: openMenu(), closeMenu(), update({size, menuEnabled}); klawiatura,
+Escape, zamknięcie menu po kliknięciu poza nim. data-size określa szerokość w px.
+data-menu="false" wyłącza menu; można też pominąć przycisk i menu w HTML.
+Akcje menu i główny przycisk mogą otrzymać hx-* od serwera.
+-->
+<article class="ds-component ds-card" data-ui="card" data-size="320" data-menu="true">
+  <button type="button" class="ds-card__main"><strong class="ds-card__title">Project documentation</strong><span class="ds-card__description">Drawings, materials and dimensions.</span><span class="ds-card__meta"><span class="ds-card__meta-left">PRJ-001</span><span class="ds-card__meta-right">In progress</span></span></button>
+  <button type="button" class="ds-card__menu-trigger" aria-label="Card actions" aria-haspopup="menu" aria-expanded="false" aria-controls="card-actions">⠿</button>
+  <div class="ds-component ds-card-menu" id="card-actions" role="menu" popover="manual" hidden><button type="button" role="menuitem">View details</button><button type="button" role="menuitem">Archive</button></div>
+</article>

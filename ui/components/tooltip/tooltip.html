@@ -1,0 +1,10 @@
+<!--
+Komponent: Tooltip
+Przeznaczenie: Dodatkowa wskazówka po najechaniu lub skupieniu klawiaturą.
+Elementy: kontener, wyzwalacz z data-tooltip; pomocniczy tooltip tworzy JS.
+Zachowanie JS: show(trigger), hide(); pozycjonowanie, Escape, aria-describedby,
+sprzątanie po usunięciu. Style z wyzwalacza są przenoszone do tooltipa:
+--ds-tooltip-bg, --ds-tooltip-text, --ds-tooltip-border, --ds-tooltip-accent,
+--ds-tooltip-padding, --ds-tooltip-size. Działa także dla HTML wstawionego przez HTMX.
+-->
+<span data-ui="tooltip" style="--ds-tooltip-padding: 8px 11px"><button type="button" class="ds-component ds-button ds-focusable" data-ui="buttons" data-tooltip="Save changes to the project"><span data-button-label>Hover or focus</span></button></span>

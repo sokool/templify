@@ -1,0 +1,12 @@
+<!--
+Komponent: Buttons
+Przeznaczenie: Akcja lub wysłanie formularza.
+Elementy: natywny button, opcjonalna ikona jako DOM/SVG, etykieta.
+Zachowanie JS: update({label, disabled, icon, variant}); icon przyjmuje DOM Node
+lub null. Zdarzenia click, submit i atrybuty hx-* obsługuje aplikacja/HTMX.
+Wariant ustala data-variant="primary|secondary|ghost|split". JS nie zastępuje przycisku.
+-->
+<button type="button" class="ds-component ds-button ds-focusable" data-ui="buttons" data-variant="primary">
+  <span data-button-icon aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m5 12 4 4L19 6"/></svg></span>
+  <span data-button-label>Save</span>
+</button>

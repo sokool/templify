@@ -2,25 +2,6 @@
 .example-page[data-example='kanban'] {
   max-width: none;
 }
-.example-kanban-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.example-kanban-add {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: 0;
-  border-radius: 12px;
-  background: var(--ds-colour-accent);
-  color: var(--ds-colour-on-accent);
-  cursor: pointer;
-}
 .kanban-used-components p {
   margin: 0 0 20px;
   color: var(--ds-colour-muted);

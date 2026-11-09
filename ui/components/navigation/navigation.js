@@ -649,7 +649,7 @@
             toggleSidebarGroup(button.dataset.menuGroup);
           document
             .getElementById(button.getAttribute('aria-controls'))
-            .querySelector('button')
+            .querySelector('[data-menu-page]')
             .focus();
         } else if (event.key === 'ArrowLeft' && button.getAttribute('aria-expanded') === 'true') {
           event.preventDefault();

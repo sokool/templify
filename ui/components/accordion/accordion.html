@@ -1,0 +1,18 @@
+<!--
+Komponent: Accordion
+Przeznaczenie: Rozwijane sekcje treści.
+Elementy: kontener, sekcje details, nagłówki summary i panele treści.
+Zachowanie JS: otwieranie/zamykanie przez setOpen(id, open), tryb jednej lub wielu
+otwartych sekcji (data-multiple), synchronizacja aria-expanded, zdarzenie ui:change.
+Bez JS sekcje nadal działają jako natywne details.
+-->
+<section class="ds-component ds-accordion" data-ui="accordion" data-multiple="true">
+  <details class="ds-accordion__item" id="accordion-details" open>
+    <summary class="ds-accordion__summary ds-focusable" aria-controls="accordion-panel" aria-expanded="true" id="accordion-summary">Project details</summary>
+    <div class="ds-accordion__content" id="accordion-panel" aria-labelledby="accordion-summary">Dimensions, materials and requirements.</div>
+  </details>
+  <details class="ds-accordion__item" id="accordion-delivery">
+    <summary class="ds-accordion__summary ds-focusable">Delivery</summary>
+    <div class="ds-accordion__content">Confirm the installation date.</div>
+  </details>
+</section>

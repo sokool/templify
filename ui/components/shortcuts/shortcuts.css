@@ -1,0 +1,5 @@
+.ds-shortcuts { max-width: 640px; }
+.ds-shortcuts-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; align-items: end; margin-bottom: 18px; }
+.ds-shortcuts-row label { display: grid; gap: 6px; }
+.ds-shortcuts-row input { width: 100%; padding: 10px; border: 1px solid var(--ds-colour-border); border-radius: 8px; background: var(--ds-colour-panel); color: var(--ds-colour-text); font: inherit; }
+.ds-shortcuts-row [role="status"] { grid-column: 1 / -1; color: var(--ds-colour-error); }

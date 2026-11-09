@@ -1,22 +1,32 @@
 # Templify
 
 Templify służy do komponowania interfejsów oraz dostosowywania komponentów i theme
-(look and feel) do potrzeb użytkownika. Wykorzystuje do tego komponenty, ich
-konfiguratory oraz wspólne narzędzia projektowe.
+(look and feel) do potrzeb użytkownika. Wykorzystuje do tego komponenty oraz
+wspólne narzędzia projektowe. Konfiguratory komponentów zostały usunięte.
 
-Docelowo pozwoli eksportować komponenty, ustawienia i theme do wykorzystania przy
-budowie innych aplikacji. **Docelowe technologie i formaty eksportu nie są jeszcze
-ustalone.** Decyzje te podejmiemy osobno; obecny podział kodu ma zachować możliwość
-eksportu, a nie przesądzać jego implementację.
+Komponenty można eksportować do HTML-first/HTMX: jeden CSS, jeden JS, lokalny HTMX,
+opisane wzorce HTML oraz wspólny `index.html`. Instrukcja i kontrakt:
+[ui/README.md](ui/README.md). Generowanie: `npm ci`, następnie `npm run export`.
 
 Templify rysuje własny interfejs tymi samymi komponentami, które udostępnia
-użytkownikowi. Narzędzia i konfiguratory nie mają osobnego, równoległego zestawu UI.
+użytkownikowi. Narzędzia nie mają osobnego, równoległego zestawu UI.
 
 ## Uruchomienie
 
-Otwórz [index.html](index.html) w przeglądarce. Można też udostępnić katalog
-repozytorium przez dowolny serwer statyczny. Nie jest wymagany bundler ani instalacja
-pakietów. Podgląd fontów Google wymaga połączenia z siecią.
+Przygotuj lokalne zasoby narzędzia Export i udostępnij repozytorium przez serwer statyczny:
+
+```sh
+npm ci
+npm run build
+python3 -m http.server 8080
+```
+
+Otwórz `http://localhost:8080/`. **Tools → Export** pozwala wybrać komponenty
+i pobrać ZIP bez backendu. Kompilator i ZIP działają w przeglądarce, z lokalnych
+zasobów (bez CDN); pierwszy eksport pobiera kompilator WASM. Po zmianach źródeł
+komponentów ponów `npm run build`. Pozostałe podglądy można otwierać także przez
+[index.html](index.html) jako plik; narzędzie Export wymaga HTTP.
+Podgląd fontów Google wymaga połączenia z siecią.
 
 Główna aplikacja ma jedno wejście w katalogu głównym. Kod hosta jest w `workspace/` i `storage/`,
 a samodzielne przykłady komponentów w `ui/examples/` nie zależą od aplikacji.
@@ -24,7 +34,7 @@ a samodzielne przykłady komponentów w `ui/examples/` nie zależą od aplikacji
 ### Kompozycja aplikacji
 
 - `workspace/workspace.js` składa Navigation, Breadcrumbs, routing, podglądy,
-  konfiguratory i narzędzia przez ich publiczne API.
+  i narzędzia przez ich publiczne API.
 - `workspace/` zawiera też dane demonstracyjne i style podglądów stron.
 - `workspace/windows.js` składa Window ze wspólnymi ustawieniami scrolla/resize
   i rozmiarami okien zapisywanymi pod stabilnym ID w `preview.windows`, poza eksportem.
@@ -38,7 +48,8 @@ ani publicznych nazw JavaScript. Przegląd Theme jest pod `#templify.theme`.
 
 ## Wdrożenie
 
-Główny `Dockerfile` buduje statyczny serwer HTTP na porcie kontenera `8080`.
+Główny `Dockerfile` przygotowuje zasoby Export w etapie Node, a następnie buduje
+statyczny serwer HTTP na porcie kontenera `8080`. W wynikowym obrazie nie ma backendu Node.
 Kopiuje `index.html`, `workspace/`, `storage/` i `ui/`; Nginx udostępnia aplikację bezpośrednio pod `/`.
 Repozytoryjny `compose.yaml` jest opcjonalny; bez niego Compose generuje centralny
 deployer i publikuje port hosta tylko na `127.0.0.1`.
@@ -67,10 +78,10 @@ ui/
   themes/                      kontroler motywów
     tokens/                    dokumenty DTCG, walidacja i konwersja
   assets/icons/                SVG, renderer i licencje
-  components/<nazwa>/          działający komponent, manifest, dokumentacja, testy
-    configurator/              opcjonalny edytor jego ustawień
+  components/<nazwa>/          HTML z opisem, CSS, JS, dokumentacja i testy
+  runtime/                     inicjalizacja HTML i integracja z HTMX
   tools/                       globalne edytory i przeglądarki
-    shared/                    wspólne zaplecze narzędzi i konfiguratorów
+    shared/                    wspólne zaplecze narzędzi
   examples/                    samodzielne przykłady integracji
   testing/                     wspólne testy i środowisko testowe
   scripts/                     generatory i kontrole developerskie
@@ -92,8 +103,8 @@ lokalnych plików fontów powstaną, kiedy faktycznie będą miały własną zaw
 - Nie odczytują samodzielnie pamięci przeglądarki ani globalnych ustawień aplikacji.
   Ustawienia i zależności dostarcza host.
 - Komponenty mogą korzystać z innych komponentów Templify przez ich publiczne API
-  lub jawnie przekazany renderer. Zależności są jawne, zadeklarowane w manifeście
-  i nie tworzą cykli.
+  lub jawnie przekazany renderer. Zależności wynikają z importów oraz kompozycji
+  HTML (`data-ui`); nie tworzą cykli importów komponentów.
 - Strona każdego komponentu w Templify udostępnia „Used components” (używane
   komponenty) w prawym panelu komponentu Window (`mode: 'side'`, `side: 'right'`),
   zamiast stałej sekcji pod podglądem. Panel otwiera pionowa zakładka z ikoną
@@ -112,19 +123,6 @@ lokalnych plików fontów powstaną, kiedy faktycznie będą miały własną zaw
 - Dane demonstracyjne, routing i logika edytora pozostają poza kodem komponentu.
 - Dostępność, klawiatura, focus, responsywność i poprawne sprzątanie po demontażu
   są częścią projektu, a nie dodatkiem.
-
-### Konfiguratory
-
-- Edytują konkretny komponent i mieszkają w jego katalogu `configurator/`.
-- Korzystają z publicznego API i udokumentowanych zmiennych CSS, a nie z prywatnej
-  struktury DOM komponentu.
-- Podgląd jest rzeczywistym komponentem, nie jego skopiowaną implementacją.
-- Muszą budować swój interfejs z komponentów Templify i korzystać ze wspólnych
-  narzędzi, zamiast tworzyć własne odpowiedniki kontrolek lub kopiować ich kod.
-- Oddzielają konfigurację komponentu od stanu sesji i preferencji podglądu.
-- Są ładowane jawnie przez hosta i nie należą do produkcyjnego eksportu komponentu.
-- Kompaktowy wygląd panelu edycyjnego nie może zmieniać wymiarów ani typografii
-  prezentowanego komponentu.
 
 ### Narzędzia
 
@@ -146,8 +144,8 @@ Fundament wizualny i zasoby nie zależą od narzędzi ani aplikacji. Kod kompone
 może zależeć od fundamentu i jawnie zadeklarowanych komponentów. Narzędzia oraz
 konfiguratory korzystają z komponentów, nigdy odwrotnie. Aplikacja składa całość.
 
-Wyjątkiem lokalizacyjnym jest `components/*/configurator/`: bliskość plików nie
-oznacza zależności komponentu od konfiguratora. Granicę określają API i manifest.
+Komponenty nie mają manifestów ani katalogów konfiguratorów. Granicę wyznaczają
+źródłowe HTML/CSS i importy modułów zachowania.
 
 Templify używa tego samego kodu komponentów we własnym menu, narzędziach,
 konfiguratorach i podglądach. Wykorzystanie we własnej aplikacji nie może
@@ -169,19 +167,16 @@ uzależniać komponentu od hosta Templify.
   dla konkretnego okna (stabilne ID), poza theme i eksportem template. Przywracamy
   go po ponownym otwarciu, nawigacji i odświeżeniu. Dostosowanie do mniejszego ekranu
   nie nadpisuje zapamiętanego rozmiaru. Blokadę scrolla i możliwość ręcznego resize
-  ustawia konfigurator Window; wyłączenie blokady pozostawia stronę interaktywną.
+  ustawia host przez API Window; wyłączenie blokady pozostawia stronę interaktywną.
 - Przenoszenie katalogów nie zmienia automatycznie identyfikatorów, publicznych
   nazw JS, schematów ani kluczy zapisanych ustawień.
 
 ### Granica eksportu
 
-Manifest komponentu opisuje wymagane pliki i zależności. Przyszły eksport powinien
-uwzględniać ich sumę bez duplikowania współdzielonych zasobów, a pomijać
-konfiguratory, narzędzia, przykłady i stan sesji Templify.
-
-Nie zakładamy jeszcze frameworka, platformy ani formatu paczki. Istniejące funkcje
-eksportowania konfiguracji lub CSS nie stanowią decyzji o docelowym eksporcie
-kompletnego interfejsu.
+`ui/scripts/export.cjs` rozpoznaje komponenty po `<nazwa>.html`, zbiera kompozycję
+`data-ui` i łączy importy JS/CSS przez esbuild. Wynik nie zależy od workspace,
+storage ani narzędzi. HTML kopiowany jest z komentarzami bez składni konkretnego
+backendu. HTMX nie jest wbudowany w `ui.js`, lecz dostarczany osobno.
 
 ## Menu a katalogi
 
@@ -189,7 +184,7 @@ Menu grupuje zadania użytkownika, nie ścieżki kodu:
 
 - **Theme:** Colours, Typography, Icons and Glyphs, Shadows.
 - **Components:** komponenty i ich konfiguracja.
-- **Tools:** Contrast checker, Palette picker.
+- **Tools:** Contrast checker, Palette picker, Export.
 - **Settings:** ustawienia aplikacji i istniejące operacje na konfiguracji.
 
 Desktop / Tablet / Mobile, przełączanie aktywnego motywu i zwijanie sidebara są
@@ -198,12 +193,13 @@ kontrolkami workspace, nie osobnymi obszarami biblioteki.
 ## Weryfikacja
 
 ```sh
-node ui/scripts/check.cjs
+npm test
+npm run test:browser
 node ui/scripts/build-colour-roles.cjs
 node ui/scripts/build-defaults.cjs
 ```
 
-Testy obejmują zachowanie, ścieżki, manifesty i granice zależności. Weryfikacja
+Testy obejmują zachowanie, ścieżki, eksport i granice zależności. Weryfikacja
 wizualna, rzeczywisty layout i interakcje przeglądarkowe wymagają osobnego sprawdzenia.
 
 ### Znane problemy sprzed reorganizacji

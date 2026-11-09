@@ -1,0 +1,13 @@
+<!--
+Komponent: Breadcrumbs
+Przeznaczenie: Ścieżka nawigacji do bieżącej strony.
+Elementy: nav, lista poziomów, linki, separatory i opcjonalny details z wcześniejszymi poziomami.
+Zachowanie JS: zamknięcie rozwiniętych poziomów po kliknięciu linku, poza komponentem
+lub Escape; przy Escape przywrócenie focusa. Linki są natywne i mogą mieć hx-get.
+-->
+<nav class="ds-component ds-breadcrumbs" data-ui="breadcrumbs" aria-label="Breadcrumb">
+  <ol class="ds-breadcrumbs__list">
+    <li class="ds-breadcrumbs__entry"><a class="ds-breadcrumbs__link ds-breadcrumbs__brand ds-focusable" href="#">Workspace</a></li>
+    <li class="ds-breadcrumbs__entry"><span class="ds-breadcrumbs__separator" aria-hidden="true">.</span><a class="ds-breadcrumbs__link ds-focusable" href="#" aria-current="page">Projects</a></li>
+  </ol>
+</nav>

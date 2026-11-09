@@ -1,0 +1,8 @@
+<!--
+Komponent: Loading state
+Przeznaczenie: Oznaczenie trwającego ładowania bez usuwania docelowej treści.
+Elementy: placeholder ze statusem i szkieletem, kontener właściwej treści.
+Zachowanie JS: update({loading: true|false}) przełącza widoczność i aria-busy.
+Serwer może też podmienić cały fragment przez HTMX.
+-->
+<section class="ds-component ds-loading-state" data-ui="loading-state" aria-busy="true"><div data-loading-placeholder><span class="ds-loading-status" role="status">Loading…</span><div class="ds-loading-skeleton" aria-hidden="true"><span></span><span></span><span></span></div></div><div data-loading-content hidden>Documentation is ready.</div></section>

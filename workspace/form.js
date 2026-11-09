@@ -4,7 +4,6 @@ function mount(host,{document:doc=host.ownerDocument}={}){
  const controllers=[],allFields=[];const node=(tag,cls,text)=>{const n=doc.createElement(tag);if(cls)n.className=cls;if(text)n.textContent=text;return n;};
  const intro=node('p','example-lead','Native form semantics, shared field styles and label-message validation. Explore each type, then try them together in the playground.');host.append(intro);
  const wrapper=node('div','example-form'),jump=node('nav','form-example-jump');jump.setAttribute('aria-label','Form subsections');wrapper.append(jump);host.append(wrapper);
- const tools=node('div','form-example-tools');wrapper.append(tools);controllers.push(FormTool.mount(tools,{getFields:()=>allFields}));
  const idPrefix='form-example-';
  for(const group of ExampleFormData.groups){const link=node('a','',group.label);link.href='#'+idPrefix+group.id;jump.append(link);
   const section=node('section','form-example-section');section.id=idPrefix+group.id;section.append(node('h2','',group.label),node('p','form-example-description',group.description));wrapper.append(section);

@@ -34,20 +34,20 @@
       if (text !== undefined) n.textContent = String(text);
       return n;
     };
-    const main = make('button', 'ds-card__main'),
-      trigger = make('button', 'ds-card__menu-trigger'),
-      menu = make('div', 'ds-component ds-card-menu');
-    main.type = trigger.type = 'button';
-    menu.id = prefix + '-menu';
+    const main = options.hydrate ? element.querySelector('.ds-card__main') : make('button', 'ds-card__main'),
+      trigger = (options.hydrate && element.querySelector('.ds-card__menu-trigger')) || make('button', 'ds-card__menu-trigger'),
+      menu = (options.hydrate && element.querySelector('.ds-card-menu')) || make('div', 'ds-component ds-card-menu');
+    if (!options.hydrate) main.type = 'button';
+    trigger.type = 'button';
+    menu.id = menu.id || prefix + '-menu';
     menu.hidden = true;
     menu.setAttribute('role', 'menu');
     menu.setAttribute('popover', 'manual');
     trigger.setAttribute('aria-haspopup', 'menu');
     trigger.setAttribute('aria-controls', menu.id);
-    trigger.append(make('span', '', '⠿'));
+    if (!options.hydrate) trigger.append(make('span', '', '⠿'));
     trigger.firstElementChild?.setAttribute('aria-hidden', 'true');
-    doc.body.append(menu);
-    element.append(main, trigger);
+    if (!options.hydrate) { doc.body.append(menu); element.append(main, trigger); }
     function listen(target, type, fn, opts) {
       target.addEventListener(type, fn, opts);
       listeners.push(() => target.removeEventListener(type, fn, opts));
@@ -68,6 +68,10 @@
         Math.max(8, Math.min(rect.bottom + 5, win.innerHeight - box.height - 8)) + 'px';
     }
     function renderMenu(items = state.actions, nested = false) {
+      if (options.hydrate) {
+        if (menuOpen) { position(); menu.querySelector('button:not(:disabled),a[href]')?.focus({ preventScroll: true }); }
+        return;
+      }
       menu.replaceChildren();
       if (nested) {
         const back = make('button', '', '← Back');
@@ -109,31 +113,38 @@
     }
     function render() {
       close();
-      main.replaceChildren();
-      main.append(make('strong', 'ds-card__title', state.title));
-      if (state.subtitle) main.append(make('span', 'ds-card__subtitle', state.subtitle));
-      if (state.description) main.append(make('span', 'ds-card__description', state.description));
-      if (state.metaLeft || state.metaRight) {
-        const meta = make('span', 'ds-card__meta');
-        meta.append(
-          make('span', 'ds-card__meta-left', state.metaLeft),
-          make('span', 'ds-card__meta-right', state.metaRight),
-        );
-        main.append(meta);
+      if (!options.hydrate) {
+        main.replaceChildren();
+        main.append(make('strong', 'ds-card__title', state.title));
+        if (state.subtitle) main.append(make('span', 'ds-card__subtitle', state.subtitle));
+        if (state.description) main.append(make('span', 'ds-card__description', state.description));
+        if (state.metaLeft || state.metaRight) {
+          const meta = make('span', 'ds-card__meta');
+          meta.append(
+            make('span', 'ds-card__meta-left', state.metaLeft),
+            make('span', 'ds-card__meta-right', state.metaRight),
+          );
+          main.append(meta);
+        }
+        if (state.footer) {
+          const foot = make('span', 'ds-card__footer', state.footer);
+          foot.dataset.muted = String(Boolean(state.footerMuted));
+          main.append(foot);
+        }
+        main.setAttribute('aria-label', state.ariaLabel || 'View ' + state.title);
       }
-      if (state.footer) {
-        const foot = make('span', 'ds-card__footer', state.footer);
-        foot.dataset.muted = String(Boolean(state.footerMuted));
-        main.append(foot);
-      }
-      main.setAttribute('aria-label', state.ariaLabel || 'View ' + state.title);
       trigger.setAttribute('aria-label', 'Actions for ' + state.title);
       trigger.dataset.tooltip = 'Card actions';
       trigger.hidden = state.menuEnabled === false || !state.actions.length;
       element.dataset.menu = String(!trigger.hidden);
       element.dataset.device = state.device;
+      if (state.size !== undefined) {
+        const size = Math.max(160, Math.min(1200, Number(state.size) || 320));
+        element.style.width = size + 'px';
+        element.dataset.size = String(size);
+      }
       if (state.descriptionId) main.setAttribute('aria-describedby', state.descriptionId);
-      else main.removeAttribute('aria-describedby');
+      else if (!options.hydrate || Object.hasOwn(state, 'descriptionId')) main.removeAttribute('aria-describedby');
       menu.setAttribute('aria-label', 'Actions for ' + state.title);
     }
     listen(main, 'click', (event) => {
@@ -144,7 +155,7 @@
       menuOpen ? close(true) : open();
     });
     listen(menu, 'keydown', (event) => {
-      const buttons = [...menu.querySelectorAll('button:not(:disabled)')],
+      const buttons = [...menu.querySelectorAll('button:not(:disabled),a[href]')],
         at = buttons.indexOf(doc.activeElement);
       if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
         event.preventDefault();
@@ -160,6 +171,9 @@
         close(true);
       } else if (event.key === 'Tab') close();
     });
+    if (options.hydrate) listen(menu, 'click', (event) => {
+      if (event.target.closest('button:not(:disabled),a[href]')) close();
+    });
     listen(
       doc,
       'pointerdown',
@@ -172,7 +186,7 @@
       doc,
       'scroll',
       () => {
-        if (menuOpen) close();
+        if (menuOpen) { if (options.hydrate) position(); else close(); }
       },
       { capture: true, passive: true },
     );
@@ -186,6 +200,7 @@
       canDrag(target) {
         return !trigger.contains(target);
       },
+      openMenu: open,
       closeMenu: close,
       update(next) {
         if (destroyed) return;
@@ -196,6 +211,7 @@
         destroyed = true;
         close();
         listeners.forEach((off) => off());
+        if (options.hydrate) return;
         menu.remove();
         element.replaceChildren();
         element.classList.remove('ds-card');

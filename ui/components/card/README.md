@@ -2,7 +2,7 @@
 
 Independent content card with a blurred hover/focus shadow, shared theme colours, compact content and action menu. No Kanban board, application model, routing, assets package or storage dependency.
 
-Load the two shared foundation styles once, then `card.css` and `card.js`. The global is `DesignSystemCard`; CommonJS is also supported. See `manifest.json` for export files.
+For HTML-first export use `card.html` and [UI](../../README.md). The following classic API remains supported: load foundations, `card.css` and `card.js`; global `DesignSystemCard`, also CommonJS.
 
 ```js
 const card = DesignSystemCard.mount(document.createElement('article'), {
@@ -42,16 +42,12 @@ Shared semantic colours, font family, body size, weights, line height and border
 
 `--ds-card-shadow` and `--ds-card-shadow-interactive` select shared shadow profiles, defaulting to None and Soft. Keyboard focus retains an outline even when shadows are disabled. No font/theme configurator is imported. Menus live in the document top layer when supported, with a positioned fallback. `destroy()` removes menu DOM and listeners.
 
-## Authoring tool
+## HTML-first configuration
 
-`configurator/configurator.js` / `configurator/configurator.css` are editor-only and excluded from exports. Create one `DesignSystemCardTool` controller with injected `themes` and a shared CSS `target`. Optional `settings` / `previewSettings` migrate the older global preferences once, into the active theme only. Background and Border accept only roles or Brand/Accent/Greys references from the active Palette. There are no custom HEX controls or saved colour fallbacks. Changes apply to every Card, including Kanban.
-
-The page puts **Configuration** first and a clearly separated **Preview** beneath it, each with a heading and description. One Form **Size** slider controls the square's edge (160–1200px in 10px steps). Existing sizes are rounded to the nearest 10px. The square fits the available width; Kanban still owns its card dimensions.
-
-The tool also uses shared Form selects for normal/hover-focus shadow profiles, a compact **Card menu** switch and a shared Button for **Reset to defaults**. Reset restores the selected theme's Card colours, profiles, preview size and enabled menu without resetting Palette definitions or other themes.
-
-All preferences, including preview size and menu visibility, belong to the selected theme under `$extensions["org.topschrank.components"].card`. They round-trip through theme copies, persistence and token/template exports. CSS export includes the appearance bindings. Switching themes restores that theme's controls; shared shadow definitions are edited in **Tools → Shadows**. The example host injects `menuEnabled` into every Card, including Kanban, and disposes its subscription with the Card.
-
-The compact control layout uses `tools/tools.css` (`ds-tool`), independently of the preview. Generic picker/shadow editors live under `tools/` and can also be opened from the **Tools** submenu.
+The configurator has been removed. HTML defines the content and optional menu;
+`data-size` sets width in px (160–1200), `data-menu="false"` disables the menu.
+The trigger and menu may be omitted altogether. `Templify.get(card)` exposes
+`openMenu()`, `closeMenu()` and `update({size, menuEnabled})`. Existing DOM and
+its `hx-*` attributes are preserved. Colours and shadows remain CSS concerns.
 
 [Composed example](../../../index.html#topschrank.components.card). Node tests cover independent content, menu, lifecycle and text safety. Browser checks are documented under Kanban board.

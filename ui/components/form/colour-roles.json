@@ -1,0 +1,3 @@
+[
+  { "id": "error", "label": "Error text & outline", "css": "--ds-colour-error", "category": "accent", "purpose": "error", "section": "Form", "description": "Text and control outlines indicating form validation errors." }
+]

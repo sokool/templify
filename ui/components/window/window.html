@@ -1,0 +1,19 @@
+<!--
+Komponent: Window
+Przeznaczenie: Okno modalne lub panel boczny.
+Elementy: przycisk otwierania, dialog, nagłówek, przycisk zamknięcia, body, footer, resize.
+Zachowanie JS: open(), close(), update(), getSize(), subscribeResize(); focus,
+Escape, backdrop, blokada scrolla, resize myszą/klawiaturą. Zdarzenia: ui:open/close/resize.
+HTML: data-mode="modal|side", data-side="left|right", data-close-on-escape,
+data-show-close, data-lock-scroll, data-close-on-backdrop, data-resizable (true|false),
+data-width/data-height (px). Te same ustawienia w JS: mode, side, closeOnEscape,
+showClose, lockScroll, closeOnBackdrop, resizable, width, height przez update().
+data-ui-open wskazuje unikalne ID dialogu; data-ui-close zamyka z wnętrza okna.
+-->
+<button type="button" class="ds-component ds-button ds-focusable" data-ui="buttons" data-ui-open="window-preview"><span data-button-label>Open window</span></button>
+<dialog class="ds-component ds-window" data-ui="window" id="window-preview" data-mode="side" data-side="right" data-width="480" data-close-on-escape="true" data-show-close="true" data-lock-scroll="true" data-close-on-backdrop="true" data-resizable="true" aria-labelledby="window-preview-title">
+  <header class="ds-window-header"><h2 class="ds-window-title" id="window-preview-title">Project details</h2><button type="button" class="ds-window-close" aria-label="Close window">×</button></header>
+  <div class="ds-window-body"><p>Content provided by the server.</p><label>Project note <input name="note" value="Keep this value"></label></div>
+  <footer class="ds-window-footer"><button type="button" data-ui-close>Close</button></footer>
+  <button type="button" class="ds-window-resize" aria-label="Resize window"></button>
+</dialog>

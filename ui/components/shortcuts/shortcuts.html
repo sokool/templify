@@ -1,0 +1,10 @@
+<!--
+Komponent: Shortcuts
+Przeznaczenie: Rejestrowanie i edycja skrótów klawiaturowych.
+Elementy: wiersze z identyfikatorem, etykietą, polem nagrywania i przyciskiem reset.
+Zachowanie JS: set(id, shortcut), reset(id), list(), nagrywanie Cmd/Ctrl/Alt + znak,
+Backspace/Delete wyłącza skrót. ui:change informuje o zmianie; aplikacja zapisuje dane.
+ui:shortcut jest anulowalne: handler aplikacji wywołuje preventDefault(), jeśli
+obsłużył akcję, i dopiero wtedy blokowany jest domyślny skrót przeglądarki.
+-->
+<section class="ds-component ds-shortcuts" data-ui="shortcuts" aria-label="Keyboard shortcuts"><div class="ds-shortcuts-row" data-shortcut-id="projects.search" data-shortcut="Mod+K"><label>Search projects<input type="text" readonly aria-label="Search projects" value="⌘ / Ctrl + K"></label><button type="button" class="ds-component ds-button ds-focusable" data-ui="buttons"><span data-button-label>Reset</span></button></div></section>

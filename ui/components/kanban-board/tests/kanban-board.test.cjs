@@ -74,7 +74,7 @@ test('mobile edge dwell advances only one column until the finger returns to the
  assert.deepEqual(board.getState().items,items);board.destroy();assert.equal(frames.size,0);
 });
 test('exports contain no application, storage or configurator dependency',()=>{
- for(const name of ['card','kanban-board']){const base=path.join(__dirname,'../..',name),manifest=JSON.parse(fs.readFileSync(path.join(base,'manifest.json')));assert.deepEqual(manifest.dependencies.components,[]);for(const file of manifest.runtimeFiles){const code=fs.readFileSync(path.join(base,file),'utf8');assert(!/demoOrders|localStorage|ExampleKanban|top-schrank-ui/.test(code));}manifest.exportFiles.forEach(file=>assert(fs.existsSync(path.resolve(base,file))));}
+  for(const name of ['card','kanban-board']){const base=path.join(__dirname,'../..',name);const code=fs.readFileSync(path.join(base,name+'.js'),'utf8');assert(!/demoOrders|localStorage|ExampleKanban|top-schrank-ui/.test(code));for(const extension of ['js','css','html'])assert(fs.existsSync(path.join(base,name+'.'+extension)));}
 });
 test('neighbour trigger follows an inset board rather than the screen edge',()=>{
  const {board,element,window,frames}=mount(800);board.setDevice('mobile');

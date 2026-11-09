@@ -5,3 +5,7 @@
 .env.*
 !.env.example
 ._.DS_Store
+node_modules/
+/export/
+test-results/
+ui/tools/export/dist/

@@ -34,21 +34,22 @@
       if (text != null) node.textContent = String(text);
       return node;
     };
-    const dialog = make('dialog', 'ds-component ds-window');
-    dialog.id = id;
+    const dialog = options.hydrate ? host : make('dialog', 'ds-component ds-window');
+    dialog.id = dialog.id || id;
     dialog.tabIndex = -1;
-    const header = make('header', 'ds-window-header'), title = make('h2', 'ds-window-title'),
-      closeButton = make('button', 'ds-window-close', '×'), body = make('div', 'ds-window-body'),
-      footer = make('footer', 'ds-window-footer'), grip = make('button', 'ds-window-resize');
-    title.id = id + '-title';
+    const header = (options.hydrate && dialog.querySelector('.ds-window-header')) || make('header', 'ds-window-header'),
+      title = (options.hydrate && dialog.querySelector('.ds-window-title')) || make('h2', 'ds-window-title'),
+      closeButton = (options.hydrate && dialog.querySelector('.ds-window-close')) || make('button', 'ds-window-close', '×'),
+      body = (options.hydrate && dialog.querySelector('.ds-window-body')) || make('div', 'ds-window-body'),
+      footer = (options.hydrate && dialog.querySelector('.ds-window-footer')) || make('footer', 'ds-window-footer'),
+      grip = (options.hydrate && dialog.querySelector('.ds-window-resize')) || make('button', 'ds-window-resize');
+    title.id = title.id || id + '-title';
     dialog.setAttribute('aria-labelledby', title.id);
     closeButton.type = grip.type = 'button';
     closeButton.setAttribute('aria-label', 'Close window');
     grip.setAttribute('aria-label', 'Resize window');
     grip.title = 'Drag to resize. Arrow keys resize; Shift resizes in larger steps.';
-    header.append(title, closeButton);
-    dialog.append(header, body, footer, grip);
-    (state.container || doc.body).append(dialog);
+    if (!options.hydrate) { header.append(title, closeButton); dialog.append(header, body, footer, grip); (state.container || doc.body).append(dialog); }
     function listen(node, type, fn) {
       node.addEventListener(type, fn);
       listeners.push(() => node.removeEventListener(type, fn));
@@ -68,7 +69,7 @@
       dialog.style.setProperty('--ds-window-width', state.width + 'px');
       dialog.style.setProperty('--ds-window-height', state.height == null ? 'fit-content' : state.height + 'px');
       dialog.style.setProperty('--ds-window-duration', Math.max(0, Math.min(2000, Number(state.duration) || 0)) + 'ms');
-      title.textContent = state.title || 'Window';
+      if (!options.hydrate || 'title' in patch) title.textContent = state.title || 'Window';
       closeButton.hidden = !state.showClose;
       grip.hidden = !state.resizable;
       if ('content' in patch) content(body, state.content);
@@ -239,7 +240,7 @@
         if (wasOpen) dialog.close();
         release();
         removeFromStack();
-        dialog.remove();
+        if (!options.hydrate) dialog.remove();
         if (wasOpen && opener?.isConnected) opener.focus?.({ preventScroll: true });
       },
     };

@@ -6,6 +6,6 @@ Migrated from the original Extended library. Browser global `DesignSystemCountsA
 
 Data: `label, items: [{label, value, description?}]`. Text renders safely as text. No application data, storage, tools, fonts catalogue or icon registry is imported. Host controls state and callbacks; examples own demo buttons.
 
-Load foundations `tokens.css` and `primitives.css` once, then `counts-and-summaries.css` and `counts-and-summaries.js`. There are no component or package dependencies. Colours and fonts inherit semantic tokens. The manifest lists the full export.
+For HTML-first export use `counts-and-summaries.html` and [UI](../../README.md). Classic usage loads `defaults.css`, `primitives.css`, `counts-and-summaries.css` and `counts-and-summaries.js`.
 
 Example: `../../../index.html#topschrank.components.countsandsummaries`.

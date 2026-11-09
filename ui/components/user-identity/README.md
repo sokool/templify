@@ -12,7 +12,7 @@ Browser global: `DesignSystemUserIdentity`. CommonJS is also supported.
 
 ## Dependencies and export
 
-Load `../../defaults.css` and `../../primitives.css` once, then `user-identity.css` and `user-identity.js`. `manifest.json` lists the complete export. No other component, package, icon registry, routing, storage, font selector or theme editor is required. Fonts and colours are inherited through semantic tokens; optional icons are supplied as DOM Nodes. Text is rendered as text, not HTML.
+For HTML-first export use `user-identity.html` and the exporter described in [UI](../../README.md). Classic workspace usage loads foundations, `user-identity.css` and `user-identity.js`. Fonts and colours inherit semantic tokens.
 
 Public appearance tokens: `--ds-colour-text`, `--ds-colour-muted`, `--ds-colour-divider`.
 

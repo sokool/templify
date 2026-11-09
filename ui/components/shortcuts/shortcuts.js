@@ -153,7 +153,62 @@
     };
   }
 
-  const api = { create, normalise, fromEvent, format, aria };
+  // The recorder is the Shortcuts component itself, not a component configurator.
+  // The caller owns the catalogue and persistence; this UI only edits bindings.
+  function mount(host, { shortcuts } = {}) {
+    if (!shortcuts) throw new TypeError('Shortcuts requires a catalogue.');
+    const doc = host.ownerDocument;
+    host.classList.add('ds-shortcuts');
+    const rows = doc.createElement('div');
+    host.append(rows);
+    let cleanups = [];
+    function render() {
+      cleanups.forEach((off) => off());
+      cleanups = [];
+      rows.replaceChildren();
+      for (const entry of shortcuts.list()) {
+        const row = doc.createElement('div'), label = doc.createElement('label'),
+          input = doc.createElement('input'), reset = doc.createElement('button'),
+          error = doc.createElement('span');
+        row.className = 'ds-shortcuts-row';
+        label.textContent = [entry.group, entry.label].filter(Boolean).join(' · ');
+        input.readOnly = true;
+        input.value = format(entry.shortcut);
+        input.setAttribute('aria-label', label.textContent);
+        error.setAttribute('role', 'status');
+        reset.type = 'button';
+        reset.className = 'ds-component ds-button ds-focusable';
+        reset.dataset.variant = 'secondary';
+        reset.textContent = 'Reset';
+        label.append(input);
+        row.append(label, reset, error);
+        rows.append(row);
+        const record = (event) => {
+          if (['Tab', 'Control', 'Meta', 'Alt', 'Shift', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+          event.preventDefault();
+          event.stopPropagation();
+          if (event.key === 'Escape') { error.textContent = ''; return; }
+          const clear = ['Backspace', 'Delete'].includes(event.key) && !event.ctrlKey && !event.metaKey && !event.altKey;
+          const value = clear ? null : fromEvent(event);
+          error.textContent = (clear || value) && shortcuts.set(entry.id, value) ? '' : 'Use Cmd/Ctrl/Alt with a letter or number.';
+        };
+        const restore = () => shortcuts.reset(entry.id);
+        input.addEventListener('keydown', record);
+        reset.addEventListener('click', restore);
+        const unsubscribe = shortcuts.subscribe(() => { input.value = format(shortcuts.get(entry.id)?.shortcut); });
+        cleanups.push(() => {
+          unsubscribe();
+          input.removeEventListener('keydown', record);
+          reset.removeEventListener('click', restore);
+        });
+      }
+    }
+    render();
+    const unsubscribe = shortcuts.subscribe(({ type }) => { if (type === 'catalogue') render(); });
+    return { destroy() { unsubscribe(); cleanups.forEach((off) => off()); rows.remove(); host.classList.remove('ds-shortcuts'); } };
+  }
+
+  const api = { create, mount, normalise, fromEvent, format, aria };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.DesignSystemShortcuts = api;
 })(globalThis);

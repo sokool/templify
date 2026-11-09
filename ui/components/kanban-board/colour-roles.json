@@ -1,0 +1,6 @@
+[
+  { "id": "lane", "label": "Column background", "css": "--ds-colour-lane", "category": "greys", "purpose": "background", "section": "Kanban board", "description": "Background behind the cards in each Kanban column." },
+  { "id": "laneHeader", "label": "Column header", "css": "--ds-colour-lane-header", "category": "greys", "purpose": "hover", "section": "Kanban board", "description": "Background of the column heading and item count." },
+  { "id": "scrollIndicator", "label": "Scroll indicator", "css": "--ds-colour-scroll-indicator", "category": "greys", "purpose": "border", "section": "Kanban board", "description": "Fill of the desktop edge indicators used for horizontal scrolling." },
+  { "id": "scrollBorder", "label": "Scroll outline", "css": "--ds-colour-scroll-border", "category": "greys", "purpose": "muted", "section": "Kanban board", "description": "Outline of the Kanban horizontal scrolling indicators." }
+]

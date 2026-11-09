@@ -8,7 +8,7 @@ Native form controls with the migrated floating fine-line field, divided-row sel
 - `validation.js`: descriptive messages based on native `ValidityState`, plus at-least-one group validation.
 - `form.js`: optional composition of fields into sections; owns submit/reset and field lifecycle.
 - `form.css`: shared control typography, focus, state and responsive layout. It uses semantic foundation colours and the inherited font.
-- `configurator/configurator.js`: **example-only** visual error preview. Not part of the runtime or export.
+- `form.html` / `client.js`: server-rendered form and optional validation enhancement; see [UI export](../../README.md).
 - `../../../workspace/form-data.js`, `form.js`, `form.css`: catalogue, local submission inspector, demo data and playground. Not a component dependency.
 
 The old monolithic prototype remains untouched. New examples consume this module.
@@ -79,7 +79,9 @@ Common: `kind` (default `input`), `type` (default `text`), `id` (generated if om
 
 Public overrides: `--ds-form-field-height`, `--ds-form-field-radius`, `--ds-form-control-font-size`, `--ds-form-surface`, `--ds-form-error`. Semantic colours and `--ds-font-family` come from Foundations; Light/Dark/Matrix work without importing their tools.
 
-`manifest.json` enumerates all runtime files and dependencies. Complete Form export has four local files plus the two shared foundation files, deduplicated with other components. A standalone field needs field.js, validation.js and form.css plus foundations. `configurator/configurator.js` and examples are excluded.
+The exporter bundles CSS/JS dependencies from imports, and copies `form.html`.
+The classic standalone field API still uses field.js, validation.js and form.css
+plus foundations. The visual error-preview configurator has been removed.
 
 ## Verification
 

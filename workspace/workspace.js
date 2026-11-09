@@ -25,12 +25,6 @@
     settings,
     initialTheme: saved('theme', 'light'),
   });
-  const cardTool = DesignSystemCardTool.create({
-    themes,
-    settings: settings.scope('components.card'),
-    previewSettings: settings.scope('preview.card'),
-    target: document.documentElement,
-  });
   const tooltip = DesignSystemTooltip.mount(document);
   const componentExamples = ExampleComponents.create({
     document,
@@ -51,9 +45,9 @@
     settings.scope('components.breadcrumbs').defaults(DesignSystemBreadcrumbs.defaults);
     settings.scope('components.surface').defaults(DesignSystemSurface.defaults);
     settings.scope('components.tooltip').defaults(DesignSystemTooltip.defaults);
-    settings.scope('components.window').defaults(DesignSystemWindowTool.defaults);
+    settings.scope('components.window').defaults({ lockScroll: true, resizable: true });
     settings.scope('components.list').defaults(DesignSystemList.defaults);
-    settings.scope('components.autocomplete').defaults(DesignSystemAutocompleteTool.defaults);
+    settings.scope('components.autocomplete').defaults({ size: 'small', multiple: true });
   });
   const iconAliases = {
     dashboard: 'layout-dashboard',
@@ -119,6 +113,12 @@
       anchor: 'topschrank.tools.palettepicker',
       path: ['tools', 'palettepicker'],
       render: (page) => renderTool(page, 'palette-picker'),
+    },
+    export: {
+      label: 'Export',
+      anchor: 'topschrank.tools.export',
+      path: ['tools', 'export'],
+      render: (page) => renderTool(page, 'export'),
     },
     shadows: {
       label: 'Shadows',
@@ -233,10 +233,10 @@
         const description = document.createElement('p');
         description.className = 'example-lead';
         description.textContent =
-          'One shared catalogue. Component configuration edits these same bindings, saved per Palette theme.';
+          'One shared catalogue. Record a shortcut or reset it to its default.';
         const controls = document.createElement('div');
         page.append(description, controls);
-        contentComponents.push(shortcutsTool.mount(controls));
+        contentComponents.push(DesignSystemShortcuts.mount(controls, { shortcuts }));
       },
     },
     breadcrumbs: {
@@ -293,6 +293,7 @@
       pages: [
         ['contrast-checker', 'Contrast checker'],
         ['palette-picker', 'Palette picker'],
+        ['export', 'Export'],
       ],
     },
     { page: 'settings', label: 'Settings', icon: 'settings' },
@@ -300,7 +301,7 @@
   navigation
     .find((entry) => entry.group === 'components')
     .pages.sort((a, b) => a[1].localeCompare(b[1], 'en', { sensitivity: 'base' }));
-  const releaseVersion = 'v0.1.2';
+  const releaseVersion = 'v0.1.3';
   DesignSystemNavigation.renderStructure(root, {
     user: { initials: releaseVersion, label: 'Templify ' + releaseVersion },
   });
@@ -331,6 +332,7 @@
     'palette-picker': 'palette',
     shadows: 'layers',
     'contrast-checker': 'contrast',
+    export: 'download',
   };
   DesignSystemNavigation.renderNavigation(root, navigation, { renderIcon: icon, submenuIcons });
   const shortcuts = DesignSystemShortcuts.create({ document });
@@ -343,22 +345,7 @@
     foldDuration: settings.get('layout.navigation.foldDuration', 700),
     onNavigate: navigate,
   });
-  const shortcutsTool = DesignSystemShortcutsTool.create({
-    themes,
-    shortcuts,
-    migrations: [
-      {
-        id: DesignSystemNavigation.searchShortcutId,
-        component: 'navigation',
-        key: 'searchShortcut',
-      },
-    ],
-  });
-  const navigationTool = DesignSystemNavigationTool.create({
-    themes,
-    navigation: shell,
-    shortcuts: shortcutsTool,
-  });
+  ExampleShortcuts.connect({ themes, shortcuts });
   root.dataset.popupPattern = 'soft';
   const items = document.createElement('div');
   items.className = 'workspace-nav-items';
@@ -586,9 +573,6 @@
         storage,
         icons: DesignSystemIcons,
         standalone,
-        cardTool,
-        themes,
-        borderToolSettings: settings.scope('preview.kanban-board'),
         windows,
         getDevice: () => viewport.dataset.device,
         subscribeDevice(listener) {
@@ -717,7 +701,7 @@
   function renderToolsIndex(page) {
     page.insertAdjacentHTML(
       'beforeend',
-      '<p class="example-status">Compact authoring utilities shared by component configurators.</p><nav class="example-tools-index" aria-label="Generic tools"><a class="example-link" href="#topschrank.tools.contrastchecker">Contrast checker →</a><a class="example-link" href="#topschrank.tools.palettepicker">Palette picker →</a></nav>',
+      '<p class="example-status">Design utilities and portable component exports.</p><nav class="example-tools-index" aria-label="Generic tools"><a class="example-link" href="#topschrank.tools.contrastchecker">Contrast checker →</a><a class="example-link" href="#topschrank.tools.palettepicker">Palette picker →</a><a class="example-link" href="#topschrank.tools.export">Export →</a></nav>',
     );
   }
   function renderThemeIndex(page) {
@@ -743,14 +727,6 @@
     );
   }
   function renderNavigationPage(page) {
-    const configuration = document.createElement('section');
-    configuration.className = 'navigation-tool-section';
-    configuration.innerHTML =
-      '<h2>Configuration</h2><p class="navigation-tool-description">Search every destination, including closed submenus. Saved per theme.</p>';
-    const controls = document.createElement('div');
-    configuration.append(controls);
-    page.append(configuration);
-    contentComponents.push(navigationTool.mount(controls));
     page.insertAdjacentHTML(
       'beforeend',
       '<p class="example-lead">The application frame around this page is the Navigation instance. Its header contains the Breadcrumbs module; its content and utility controls are supplied by this example.</p><div class="example-grid"><section class="example-card"><h2>Navigation → header</h2><p>Selecting Breadcrumbs updates the selected menu item, header path, URL and content together.</p><a class="example-link" href="#topschrank.components.breadcrumbs">Open Breadcrumbs →</a></section><section class="example-card"><h2>Responsive composition</h2><p>Change the device using the menu footer. Desktop and tablet retain sidebar controls; mobile uses a hamburger with inline submenus.</p></section></div>',

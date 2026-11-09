@@ -1,42 +1,115 @@
 # Templify UI
 
-Wspólna biblioteka interfejsu i narzędzi Templify. Zasady projektowania oraz
-docelowe granice eksportu opisuje [główny README](../README.md).
+Biblioteka HTML-first: serwer dostarcza treść i stan początkowy, CSS wygląd,
+JS lokalne zachowanie, a HTMX komunikację i wymianę fragmentów HTML.
 
-## Warstwy
+## Źródła komponentu
 
-- `defaults.css`, `primitives.css`: wspólne zmienne CSS i bazowe reguły; ładowane
-  raz, przed stylami komponentów.
-- `colours/`, `shadows/`, `themes/`: definicje wyglądu i opcjonalny kontroler motywów,
-  niezależne od interfejsów edycji.
-- `themes/tokens/`: źródłowe dokumenty DTCG oraz ich walidacja i konwersja.
-- `assets/icons/`: przenośne SVG, opcjonalny renderer i licencje.
-- `components/`: komponenty wraz z manifestami, testami i opcjonalnymi katalogami
-  `configurator/`. Kod komponentu nigdy nie importuje konfiguratora.
-- `tools/`: globalne edytory, przeglądarki i narzędzia pomocnicze.
-- `examples/`: małe, samodzielne demonstracje użycia.
-- `testing/`: współdzielone testy i fixtures; poza kodem produkcyjnym.
-- `scripts/`: generatory i skrypt uruchamiający testy.
+```text
+components/<nazwa>/
+  <nazwa>.html    wzorzec z opisem przeznaczenia, elementów i zachowania JS
+  <nazwa>.css     style
+  client.js      opcjonalny moduł ES, inicjalizujący istniejący HTML
+  <nazwa>.js     klasyczne API mount/update dla obecnego workspace
+```
 
-Główna aplikacja jest w [index.html](../index.html), nie w `examples/`.
-Host odpowiada za routing, zapis ustawień i kompozycję publicznych API.
+Nie ma manifestów komponentów ani konfiguratorów. Shortcuts jest samodzielnym
+komponentem edycji skrótów. Role kolorów komponentów są osobnymi dokumentami
+`colour-roles.json` używanymi przez generator katalogu kolorów, nie przez eksporter.
 
-## Komponenty i eksport
+## Eksport
 
-Manifest zawiera lokalne `runtimeFiles`, jawne `dependencies` i `exportFiles`.
-Ścieżki są względne do katalogu manifestu. Zachowaj układ katalogów podczas
-przenoszenia biblioteki; przyszły eksporter może przepisywać ścieżki.
+### Z przeglądarki
 
-Breadcrumbs i Tabs współdzielą `defaults.css` oraz `primitives.css`; wspólny eksport
-potrzebuje sześciu plików runtime: dwóch JS, dwóch CSS komponentów i dwóch CSS
-fundamentu. Narzędzia i konfiguratory pozostają poza tą granicą.
+Po `npm ci` i `npm run build` otwórz aplikację przez HTTP i wybierz **Tools → Export**
+(`#topschrank.tools.export`). Zaznacz komponenty i kliknij **Download ZIP**.
+Wymagane zależności są dołączane automatycznie z opisem przyczyny.
+**Select all / Clear selection** obsługują cały wybór; pustego zestawu nie można pobrać.
 
-Metadane `tool` w istniejących manifestach wskazują teraz `configurator/`.
-Nazwa pola i publiczne nazwy JS pozostają zachowane dla kompatybilności.
+Narzędzie generuje paczkę lokalnie w przeglądarce. Nie przesyła danych na serwer
+i nie wymaga usługi eksportowej. Pierwszy eksport pobiera lokalny kompilator WASM;
+następne korzystają z tej samej instancji. Do paczki nie trafia kompilator ani narzędzie.
+Style są wspólnymi stylami domyślnymi; importy/backupy ustawień pozostają w Settings.
 
-Nie jest wymagany build do uruchomienia przykładów. Docelowa technologia i format
-eksportu kompletnych komponentów oraz theme nie zostały jeszcze ustalone.
+`npm run build` generuje `tools/export/dist/` ze źródeł, w tym źródłowy snapshot dla
+przeglądarki (nie ręczny rejestr/manifest komponentów). Katalog nie jest wersjonowany;
+Docker generuje go podczas budowy. Po zmianie komponentów ponów build. Zarówno CLI,
+jak i przeglądarka używają tych samych reguł z `ui/export/project.cjs`.
 
-## Kontrole
+### Z CLI
 
-Z katalogu repozytorium: `node ui/scripts/check.cjs`.
+W katalogu repozytorium:
+
+```sh
+npm ci
+npm run export
+npm run export -- --components card,tabs --out ./export-selected
+```
+
+Domyślnie eksportowane są wszystkie komponenty do `export/`. Katalog docelowy musi
+być nowy lub pusty — eksporter nie usuwa i nie nadpisuje istniejącej pracy.
+
+```text
+export/
+  index.html          prezentacja wszystkich wyeksportowanych komponentów
+  ui.css              jeden CSS, wraz ze wspólnymi stylami
+  ui.js               jeden JS, z modułów wybranych komponentów
+  htmx.min.js         lokalna, przypięta wersja HTMX
+  components/*.html   kopie źródłowych HTML wraz z komentarzami
+  licenses/           licencje biblioteki i HTMX
+```
+
+Zależności kompozycji wynikają z `data-ui` w HTML (np. Kanban zawiera Card).
+Zależności JS/CSS wynikają z importów; esbuild łączy je bez duplikatów.
+Konfiguratory, workspace, storage, testy i narzędzia projektowe nie są eksportowane.
+Build jest potrzebny do **utworzenia** eksportu, nie do jego używania.
+
+## Użycie w aplikacji
+
+```html
+<link rel="stylesheet" href="/assets/ui.css">
+<script src="/assets/htmx.min.js" defer></script>
+<script src="/assets/ui.js" defer></script>
+```
+
+Skopiuj strukturę z `components/*.html` do szablonów backendu i podstaw własne dane.
+HTML eksportu nie zawiera składni konkretnego silnika szablonów. Atrybuty `hx-get`,
+`hx-post`, `hx-target` i adresy endpointów dodaje aplikacja. Do testowania żądań HTMX
+potrzebny jest serwer HTTP; lokalne interakcje nie wymagają backendu.
+
+Identyfikatory HTML muszą być unikalne na stronie: przy powielaniu wzorca zmień
+również powiązane `for`, `aria-controls`, `aria-labelledby` i `data-ui-open`.
+Obecny kontroler Navigation zachowuje ograniczenie do jednej instancji na dokument
+i wymaga pokazanych w jego HTML identyfikatorów.
+
+JS nie zastępuje serwerowej treści komponentu. Może tworzyć elementy pomocnicze,
+np. tooltip, chips wyboru lub wskaźniki przeciągania. Moduły rejestrują się przez
+`data-ui` i inicjalizują przy starcie oraz `htmx:afterSwap`/`htmx:load`.
+`htmx:beforeCleanupElement` usuwa listenery, timery, obserwatory i blokady scrolla.
+Wielokrotna inicjalizacja tego samego elementu nie dodaje kolejnych handlerów.
+
+```js
+const dialog = document.querySelector('[data-ui="window"]');
+const view = Templify.get(dialog);
+view.update({ mode: 'side', side: 'left', resizable: true });
+view.open();
+
+// Przy ręcznej zmianie DOM poza HTMX:
+Templify.destroy(fragment); // przed usunięciem
+Templify.init(newFragment); // po wstawieniu
+```
+
+Nieinteraktywne komponenty mogą nie mieć instancji JS. Ich dane aktualizuje HTML
+serwera. Szczegóły API eksportowego są w komentarzu źródłowego HTML każdego
+komponentu; starsze README opisują również kompatybilne klasyczne API `mount()`.
+
+## Weryfikacja
+
+```sh
+npm test
+npx playwright install chromium
+npm run test:browser
+```
+
+Testy przeglądarkowe obejmują eksport, podmiany przez prawdziwy HTMX, zachowanie DOM,
+Window oraz podglądy workspace. Nie zastępują przeglądu wizualnego wszystkich wariantów.

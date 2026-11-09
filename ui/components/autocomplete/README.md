@@ -4,9 +4,10 @@ A data-driven combobox extracted from the original prototype. Small uses compact
 
 ## Dependencies and export
 
-Load foundations `tokens.css` and `primitives.css` once, then Form `form.css`, `validation.js`, `field.js`, followed by `autocomplete.css` and `autocomplete.js`. The input is the same FormField used by Form; its markup, errors and styling are not copied. `manifest.json` lists the complete export and dependencies. No packages, application routes, sample data, icon catalogue, font selector or persistence are required.
+For HTML-first export use `autocomplete.html` and [UI](../../README.md). The client adopts the existing input and suggestion nodes; Form CSS is imported automatically. Classic usage loads foundations, Form `form.css`, `validation.js`, `field.js`, then `autocomplete.css` and `autocomplete.js`.
 
-`configurator/configurator.js` is a development configurator, explicitly loaded by examples. It is excluded from the component runtime/export and uses FormField selects. Example data and image thumbnails live in `examples/autocomplete-data.js`; the Kanban toolbar also uses this component.
+The configurator has been removed. `size` and `multiple` remain component options,
+also supplied initially through `data-size` and `data-multiple` in HTML.
 
 ## API
 
@@ -35,4 +36,4 @@ Arrow keys navigate enabled options, Enter selects, Escape/Tab close, and Backsp
 
 Run `node --test tests/*.test.cjs` and open `tests/browser.html` for real DOM checks, including keyboard, chips, single/multiple modes, disabled states, safe labels, FormData, updates and teardown.
 
-The optional tool accepts an injected `settings` scope (`defaults`, `snapshot`, `set`). The example host supplies it from the shared store and restores appearance/behaviour after reload. The tool exports its default configuration as `defaults`; runtime configuration can be passed directly through `update()` without loading the tool. Selection/demo content is not persisted as template configuration.
+Runtime configuration can be passed through `update()`. Persistence belongs to the caller.

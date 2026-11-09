@@ -12,9 +12,6 @@
       viewportTop,
       storage,
       icons,
-      cardTool,
-      themes,
-      borderToolSettings,
       windows,
       standalone = false,
     },
@@ -28,7 +25,6 @@
       return node;
     };
     let board,
-      borderTool,
       current = ExampleKanbanData.items.map((item) => ({ ...item }));
     try {
       const saved = JSON.parse(storage?.getItem(key) || 'null');
@@ -73,36 +69,9 @@
       dialog.showModal();
     }
     function mountCard(host, options) {
-      let menuEnabled = cardTool?.getState().menuEnabled ?? true;
-      const card = DesignSystemCard.mount(host, { ...options, menuEnabled });
-      const borderBinding = borderTool?.bind(host, options.id);
-      const unsubscribe = cardTool?.subscribe((settings) => {
-        if (settings.menuEnabled === menuEnabled) return;
-        menuEnabled = settings.menuEnabled;
-        card.update({ menuEnabled });
-      });
-      return {
-        ...card,
-        destroy() {
-          unsubscribe?.();
-          borderBinding?.destroy();
-          card.destroy();
-        },
-      };
+      return DesignSystemCard.mount(host, options);
     }
     if (standalone) {
-      const configurationSection = make('section', 'card-tool-section');
-      const configurationHeader = make('header');
-      const configurationTitle = make('h2', '', 'Configuration');
-      configurationTitle.id = 'card-configuration-title';
-      configurationHeader.append(
-        configurationTitle,
-        make('p', '', 'Theme colours, shadows, menu and square preview size. Saved per theme.'),
-      );
-      const editor = make('div');
-      configurationSection.setAttribute('aria-labelledby', configurationTitle.id);
-      configurationSection.append(configurationHeader, editor);
-
       const previewSection = make('section', 'card-preview-section');
       const previewHeader = make('header');
       const previewTitle = make('h2', '', 'Preview');
@@ -112,13 +81,14 @@
         make('p', '', 'Shared font and theme styles. Hover or focus the card to compare shadows.'),
       );
       previewSection.setAttribute('aria-labelledby', previewTitle.id);
-      const stage = make('div', 'card-tool-stage');
-      const preview = make('div', 'card-tool-preview');
+      const stage = make('div', 'example-card-stage');
+      const preview = make('div', 'example-card-preview');
+      preview.style.maxWidth = '360px';
       const host = make('article');
       preview.append(host);
       stage.append(preview);
       previewSection.append(previewHeader, stage);
-      element.append(configurationSection, previewSection, status);
+      element.append(previewSection, status);
       const item = current[0];
       const card = mountCard(host, {
         ...item,
@@ -138,7 +108,7 @@
           },
         ],
       });
-      disposables.push(card, cardTool.mount(editor, { preview }));
+      disposables.push(card);
       const off = subscribeDevice((device) => card.update({ device }));
       return {
         destroy() {
@@ -156,58 +126,6 @@
         'Drag to move or reorder. On touch screens, hold a card to pick it up; swipe to change columns. Keyboard: Alt + arrow keys.',
       ),
     );
-    const borderControls = make('div');
-    element.append(borderControls);
-    borderTool = DesignSystemKanbanBoardTool.mount(borderControls, {
-      themes,
-      settings: borderToolSettings,
-      getItems: () => current,
-    });
-    const toolbar = make('div', 'example-kanban-toolbar'),
-      add = make('button', 'example-kanban-add');
-    add.type = 'button';
-    add.innerHTML = icons.svg('file-plus');
-    add.setAttribute('aria-label', 'Add a card');
-    add.dataset.tooltip = 'Add a card';
-    toolbar.append(add);
-    function openAdd() {
-      dialog.replaceChildren();
-      const form = make('form'),
-        title = make('input'),
-        description = make('textarea');
-      title.placeholder = 'Card title';
-      title.required = true;
-      title.setAttribute('aria-label', 'Card title');
-      description.placeholder = 'Description';
-      description.setAttribute('aria-label', 'Description');
-      const save = make('button', 'example-state-button', 'Add card'),
-        cancel = make('button', 'example-state-button', 'Cancel');
-      save.type = 'submit';
-      cancel.type = 'button';
-      cancel.addEventListener('click', closeDialog);
-      form.append(make('h2', '', 'Add a card'), title, description, save, cancel);
-      dialog.append(form);
-      form.addEventListener('submit', (event) => {
-        event.preventDefault();
-        if (!title.value.trim()) return;
-        const item = {
-          id: 'card-' + Date.now(),
-          columnId: ExampleKanbanData.columns[0].id,
-          title: title.value.trim(),
-          description: description.value,
-          metaLeft: 'No reference',
-          metaRight: '—',
-          footer: 'No due date',
-          footerMuted: true,
-        };
-        current = [...current, item];
-        board.update({ items: current });
-        closeDialog();
-        status.textContent = 'Card added for this session. Reload to restore sample content.';
-      });
-      dialog.showModal();
-    }
-    add.addEventListener('click', openAdd);
     const host = make('div');
     element.append(host, status);
     board = DesignSystemKanbanBoard.mount(host, {
@@ -216,7 +134,6 @@
       device: getDevice(),
       viewport,
       viewportTop,
-      toolbar,
       renderItem(item, context) {
         return mountCard(make('article'), { ...item, ...context });
       },
@@ -236,7 +153,7 @@
     const componentList = make('ul');
     for (const [label, anchor, description] of [
       ['Card', 'card', 'Injected renderer for board items, including content, metadata and action menus.'],
-      ['Buttons', 'buttons', 'The Used components edge tab and the Randomise card borders and Reset borders controls in the configurator.'],
+      ['Buttons', 'buttons', 'The Used components edge tab.'],
       ['Window', 'window', 'The right sidebar displaying this list; composed by the host, not the board runtime.'],
     ]) {
       const item = make('li');
@@ -246,7 +163,7 @@
       componentList.append(item);
     }
     usage.append(
-      make('p', '', 'The board runtime has no direct component dependencies. These components are composed by this page or its configurator; Card is supplied through renderItem and can be replaced.'),
+      make('p', '', 'The board runtime has no direct component dependencies. These components are composed by this page; Card is supplied through renderItem and can be replaced.'),
       componentList,
     );
     // Host chrome is portalled outside the preview so its edge follows the real
@@ -288,9 +205,7 @@
         usagePanel.destroy();
         usageButton.destroy();
         edgeTabs.remove();
-        add.removeEventListener('click', openAdd);
         board.destroy();
-        borderTool.destroy();
         dialog.remove();
         element.replaceChildren();
       },

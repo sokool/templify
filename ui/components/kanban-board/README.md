@@ -24,7 +24,7 @@ to resize; its width is remembered separately as a user preference under
 
 The board runtime has **no direct component dependencies**. The following components
 are used by the [Templify page](../../../index.html#topschrank.components.kanbanboard)
-or its configurator, not imported by the board itself:
+by the host, not imported by the board itself:
 
 | Component | Where and why it is used |
 | --- | --- |
@@ -87,9 +87,11 @@ Column and scroll colours use shared semantic tokens (`--ds-colour-lane`, `--ds-
 multi-selection chips, native add/details dialogs and storage. `workspace/kanban-data.js`
 supplies the 19 sample cards. These host files are not exported with either component.
 
-`configurator/configurator.js` / `configurator/configurator.css` provide preview-only **Randomise card borders** and **Reset borders** controls, excluded from runtime exports. The host injects `themes`, `getItems()` and an optional tool-only `settings` scope into `DesignSystemKanbanBoardTool.mount`, then binds each rendered Card with `bind(element, item.id)` and destroys that binding with the renderer. Randomisation covers every item, including filtered-out cards, using Brand/Accent/Greys references from the active Palette. Colours stay with IDs across movement, filtering and renderer recreation; theme edits update through CSS variables, while deleted references fall back to the shared Card border.
-
-The example saves the latest assignments per theme at `preview.kanban-board.borders` in the shared workspace settings. They restore after page navigation and reload, but belong only to the tool: no Kanban/Card component settings or runtime persistence are introduced. They are excluded from template/token/CSS exports; full workspace backups retain them. Reset restores Card's shared outline/lower edge and saves that reset for the active theme, without clearing other themes. Without an injected settings scope the tool works in memory.
+The configurator and border randomisation controls have been removed. For HTML-first
+export use `kanban-board.html` and [UI](../../README.md). The client adopts server-rendered
+columns and items, retains their DOM when moving, and emits `ui:move` for caller-owned
+persistence. Add/remove columns or items through server-rendered HTML replacement;
+the classic data-driven `mount()` API above remains available to workspace.
 
 ## Verification
 

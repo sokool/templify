@@ -9,6 +9,7 @@ test('generic tools have one implementation under tools, with no obsolete Palett
   assert.equal(typeof require('../tools/palette-picker/palette-picker.js').mount, 'function');
   assert.equal(typeof require('../tools/shadows/shadows.js').mount, 'function');
   assert.equal(typeof require('../tools/contrast-checker/contrast-checker.js').mount, 'function');
+  assert.equal(typeof require('../tools/export/export.js').mount, 'function');
   for (const file of [
     'palette/picker.js',
     'palette/picker.css',
@@ -26,6 +27,8 @@ test('generic tools have one implementation under tools, with no obsolete Palett
     'tools/contrast-checker/contrast-checker.js',
     'tools/contrast-checker/contrast-checker.css',
     'tools/shared/tools.css',
+    'tools/export/export.css',
+    'tools/export/dist/export.js',
   ]) {
     assert.equal(html.split('./ui/' + asset).length - 1, 1, asset);
   }
@@ -42,6 +45,7 @@ test('Tools has separate submenu routes and generic tools use shared compact con
     'topschrank.tools.palettepicker',
     'topschrank.tools.shadows',
     'topschrank.tools.contrastchecker',
+    'topschrank.tools.export',
   ]) {
     assert(workspace.includes(anchor));
   }
@@ -53,9 +57,7 @@ test('Tools has separate submenu routes and generic tools use shared compact con
     compact,
     /\.ds-field-control:not\(\[type='checkbox'\], \[type='radio'\], \[type='range'\]\)/,
   );
-  const card = fs.readFileSync(path.join(root, 'components/card/configurator/configurator.js'), 'utf8');
   const shadows = fs.readFileSync(path.join(root, 'tools/shadows/shadows.js'), 'utf8');
-  assert(card.includes("classList.add('ds-tool')"));
   assert(shadows.includes("classList.add('ds-tool')"));
   const palette = fs.readFileSync(path.join(root, 'tools/palette/tool.js'), 'utf8');
   assert(!/DesignSystemShadowsTool|contrastInput|paintContrast|palette-contrast/.test(palette));

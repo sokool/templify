@@ -1,0 +1,8 @@
+<!--
+Komponent: Notifications
+Przeznaczenie: Komunikat informacyjny, sukcesu, ostrzeżenia lub błędu.
+Elementy: tytuł z ikoną, treść, opcjonalna akcja i przycisk zamknięcia.
+Zachowanie JS: dismiss() ukrywa komunikat i emituje ui:dismiss.
+data-kind="info|success|warning|error" określa wygląd; role status/alert ustala serwer.
+-->
+<aside class="ds-component ds-notification" data-ui="notifications" data-kind="success" role="status"><strong class="ds-notification__title"><span aria-hidden="true">✓</span><span>Changes saved</span></strong><p>Your project is ready for the next step.</p><button type="button" class="ds-notification__dismiss ds-focusable" aria-label="Dismiss notification">×</button></aside>

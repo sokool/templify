@@ -1,0 +1,13 @@
+<!--
+Komponent: Form
+Przeznaczenie: Formularz z natywnymi kontrolkami i walidacją.
+Elementy: form, pola ds-field, etykiety, komunikaty błędów i przycisk wysłania.
+Zachowanie JS: validate(), komunikaty walidacji przy polach, czyszczenie po reset.
+JS nie przechwytuje wysyłania; serwer określa action/method albo hx-post/hx-target.
+Ustaw docelowy endpoint w aplikacji; bez action formularz wysyła do bieżącego adresu.
+-->
+<form class="ds-component ds-form" data-ui="form" aria-label="Project form">
+  <div class="ds-field"><div class="ds-field-caption"><label class="ds-field-label" for="form-reference">Project reference</label><span class="ds-field-error" id="form-reference-error" data-field-error role="status" hidden></span></div><div class="ds-field-body"><input class="ds-field-control" id="form-reference" name="reference" required aria-describedby="form-reference-error"></div></div>
+  <div class="ds-field"><div class="ds-field-caption"><label class="ds-field-label" for="form-notes">Notes</label></div><div class="ds-field-body"><textarea class="ds-field-control" id="form-notes" name="notes" rows="3"></textarea></div></div>
+  <button type="submit" class="ds-component ds-button ds-focusable" data-ui="buttons" data-variant="primary"><span data-button-label>Save project</span></button>
+</form>

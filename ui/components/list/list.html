@@ -1,0 +1,13 @@
+<!--
+Komponent: List
+Przeznaczenie: Tabelaryczny wykaz danych z lokalną paginacją.
+Elementy: pasek gęstości, tabela z nagłówkami i wierszami, podsumowanie i nawigacja stron.
+Zachowanie JS: setPage(n), setDensity("normal|compact"), ui:page; data-page-size
+określa liczbę wierszy. Paginacja dotyczy dostarczonych wierszy; dla danych z serwera
+można pominąć data-list-page i zastosować linki z hx-get.
+-->
+<section class="ds-component ds-list" data-ui="list" data-density="normal" data-page-size="2" aria-label="Projects">
+  <div class="ds-list-toolbar"><div class="ds-list-density" role="group" aria-label="Density"><button type="button" class="ds-list-button" data-list-density="normal" aria-pressed="true">Normal</button><button type="button" class="ds-list-button" data-list-density="compact" aria-pressed="false">Compact</button></div></div>
+  <div class="ds-list-frame"><table class="ds-list-table"><caption class="ds-list-sr">Projects</caption><thead><tr><th scope="col">Project</th><th scope="col">Status</th></tr></thead><tbody><tr><td>Wardrobe</td><td>In progress</td></tr><tr><td>Kitchen</td><td>Ready</td></tr><tr><td>Office</td><td>Planned</td></tr></tbody></table></div>
+  <div class="ds-list-footer"><span class="ds-list-summary" data-list-summary role="status">3 projects</span><nav class="ds-list-pagination" aria-label="Project pages"><button type="button" class="ds-list-button" data-list-page="previous">Previous</button><button type="button" class="ds-list-button" data-list-page="next">Next</button></nav></div>
+</section>
