@@ -79,7 +79,27 @@ Optional `toolbar: Node` is a composition slot. Its search/add controls belong t
 
 The ghost copies rendered source styles and dimensions, keeps the pointer grab point as transform origin, and clips to the card's box. Escape, pointer cancellation, lost capture, resize and teardown cancel safely. Drop markers and column counts follow the same model as keyboard/menu movement. Reduced-motion preference removes pickup/fade animation.
 
-Column and scroll colours use shared semantic tokens (`--ds-colour-lane`, `--ds-colour-lane-header`, `--ds-colour-scroll-indicator`, `--ds-colour-scroll-border`), configurable with the example's Palette tool. Card owns its own content appearance.
+Column and scroll colours use shared semantic tokens (`--ds-colour-lane`,
+`--ds-colour-scroll-indicator`, `--ds-colour-scroll-border`), configurable with the
+example's Palette tool. Card owns its own content appearance.
+
+### Column headings — Underline
+
+The default header is the selected **03 / Underline** design: transparent background,
+no surrounding box or count badge, and an inset 2px underline. The underline and
+count use `--ds-colour-accent` by default. Override `--ds-kanban-column-colour` on
+an individual column (or the whole board) to supply a stage colour:
+
+```html
+<section class="ds-kanban__column" data-column-id="quote"
+  style="--ds-kanban-column-colour: var(--ds-colour-muted)">
+  <!-- Keep the standard heading and stack markup. -->
+</section>
+```
+
+The host example assigns stable stage colours by column ID, with light, dark and
+Matrix palettes; the generic component does not know these stage IDs or palettes.
+The former `--ds-colour-lane-header` background is no longer used by this design.
 
 ## Examples and tooling boundary
 

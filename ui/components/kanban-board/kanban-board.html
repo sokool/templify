@@ -1,7 +1,9 @@
 <!--
 Component: Kanban board
 Purpose: Move and reorder cards across columns.
-Elements: Board container, data-column-id columns, stacks and data-item-id cards.
+Elements: Board container, data-column-id columns with underlined headings and
+item counts, stacks and data-item-id cards. Set --ds-kanban-column-colour on a
+column to colour its underline and count; otherwise the shared accent is used.
 JavaScript behavior: Drag and drop, touch-and-hold, Alt + arrow keys, move(id,
 columnId, beforeId), getState(), ui:move. The application/server owns persistence.
 Cards are a separate component; their server-rendered DOM is preserved when moving.

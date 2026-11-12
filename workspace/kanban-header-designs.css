@@ -1,0 +1,265 @@
+/* Host-only design studies. No rules from this file are included in component exports. */
+html { color-scheme: light; }
+html[data-ds-theme='dark'] { color-scheme: dark; }
+body {
+  margin: 0;
+  background: var(--ds-colour-page);
+  color: var(--ds-colour-text);
+  font: 14px/1.5 var(--ds-font-family);
+}
+.header-designs, .header-designs * { box-sizing: border-box; }
+.header-designs { max-width: 1584px; margin: 0 auto; padding: 28px 40px 32px; }
+.study-nav, .study-intro, .study-section-heading, .study-preview-heading,
+.study-preview-footer, .study-footer { display: flex; justify-content: space-between; gap: 24px; }
+.study-nav { align-items: center; color: var(--ds-colour-muted); font-size: 12px; }
+.study-nav a { color: var(--ds-colour-text); text-decoration: none; }
+.study-nav a:hover { text-decoration: underline; }
+.study-nav > span { display: flex; gap: 12px; }
+.study-intro { align-items: flex-start; margin: 54px 0 40px; }
+.study-eyebrow {
+  margin: 0 0 10px;
+  color: var(--ds-colour-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .14em;
+}
+.study-intro h1 { margin: 0; font-size: clamp(28px, 3.1vw, 44px); line-height: 1.15; letter-spacing: -.045em; font-weight: 650; }
+.study-lead { margin: 16px 0 0; color: var(--ds-colour-muted); font-size: 14px; line-height: 1.7; }
+.study-intro > button { margin-top: 24px; }
+.header-designs .ds-button { border-width: 1px; border-radius: 8px; box-shadow: none; }
+.study-section-heading { align-items: baseline; margin-bottom: 14px; }
+.study-section-heading h2 { margin: 0; font-size: 13px; font-weight: 650; }
+.study-section-heading > span { color: var(--ds-colour-muted); font-size: 11px; }
+.study-choices { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.header-designs .study-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 0;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border-color: var(--ds-colour-divider);
+  border-radius: 10px;
+  overflow: hidden;
+  text-align: left;
+  font-weight: 400;
+  background: var(--ds-colour-panel);
+}
+.header-designs .study-choice:hover { background: var(--ds-colour-panel); border-color: var(--ds-colour-muted); }
+.header-designs .study-choice[aria-pressed='true'] {
+  border-color: var(--ds-colour-accent);
+  box-shadow: 0 0 0 1px var(--ds-colour-accent);
+}
+.study-thumbnail {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  height: 106px;
+  padding: 14px 12px 0;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--ds-colour-page) 75%, var(--ds-colour-panel));
+  border-bottom: 1px solid var(--ds-colour-divider);
+  text-align: left;
+}
+.study-thumbnail .ds-kanban__column { align-self: start; min-height: 122px; }
+.study-thumbnail .ds-kanban__heading { gap: 5px; min-height: 40px; padding: 8px; font-size: 11px; }
+.study-thumbnail .ds-kanban__count { min-width: 19px; height: 20px; padding-inline: 4px; font-size: 10px; }
+.study-thumbnail .ds-kanban__heading > span:first-of-type { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.study-card-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 4px 3px 0;
+  padding: 12px 9px;
+  border: 1px solid var(--ds-colour-border);
+  border-bottom-width: 3px;
+  border-radius: 9px;
+  background: var(--ds-colour-panel);
+}
+.study-card-skeleton > span { display: block; height: 4px; width: 80%; border-radius: 4px; background: var(--ds-colour-divider); }
+.study-card-skeleton > span:first-child { width: 65%; background: color-mix(in srgb, var(--ds-colour-text) 35%, transparent); }
+.study-card-skeleton > span:last-child { width: 90%; }
+.study-choice-copy { display: block; padding: 12px 14px 14px; }
+.study-choice-title { display: flex; align-items: baseline; gap: 9px; color: var(--ds-colour-text); font-size: 13px; font-weight: 650; }
+.study-choice-number { color: var(--ds-colour-muted); font: 10px/1.4 ui-monospace, monospace; }
+.study-choice[aria-pressed='true'] .study-choice-title::after { content: '✓'; margin-left: auto; color: var(--ds-colour-accent); }
+.study-choice-description { display: block; margin-top: 5px; color: var(--ds-colour-muted); font-size: 11px; line-height: 1.5; }
+.study-choice-status { color: var(--ds-colour-accent); font-size: 9px; font-weight: 600; white-space: nowrap; }
+.study-choice[data-preserved='true'] .study-choice-status { color: var(--ds-colour-muted); }
+.study-preview { margin-top: 34px; border: 1px solid var(--ds-colour-divider); border-radius: 12px; background: var(--ds-colour-panel); overflow: hidden; }
+.study-preview-heading { align-items: center; padding: 24px 26px 20px; }
+.study-preview-heading .study-eyebrow { margin-bottom: 6px; font-size: 9px; }
+.study-preview-heading h2 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: -.025em; }
+.study-preview-heading p:last-child { margin: 7px 0 0; color: var(--ds-colour-muted); font-size: 12px; }
+.study-preview-heading > button { flex: none; }
+.study-preview-viewport { max-height: 480px; overflow: auto; padding: 0 12px 8px; }
+.study-preview-footer { padding: 14px 26px; border-top: 1px solid var(--ds-colour-divider); color: var(--ds-colour-muted); font-size: 10px; }
+.study-footer { align-items: baseline; margin-top: 22px; font-size: 11px; }
+.study-footer p { margin: 0; }
+.study-footer p:first-child { font-weight: 600; }
+.study-footer p:last-child { color: var(--ds-colour-muted); text-align: right; }
+
+/* Stage colours are shared by thumbnails and the full board, including dark previews. */
+.header-study { --study-stage-1: #69778e; --study-stage-2: #a07823; --study-stage-3: #4179b2; --study-stage-4: #8b60b7; --study-stage-5: #af633e; --study-stage-6: #368578; --study-stage-7: #488448; }
+[data-ds-theme='dark'] .header-study { --study-stage-1: #a6b0c4; --study-stage-2: #d7b55f; --study-stage-3: #81afe0; --study-stage-4: #b999de; --study-stage-5: #dca07b; --study-stage-6: #7dbdb1; --study-stage-7: #92c68c; }
+.header-study .ds-kanban__column { --ds-kanban-column-colour: var(--study-stage); }
+.header-study .ds-kanban__column:nth-child(1) { --study-stage: var(--study-stage-1); --study-step: '01'; }
+.header-study .ds-kanban__column:nth-child(2) { --study-stage: var(--study-stage-2); --study-step: '02'; }
+.header-study .ds-kanban__column:nth-child(3) { --study-stage: var(--study-stage-3); --study-step: '03'; }
+.header-study .ds-kanban__column:nth-child(4) { --study-stage: var(--study-stage-4); --study-step: '04'; }
+.header-study .ds-kanban__column:nth-child(5) { --study-stage: var(--study-stage-5); --study-step: '05'; }
+.header-study .ds-kanban__column:nth-child(6) { --study-stage: var(--study-stage-6); --study-step: '06'; }
+.header-study .ds-kanban__column:nth-child(7) { --study-stage: var(--study-stage-7); --study-step: '07'; }
+
+/* Reset only proposed headers. The "current" comparison uses unmodified runtime CSS. */
+.header-study:not([data-header-design='current']) .ds-kanban__heading {
+  border: 0;
+  border-radius: 10px 10px 0 0;
+  background: transparent;
+  min-height: 48px;
+  margin: 0;
+  padding: 10px 12px;
+  font-weight: 600;
+}
+.study-thumbnail:not([data-header-design='current']) .ds-kanban__heading { padding: 8px; }
+.header-study:not([data-header-design='current']) .ds-kanban__count {
+  flex: none;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--ds-colour-muted);
+  font: 500 11px/1 var(--ds-font-family);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 01 / Folder tab: a cut-corner label joins the column along its lower edge. */
+.header-study[data-header-design='folder'] .ds-kanban__heading {
+  align-items: flex-end;
+  gap: 6px;
+  padding: 0 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--study-stage) 45%, var(--ds-colour-panel));
+}
+.header-study[data-header-design='folder'] .ds-kanban__heading > span:first-child {
+  min-width: 0;
+  padding: 9px 24px 9px 10px;
+  border-radius: 7px 0 0 0;
+  background: color-mix(in srgb, var(--study-stage) 20%, var(--ds-colour-panel));
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 100%, 0 100%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.header-study[data-header-design='folder'] .ds-kanban__count { align-self: center; }
+
+/* 02 / Big counter: a light, oversized count leads the smaller stage name. */
+.header-study[data-header-design='big-counter'] .ds-kanban__heading { justify-content: flex-start; gap: 10px; }
+.header-study[data-header-design='big-counter'] .ds-kanban__heading > span:first-child { min-width: 0; font-weight: 500; }
+.header-study[data-header-design='big-counter'] .ds-kanban__count {
+  order: -1;
+  min-width: 28px;
+  height: auto;
+  padding: 0;
+  color: var(--study-stage);
+  font-size: 29px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+/* 03 / Underline: a fine stage-coloured rule instead of the left border. */
+.header-study[data-header-design='underline'] .ds-kanban__heading {
+  border-bottom: 2px solid var(--study-stage);
+  border-radius: 0;
+  margin: 0 10px 4px;
+  padding-inline: 2px;
+}
+.header-study[data-header-design='underline'] .ds-kanban__count { color: var(--study-stage); }
+
+/* 04 / Label: only the stage name gets a compact, tinted pill. */
+.header-study[data-header-design='label'] .ds-kanban__heading > span:first-child {
+  min-width: 0;
+  padding: 5px 9px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--study-stage) 17%, var(--ds-colour-panel));
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 05 / Steps: ordinal information gives the process its visual hierarchy. */
+.header-study[data-header-design='steps'] .ds-kanban__heading { gap: 8px; }
+.header-study[data-header-design='steps'] .ds-kanban__heading::before {
+  content: var(--study-step);
+  color: var(--ds-colour-muted);
+  font: 500 10px/1 ui-monospace, monospace;
+  border-right: 1px solid var(--ds-colour-border);
+  padding-right: 8px;
+}
+.header-study[data-header-design='steps'] .ds-kanban__count { margin-left: auto; }
+
+/* 06 / Divider: the name interrupts a hairline at its vertical centre. */
+.header-study[data-header-design='divider'] .ds-kanban__heading { gap: 8px; }
+.header-study[data-header-design='divider'] .ds-kanban__heading::before,
+.header-study[data-header-design='divider'] .ds-kanban__heading::after {
+  content: '';
+  height: 1px;
+  background: color-mix(in srgb, var(--study-stage) 55%, var(--ds-colour-panel));
+}
+.header-study[data-header-design='divider'] .ds-kanban__heading::before { flex: 0 0 6px; }
+.header-study[data-header-design='divider'] .ds-kanban__heading::after { order: 1; flex: 1 0 12px; }
+.header-study[data-header-design='divider'] .ds-kanban__heading > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.header-study[data-header-design='divider'] .ds-kanban__count { order: 2; min-width: 0; padding: 0; color: var(--study-stage); }
+
+/* 07 / Color wash: stage identity across the whole heading, without a hard border. */
+.header-study[data-header-design='tint'] .ds-kanban__heading { background: color-mix(in srgb, var(--study-stage) 15%, var(--ds-colour-panel)); }
+.header-study[data-header-design='tint'] .ds-kanban__count { color: var(--ds-colour-text); background: color-mix(in srgb, var(--ds-colour-panel) 70%, transparent); border-radius: 20px; }
+
+/* 08 / Split: a full-height coloured count segment closes a neutral header. */
+.header-study[data-header-design='split'] .ds-kanban__heading {
+  gap: 0;
+  padding: 0 0 0 12px;
+  background: var(--ds-colour-panel);
+  border-bottom: 1px solid var(--ds-colour-divider);
+  overflow: hidden;
+}
+.header-study[data-header-design='split'] .ds-kanban__heading > span:first-child { min-width: 0; padding: 10px 10px 10px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.header-study[data-header-design='split'] .ds-kanban__count {
+  align-self: stretch;
+  min-width: 42px;
+  height: auto;
+  padding: 0 12px;
+  border-left: 1px solid color-mix(in srgb, var(--study-stage) 30%, var(--ds-colour-panel));
+  border-radius: 0;
+  background: color-mix(in srgb, var(--study-stage) 22%, var(--ds-colour-panel));
+  color: var(--ds-colour-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 1150px) {
+  .header-designs { padding-inline: 28px; }
+  .study-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .header-designs { padding: 20px 16px 28px; }
+  .study-nav > span { display: none; }
+  .study-intro { flex-direction: column; gap: 18px; margin: 34px 0 28px; }
+  .study-intro > button { margin: 0; }
+  .study-section-heading > span { display: none; }
+  .study-choices { gap: 12px; }
+  .study-thumbnail { grid-template-columns: 1fr; height: 94px; padding: 10px 10px 0; }
+  .study-thumbnail .ds-kanban__column:nth-child(2) { display: none; }
+  .study-choice-copy { padding: 10px; }
+  .study-choice-title { gap: 6px; font-size: 12px; flex-wrap: wrap; }
+  .study-choice-description { font-size: 10px; }
+  .study-preview { margin-top: 26px; }
+  .study-preview-heading { align-items: flex-start; flex-direction: column; gap: 16px; padding: 20px 16px; }
+  .study-preview-heading h2 { font-size: 21px; }
+  .study-preview-viewport { padding-inline: 0; max-height: 440px; }
+  .study-preview-footer, .study-footer { flex-direction: column; gap: 8px; }
+  .study-preview-footer { padding: 12px 16px; }
+  .study-footer p:last-child { text-align: left; }
+}

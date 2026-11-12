@@ -1,0 +1,80 @@
+<!--
+Component: Kanban column header design study (host-only preview)
+Purpose: Compare eight proposed column headers without changing the component defaults.
+Elements: Design choices, theme and comparison buttons, and a composed Kanban board.
+JavaScript behavior: Switches preview-only styles, shares the choice through the URL
+fragment, toggles the theme and mounts Card through the Kanban board renderer.
+Example card movements are temporary; this page does not read or write preferences.
+-->
+<!doctype html>
+<html lang="pl" data-ds-theme="light">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>8 kierunków · Nagłówki Kanban · Templify</title>
+    <link rel="stylesheet" href="../ui/defaults.css">
+    <link rel="stylesheet" href="../ui/primitives.css">
+    <link rel="stylesheet" href="../ui/components/buttons/buttons.css">
+    <link rel="stylesheet" href="../ui/components/card/card.css">
+    <link rel="stylesheet" href="../ui/components/kanban-board/kanban-board.css">
+    <link rel="stylesheet" href="kanban-header-designs.css">
+    <script defer src="kanban-data.js"></script>
+    <script defer src="../ui/components/card/card.js"></script>
+    <script defer src="../ui/components/kanban-board/model.js"></script>
+    <script defer src="../ui/components/kanban-board/kanban-board.js"></script>
+    <script defer src="kanban-header-designs.js"></script>
+  </head>
+  <body>
+    <main class="header-designs">
+      <nav class="study-nav" aria-label="Nawigacja">
+        <a href="../index.html#topschrank.components.kanbanboard">← Wróć do Kanbana</a>
+        <span>Templify <span aria-hidden="true">/</span> Design study</span>
+      </nav>
+
+      <header class="study-intro">
+        <div>
+          <p class="study-eyebrow">KANBAN BOARD / COLUMN HEADERS</p>
+          <h1>Jeden detal. Osiem kierunków.</h1>
+          <p class="study-lead">Wybrany i wdrożony kierunek: 03 — Underline.<br>
+            Wybierz nagłówek i porównaj go na tej samej tablicy.</p>
+        </div>
+        <button type="button" id="theme-toggle" class="ds-component ds-button ds-focusable"
+          data-variant="secondary" aria-pressed="false">Ciemny motyw</button>
+      </header>
+
+      <section aria-labelledby="choices-heading">
+        <div class="study-section-heading">
+          <h2 id="choices-heading">Wybierz kierunek</h2>
+          <span>03 / 05 / 07 bez zmian <span aria-hidden="true">·</span> 5 nowych propozycji</span>
+        </div>
+        <div id="design-choices" class="study-choices" role="group" aria-label="Wariant nagłówka"></div>
+      </section>
+
+      <section class="study-preview" aria-labelledby="preview-heading">
+        <header class="study-preview-heading">
+          <div>
+            <p class="study-eyebrow">PODGLĄD NA ŻYWO</p>
+            <h2 id="preview-heading"></h2>
+            <p id="preview-description"></p>
+          </div>
+          <button type="button" id="compare-toggle" class="ds-component ds-button ds-focusable"
+            data-variant="secondary" aria-pressed="false">Porównaj z obecnym</button>
+        </header>
+        <div class="study-preview-viewport">
+          <div id="board-preview" class="header-study" data-header-design="underline"></div>
+        </div>
+        <footer class="study-preview-footer">
+          <span>Te same karty i kolumny. Zmieniamy wyłącznie nagłówki.</span>
+          <span>Przewijaj w bok, aby zobaczyć kolejne etapy →</span>
+        </footer>
+      </section>
+
+      <footer class="study-footer">
+        <p id="selection-status" role="status" aria-live="polite"></p>
+        <p>To propozycje, nie wdrożenie. Obecny komponent i zapisane ustawienia pozostają bez zmian.</p>
+      </footer>
+    </main>
+    <noscript>Włącz JavaScript, aby zobaczyć osiem wariantów nagłówków i tablicę porównawczą.</noscript>
+  </body>
+</html>
