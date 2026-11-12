@@ -150,6 +150,35 @@ test('workspace routes still mount without configurators', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test('workspace release version remains visible on mobile with navigation open or closed', async ({ browser }) => {
+  const context = await browser.newContext({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
+  try {
+    const page = await context.newPage();
+    await page.goto(url + '/source/index.html#topschrank.components.countsandsummaries');
+    await expect(page.locator('main.example-page')).toHaveAttribute('id', 'topschrank.components.countsandsummaries');
+    const badge = page.locator('.menu-live-header .menu-avatar');
+    const version = await badge.textContent();
+    expect(version).toMatch(/^v\d+\.\d+\.\d+$/);
+    for (const width of [320, 390, 620, 844, 1280]) {
+      await page.setViewportSize({ width, height: 844 });
+      await expect(badge).toBeVisible();
+      await expect(badge).toBeInViewport();
+      await expect(badge).toHaveText(version);
+      const bounds = await badge.boundingBox();
+      const header = await page.locator('.menu-live-header').boundingBox();
+      expect(bounds.x).toBeGreaterThanOrEqual(header.x);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(Math.min(header.x + header.width, width) + 1);
+      if (width <= 620) {
+        await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
+        await expect(badge).toBeVisible();
+        await expect(badge).toBeInViewport();
+        await page.keyboard.press('Escape');
+        await expect(badge).toBeVisible();
+      }
+    }
+  } finally { await context.close(); }
+});
+
 async function expectTouchControlFonts(page) {
   const sizes = await page.locator('input,textarea,select').evaluateAll(elements => elements
     .filter(element => !['hidden', 'checkbox', 'radio', 'range', 'color', 'file', 'button', 'submit', 'reset', 'image'].includes(element.type))

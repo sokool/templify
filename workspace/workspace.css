@@ -47,4 +47,4 @@ body{margin:0;background:var(--ds-colour-page,var(--ds-colour-soft));color:var(-
 }
 
 /* The host header shows the release version rather than account initials. */
-#menu-live .menu-avatar{width:auto;min-width:30px;padding-inline:8px;white-space:nowrap}
+#menu-live .menu-avatar{display:flex;width:auto;min-width:30px;padding-inline:8px;white-space:nowrap}
