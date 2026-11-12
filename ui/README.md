@@ -3,7 +3,16 @@
 Biblioteka HTML-first: serwer dostarcza treść i stan początkowy, CSS wygląd,
 JS lokalne zachowanie, a HTMX komunikację i wymianę fragmentów HTML.
 
+Na urządzeniach dotykowych pola tekstowe mają minimum 16 px, również w kompaktowych
+narzędziach. Zapobiega to automatycznemu przybliżaniu po skupieniu pola w Safari na
+iPhonie. Większe rozmiary tekstu są zachowane, a powiększanie gestem pozostaje dostępne.
+Zasada jest częścią wspólnych stylów i obowiązuje również w eksporcie.
+
 ## Źródła komponentu
+
+Komentarze dokumentacyjne w HTML są zawsze po angielsku. Wzorzec zaczyna się
+opisem z sekcjami `Component`, `Purpose`, `Elements` i `JavaScript behavior`;
+eksporter kopiuje go bez zmian.
 
 ```text
 components/<nazwa>/

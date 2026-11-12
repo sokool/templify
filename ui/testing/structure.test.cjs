@@ -39,10 +39,18 @@ test('component exports contain only existing runtime files, never configurators
     const base = path.join(root, 'ui/components', name);
     assert(!fs.existsSync(path.join(base, 'manifest.json')));
     for (const extension of ['html','css','js']) assert(fs.existsSync(path.join(base, name + '.' + extension)));
-    const html = fs.readFileSync(path.join(base, name + '.html'), 'utf8');
-    assert.match(html, /^<!--[\s\S]*Komponent:[\s\S]*Przeznaczenie:[\s\S]*Elementy:[\s\S]*Zachowanie JS:[\s\S]*?-->/);
     const runtime = fs.readFileSync(path.join(base, name + '.js'), 'utf8');
     assert(!/require\(["'][^"']*(?:configurator|tools|workspace|storage)\//.test(runtime));
+  }
+});
+
+test('component HTML starts with English documentation sections in the standard order', () => {
+  const { available } = require('../scripts/export.cjs');
+  for (const name of available()) {
+    const html = fs.readFileSync(path.join(root, 'ui/components', name, name + '.html'), 'utf8');
+    const comment = html.match(/^<!--([\s\S]*?)-->/);
+    assert(comment, name + ' must start with a documentation comment');
+    assert.match(comment[1], /^\s*Component: [^\n]+\nPurpose: [\s\S]+?\nElements: [\s\S]+?\nJavaScript behavior: [\s\S]+$/, name);
   }
 });
 

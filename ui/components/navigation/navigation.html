@@ -1,12 +1,12 @@
 <!--
-Komponent: Navigation
-Przeznaczenie: Nawigacja aplikacji z nagłówkiem i zwijanym panelem.
-Elementy: nagłówek, panel linków z grupami, przycisk zwijania i obszar treści.
-Zachowanie JS: setCollapsed(), toggleGroup(), focusSearch(), select(), wyszukiwanie,
-klawiatura i menu mobilne. Linki mogą mieć hx-get/hx-target/hx-push-url. ui:navigate
-informuje o wyborze; serwer obsługuje adresy. Moduł Shortcuts obsługuje skróty,
-ale jego edytor jest osobnym komponentem. Obecny kontroler wymaga jednego
-Navigation na dokument oraz zachowania pokazanych ID menu-live i menu-live-nav.
+Component: Navigation
+Purpose: Application navigation with a header and collapsible sidebar.
+Elements: Header, grouped link panel, collapse button and content area.
+JavaScript behavior: setCollapsed(), toggleGroup(), focusSearch(), select(), search,
+keyboard navigation and mobile menu. Links can use hx-get/hx-target/hx-push-url.
+ui:navigate reports selection; the server handles URLs. The Shortcuts module handles
+keyboard shortcuts, but its editor is a separate component. The current controller
+requires one Navigation instance per document and the shown menu-live and menu-live-nav IDs.
 -->
 <section class="menu-live ds-navigation" id="menu-live" data-ui="navigation" data-menu-design="sidebar" data-sidebar-collapsed="false">
   <header class="menu-live-header"><nav class="wordmark workspace-wordmark" id="workspace-breadcrumbs" aria-label="Breadcrumb">Workspace</nav><div class="menu-header-actions"><span class="menu-avatar" aria-label="Account">AK</span></div></header>

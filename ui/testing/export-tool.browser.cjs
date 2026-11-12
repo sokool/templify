@@ -62,7 +62,7 @@ test('Tools Export downloads a working ZIP identical to the CLI selection', asyn
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, archive[name]);
   }
-  expect(strFromU8(archive['components/window.html'])).toContain('Komponent: Window');
+  expect(strFromU8(archive['components/window.html'])).toContain('Component: Window');
   expect(strFromU8(archive['ui.js'])).not.toContain('esbuild-wasm');
   expect(strFromU8(archive['ui.js'])).not.toContain('DesignSystemExportTool');
   await expect(page.locator('.export-tool-progress')).toContainText('ZIP ready');
@@ -86,6 +86,11 @@ test('default selection exports all components, without authoring or compiler fi
   const download = await downloadEvent;
   const files = unzipSync(fs.readFileSync(await download.path()));
   expect(Object.keys(files).filter(file => file.startsWith('components/'))).toHaveLength(22);
+  for (const name of Object.keys(files).filter(file => file.startsWith('components/'))) {
+    const comment = strFromU8(files[name]).match(/^<!--([\s\S]*?)-->/);
+    expect(comment, name + ' documentation').not.toBeNull();
+    expect(comment[1]).toMatch(/Component: [\s\S]+Purpose: [\s\S]+Elements: [\s\S]+JavaScript behavior: /);
+  }
   expect(Object.keys(files).some(file => /configurator|wasm|sources\.json|workspace|tools\//.test(file))).toBe(false);
   expect(strFromU8(files['index.html']).match(/class="export-example"/g)).toHaveLength(22);
   await expect(page.locator('.export-tool-progress')).toContainText('ZIP ready · 22 components');

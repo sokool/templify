@@ -1,8 +1,8 @@
 <!--
-Komponent: Process steps
-Przeznaczenie: Prezentacja zakończonych, bieżącego i przyszłych etapów procesu.
-Elementy: lista etapów, znaczniki, etykiety i opisy statusu.
-Zachowanie JS: update({current: indeks}) ustawia etap bieżący (indeksy od zera),
-aktualizuje znaczniki i aria-current. Dane początkowe dostarcza HTML.
+Component: Process steps
+Purpose: Display completed, current and upcoming process steps.
+Elements: Step list, markers, labels and status descriptions.
+JavaScript behavior: update({current: index}) sets the current step (zero-based),
+updates markers and aria-current. HTML supplies the initial data.
 -->
 <section class="ds-component ds-process-steps" data-ui="process-steps"><ol aria-label="Project stages"><li data-status="done"><span class="ds-step-marker" aria-hidden="true">✓</span><div><strong>Contact</strong><span class="ds-step-status">Completed</span></div></li><li data-status="current" aria-current="step"><span class="ds-step-marker" aria-hidden="true">2</span><div><strong>Measurement</strong><span class="ds-step-status">Current step</span></div></li><li data-status="pending"><span class="ds-step-marker" aria-hidden="true">3</span><div><strong>Quote</strong><span class="ds-step-status">Upcoming</span></div></li></ol></section>

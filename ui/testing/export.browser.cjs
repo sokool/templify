@@ -149,3 +149,80 @@ test('workspace routes still mount without configurators', async ({ page }) => {
   }
   expect(errors).toEqual([]);
 });
+
+async function expectTouchControlFonts(page) {
+  const sizes = await page.locator('input,textarea,select').evaluateAll(elements => elements
+    .filter(element => !['hidden', 'checkbox', 'radio', 'range', 'color', 'file', 'button', 'submit', 'reset', 'image'].includes(element.type))
+    .map(element => ({
+      name: element.getAttribute('aria-label') || element.name || element.id || element.tagName,
+      type: element.type,
+      classes: element.className,
+      size: Number.parseFloat(getComputedStyle(element).fontSize),
+    })));
+  expect(sizes.length).toBeGreaterThan(0);
+  expect(sizes.filter(control => !Number.isFinite(control.size) || control.size < 16), page.url()).toEqual([]);
+}
+
+test('touch exports keep text controls at least 16px in portrait and landscape without disabling zoom', async ({ browser }) => {
+  const context = await browser.newContext({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
+  try {
+    const page = await context.newPage();
+    await page.goto(url);
+    expect(await page.evaluate(() => matchMedia('(any-pointer: coarse)').matches)).toBe(true);
+    const viewport = await page.locator('meta[name="viewport"]').getAttribute('content');
+    expect(viewport).not.toMatch(/user-scalable\s*=\s*(?:no|0)|maximum-scale|minimum-scale/i);
+    await expectTouchControlFonts(page);
+    await page.locator('#form-reference').focus();
+    await expect(page.locator('#form-reference')).toHaveCSS('font-size', '16px');
+    await page.locator('#form-reference').evaluate(element => {
+      element.closest('.ds-field').style.setProperty('--ds-form-control-font-size', '24px');
+    });
+    await expect(page.locator('#form-reference')).toHaveCSS('font-size', '24px');
+    await page.setViewportSize({ width: 844, height: 390 });
+    await expectTouchControlFonts(page);
+    // The foundation opts components in; it must not reset unrelated host controls.
+    await page.evaluate(() => {
+      const input = document.createElement('input');
+      input.id = 'unrelated-host-input';
+      document.body.append(input);
+    });
+    expect(await page.locator('#unrelated-host-input').evaluate(element => Number.parseFloat(getComputedStyle(element).fontSize))).toBeLessThan(16);
+  } finally { await context.close(); }
+});
+
+test('touch workspace controls stay readable despite compact navigation and tool overrides', async ({ browser }) => {
+  const context = await browser.newContext({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
+  try {
+    const page = await context.newPage();
+    await page.goto(url + '/source/index.html');
+    const routes = [
+      'topschrank.components.forms', 'topschrank.components.autocomplete',
+      'topschrank.components.shortcuts', 'topschrank.components.window',
+      'topschrank.tools.contrastchecker', 'topschrank.tools.palettepicker',
+      'topschrank.tools.shadows', 'topschrank.palette', 'topschrank.iconsandglyphs',
+    ];
+    for (const route of routes) {
+      await page.evaluate(route => { location.hash = '#' + route; }, route);
+      await expect(page.locator('main.example-page')).toHaveAttribute('id', route);
+      await expectTouchControlFonts(page);
+    }
+    await page.setViewportSize({ width: 844, height: 390 });
+    await expectTouchControlFonts(page);
+    await page.locator('#menu-search-panel input').evaluate(element => element.focus());
+    await expect(page.locator('#menu-search-panel input')).toHaveCSS('font-size', '16px');
+    const viewport = await page.locator('meta[name="viewport"]').getAttribute('content');
+    expect(viewport).not.toMatch(/user-scalable\s*=\s*(?:no|0)|maximum-scale|minimum-scale/i);
+  } finally { await context.close(); }
+});
+
+test('desktop fields retain their original sizes even in a narrow preview', async ({ page }) => {
+  await page.goto(url);
+  expect(await page.evaluate(() => matchMedia('(any-pointer: coarse)').matches)).toBe(false);
+  await expect(page.locator('#form-reference')).toHaveCSS('font-size', '14px');
+  await expect(page.locator('#menu-search-panel input')).toHaveCSS('font-size', '12px');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('#form-reference')).toHaveCSS('font-size', '14px');
+  await page.goto(url + '/source/index.html#topschrank.palette');
+  await expect(page.locator('.palette-colour-row input[type="text"]').first()).toHaveCSS('font-size', '10px');
+  await expect(page.locator('#menu-search-panel input')).toHaveCSS('font-size', '12px');
+});

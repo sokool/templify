@@ -154,7 +154,7 @@
   background: none;
 }
 .palette-picker-custom .ds-field-control {
-  font-size: 13px;
+  font-size: max(var(--ds-input-font-size-min, 0px), 13px);
   min-height: 36px;
 }
 .palette-picker-custom .ds-field-caption {

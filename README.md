@@ -96,6 +96,9 @@ lokalnych plików fontów powstaną, kiedy faktycznie będą miały własną zaw
 
 ### Komponenty
 
+- Komentarze dokumentacyjne w HTML komponentów piszemy po angielsku. Każdy wzorzec
+  eksportowy zaczyna się sekcjami `Component`, `Purpose`, `Elements` i
+  `JavaScript behavior`; eksport kopiuje opis bez zmian ze źródła.
 - Działają bez aplikacji Templify, narzędzi i konfiguratorów.
 - Udostępniają jawne API konfiguracji, aktualizacji i zwalniania zasobów.
 - Korzystają ze wspólnych zmiennych CSS; lokalne nadpisania mają określony zakres.

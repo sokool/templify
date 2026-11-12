@@ -1,7 +1,7 @@
 /* Catalogue presentation only. SVG assets have no search, tiles or slider styles. */
 .example-icon-tools{display:flex;align-items:center;flex-wrap:wrap;gap:18px;margin:24px 0}
 .example-icon-search{display:flex;flex-direction:column;gap:6px;min-width:0;width:min(340px,100%);color:var(--ds-colour-muted);font-size:12px}
-.example-icon-search input{width:100%;padding:10px 12px;border:1px solid var(--ds-colour-border);border-radius:10px;background:var(--ds-colour-panel);color:var(--ds-colour-text);font:inherit;font-size:14px}
+.example-icon-search input{width:100%;padding:10px 12px;border:1px solid var(--ds-colour-border);border-radius:10px;background:var(--ds-colour-panel);color:var(--ds-colour-text);font:inherit;font-size:max(var(--ds-input-font-size-min,0px),14px)}
 .example-icon-search input:focus-visible{outline:0;border-color:var(--ds-colour-accent)}
 .example-icon-size{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ds-colour-muted)}
 .example-icon-size input{width:130px;accent-color:var(--ds-colour-accent)}

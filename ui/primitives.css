@@ -5,3 +5,14 @@
   outline-offset:var(--ds-focus-offset);
   border-radius:var(--ds-focus-radius);
 }
+
+/* iOS Safari zooms focused text controls below 16px. Keep pinch zoom available.
+   Use touch capability, not viewport width, so landscape phones are covered too. */
+@media (any-pointer: coarse) {
+  :root { --ds-input-font-size-min: 16px; }
+
+  /* Cover plain server-rendered controls inside components, such as Window. */
+  .ds-component :where(input:not([type='hidden'], [type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file'], [type='button'], [type='submit'], [type='reset'], [type='image']), textarea, select) {
+    font-size: max(var(--ds-input-font-size-min), 1em);
+  }
+}

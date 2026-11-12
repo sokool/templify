@@ -1,10 +1,10 @@
 <!--
-Komponent: List
-Przeznaczenie: Tabelaryczny wykaz danych z lokalną paginacją.
-Elementy: pasek gęstości, tabela z nagłówkami i wierszami, podsumowanie i nawigacja stron.
-Zachowanie JS: setPage(n), setDensity("normal|compact"), ui:page; data-page-size
-określa liczbę wierszy. Paginacja dotyczy dostarczonych wierszy; dla danych z serwera
-można pominąć data-list-page i zastosować linki z hx-get.
+Component: List
+Purpose: Tabular data with local pagination.
+Elements: Density toolbar, table with headers and rows, summary and page navigation.
+JavaScript behavior: setPage(n), setDensity("normal|compact"), ui:page; data-page-size
+sets the number of rows per page. Pagination uses the supplied rows; for server-side
+pagination, omit data-list-page and use links with hx-get.
 -->
 <section class="ds-component ds-list" data-ui="list" data-density="normal" data-page-size="2" aria-label="Projects">
   <div class="ds-list-toolbar"><div class="ds-list-density" role="group" aria-label="Density"><button type="button" class="ds-list-button" data-list-density="normal" aria-pressed="true">Normal</button><button type="button" class="ds-list-button" data-list-density="compact" aria-pressed="false">Compact</button></div></div>

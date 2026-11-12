@@ -42,6 +42,12 @@ test('full export contains every component, local HTMX and licenses', async t =>
   assert.equal(result.components.length, 22);
   assert(!result.inputs.some(file => /configurator|workspace|storage|tools\//.test(file)));
   assert.equal(fs.readdirSync(path.join(directory, 'components')).length, 22);
+  const index = fs.readFileSync(path.join(directory, 'index.html'), 'utf8');
+  for (const name of result.components) {
+    const source = fs.readFileSync(path.join(__dirname, '../components', name, name + '.html'), 'utf8');
+    assert.equal(fs.readFileSync(path.join(directory, 'components', name + '.html'), 'utf8'), source);
+    assert(index.includes(source), name + ' documentation must also be copied into index.html');
+  }
   assert(fs.statSync(path.join(directory, 'licenses/htmx.txt')).size > 0);
   assert(fs.readFileSync(path.join(directory, 'htmx.min.js'), 'utf8').includes('2.0.8'));
 });

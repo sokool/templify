@@ -1,10 +1,10 @@
 <!--
-Komponent: Kanban board
-Przeznaczenie: Przenoszenie i porządkowanie kart między kolumnami.
-Elementy: kontener tablicy, kolumny data-column-id, stosy i karty data-item-id.
-Zachowanie JS: drag and drop, dotykowe przytrzymanie, Alt + strzałki, move(id,
-columnId, beforeId), getState(), ui:move. Zapis zmian należy do aplikacji/serwera.
-Karty są osobnym komponentem; ich serwerowy DOM zostaje zachowany przy przenoszeniu.
+Component: Kanban board
+Purpose: Move and reorder cards across columns.
+Elements: Board container, data-column-id columns, stacks and data-item-id cards.
+JavaScript behavior: Drag and drop, touch-and-hold, Alt + arrow keys, move(id,
+columnId, beforeId), getState(), ui:move. The application/server owns persistence.
+Cards are a separate component; their server-rendered DOM is preserved when moving.
 -->
 <section class="ds-component ds-kanban" data-ui="kanban-board" aria-label="Project board">
   <div class="ds-kanban__frame"><div class="ds-kanban__scroll"><div class="ds-kanban__lanes">

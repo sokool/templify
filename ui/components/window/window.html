@@ -1,14 +1,14 @@
 <!--
-Komponent: Window
-Przeznaczenie: Okno modalne lub panel boczny.
-Elementy: przycisk otwierania, dialog, nagłówek, przycisk zamknięcia, body, footer, resize.
-Zachowanie JS: open(), close(), update(), getSize(), subscribeResize(); focus,
-Escape, backdrop, blokada scrolla, resize myszą/klawiaturą. Zdarzenia: ui:open/close/resize.
+Component: Window
+Purpose: Modal window or side panel.
+Elements: Open button, dialog, header, close button, body, footer and resize handle.
+JavaScript behavior: open(), close(), update(), getSize(), subscribeResize(); focus,
+Escape, backdrop, scroll locking and pointer/keyboard resizing. Events: ui:open/close/resize.
 HTML: data-mode="modal|side", data-side="left|right", data-close-on-escape,
 data-show-close, data-lock-scroll, data-close-on-backdrop, data-resizable (true|false),
-data-width/data-height (px). Te same ustawienia w JS: mode, side, closeOnEscape,
-showClose, lockScroll, closeOnBackdrop, resizable, width, height przez update().
-data-ui-open wskazuje unikalne ID dialogu; data-ui-close zamyka z wnętrza okna.
+data-width/data-height (px). The same settings in JS: mode, side, closeOnEscape,
+showClose, lockScroll, closeOnBackdrop, resizable, width, height through update().
+data-ui-open targets the unique dialog ID; data-ui-close closes it from inside the window.
 -->
 <button type="button" class="ds-component ds-button ds-focusable" data-ui="buttons" data-ui-open="window-preview"><span data-button-label>Open window</span></button>
 <dialog class="ds-component ds-window" data-ui="window" id="window-preview" data-mode="side" data-side="right" data-width="480" data-close-on-escape="true" data-show-close="true" data-lock-scroll="true" data-close-on-backdrop="true" data-resizable="true" aria-labelledby="window-preview-title">

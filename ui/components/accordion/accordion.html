@@ -1,10 +1,10 @@
 <!--
-Komponent: Accordion
-Przeznaczenie: Rozwijane sekcje treści.
-Elementy: kontener, sekcje details, nagłówki summary i panele treści.
-Zachowanie JS: otwieranie/zamykanie przez setOpen(id, open), tryb jednej lub wielu
-otwartych sekcji (data-multiple), synchronizacja aria-expanded, zdarzenie ui:change.
-Bez JS sekcje nadal działają jako natywne details.
+Component: Accordion
+Purpose: Expandable content sections.
+Elements: Container, details sections, summary headings and content panels.
+JavaScript behavior: Open/close sections with setOpen(id, open), allow one or multiple
+open sections (data-multiple), synchronize aria-expanded and emit ui:change.
+Sections still work as native details elements without JavaScript.
 -->
 <section class="ds-component ds-accordion" data-ui="accordion" data-multiple="true">
   <details class="ds-accordion__item" id="accordion-details" open>
