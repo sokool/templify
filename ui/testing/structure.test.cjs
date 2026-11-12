@@ -77,8 +77,8 @@ test('Theme and Tools navigation reflect user tasks rather than implementation d
   const source = fs.readFileSync(path.join(root, 'workspace/workspace.js'), 'utf8');
   const declaration = source.match(/const navigation = (\[[\s\S]*?\n  \]);/)[1];
   const navigation = vm.runInNewContext(declaration);
-  const pages = (group) => Array.from(navigation.find((entry) => entry.group === group).pages,
-    (entry) => entry[0]);
+  const pages = (group) => Array.from(navigation.find((entry) => entry.id === group).children,
+    (entry) => entry.id);
   assert.deepEqual(pages('theme'), ['palette', 'fonts', 'icons', 'shadows']);
   assert.deepEqual(pages('tools'), ['contrast-checker', 'palette-picker', 'export']);
   for (const anchor of ['topschrank.palette', 'topschrank.fonts', 'topschrank.iconsandglyphs',

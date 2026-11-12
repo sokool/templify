@@ -1,118 +1,162 @@
 # Navigation
 
-The responsive application frame: header, expanded sidebar, 45 px icon rail, connected flyouts, mobile hamburger navigation and independently scrolling navigation/footer regions. This is the implementation used by the main application in `../../../index.html`, not a second simplified copy.
+The responsive application frame: header, expanded sidebar, icon rail, connected
+flyouts, search, mobile navigation and independently scrolling menu/footer regions.
+The main application and portable export use this same implementation. Navigation
+owns both collapse controls, animations, overflow helpers and their cleanup; no
+`workspace/` files are required.
 
-## Files and dependencies
+## HTML-first integration
 
-- `navigation.js`: structure, data-driven navigation renderer, interaction controller.
-- `navigation.css`: original shell rules in their existing cascade order, including responsive overrides. Historical overrides were retained deliberately to preserve the design during extraction.
-- Shared `../../defaults.css` and `primitives.css`, loaded once.
-- Shared `../shortcuts/shortcuts.js`, loaded before `navigation.js`.
-- Search uses the real Form Field runtime: `../form/validation.js`, `field.js` and
-  `form.css`. Form owns input geometry, border, typography and focus styling.
-- No npm package, application router, order data, configuration editor or icon library is required.
-- Breadcrumbs is a separate **optional composition**. Mount it into `shell.slots.breadcrumbs`. The live application uses its existing Breadcrumbs adapter and configured appearance unchanged.
-- Component configurators have been removed; behaviour remains accessible through the public API.
+Use `navigation.html` as the source template and see [UI](../../README.md) for
+export and automatic `data-ui="navigation"` initialization. The controller adopts
+existing menu links and buttons rather than replacing server-rendered content.
+Retain the documented classes, `data-menu-page` item IDs, `data-menu-group` group
+IDs, and matching `aria-controls`/submenu IDs. Wrap the shell in
+`.navigation-viewport`, or provide a parent with `container: ui-preview / inline-size`.
 
-For HTML-first export use `navigation.html` and [UI](../../README.md). The exporter
-bundles runtime imports, including shared Form styles, without the workspace or
-its storage. The current controller retains its one-Navigation-per-document ID contract.
+```html
+<section
+  id="menu-live"
+  class="menu-live ds-navigation"
+  data-ui="navigation"
+  data-menu-design="sidebar"
+  data-collapse="true"
+  data-search="true"
+  data-search-shortcut="Mod+K"
+  data-collapse-shortcut="Mod+B"
+>
+  <!-- Header, menu, footer and content from navigation.html. -->
+</section>
+```
 
-## Integration
+| Feature | HTML attribute | JavaScript method | Default |
+| --- | --- | --- | --- |
+| Allow sidebar folding | `data-collapse="true/false"` | `setCollapse(boolean)` | `true` |
+| Menu search | `data-search="true/false"` | `setSearch(boolean)` | `true` |
 
-Use the complete [standalone example](example.html) as the runnable integration reference. It runs directly from `file://`; no build or server is required.
+Attribute changes are observed after initialization. Methods update those same
+attributes and apply the change immediately; there is one effective feature state.
+Disabling collapse expands the desktop sidebar and hides both collapse controls.
+On mobile it keeps navigation open, so destinations remain accessible without a
+toggle. Disabling search hides its controls, clears the query and closes results.
+The internal `data-sidebar-collapsed` marker is maintained by Navigation; consumers
+do not need to set it. Both disabled features retain their user shortcut bindings.
 
-1. Load shared foundations, Form stylesheet/validation/field, shell stylesheet, Shortcuts runtime and Navigation classic script.
-2. Put the root inside a container with `container: ui-preview / inline-size`.
-3. Call `renderStructure(root, { user: { initials, label } })` and `renderNavigation(root, entries, { renderIcon, submenuIcons })`.
-4. Call `mount(root, { viewport, renderIcon, storage, storageKey, onNavigate, statusElement })`.
-5. Supply existing page/utility DOM through `slots`. Moving a node retains its state and event listeners; nothing is cloned.
-6. Move `shell.sidebarToggle` into `shell.slots.header` before Breadcrumbs. Call `installMobile()`.
-7. Put primary items in `.workspace-nav-items`, excluding both `slots.footer` and `slots.search`. Insert the items before the footer, keeping Search first, then call `installOverflow({items, footer: shell.slots.footer, nav: shell.slots.navigation})` after utility controls exist.
-8. On a route change, call `shell.select(page)`, update page content and Breadcrumbs in the host. The host remains responsible for URL hashes/history.
-9. After synchronous restoration, set `root.dataset.motionReady = 'true'` after two animation frames. On `pagehide`, call `remember()`; call `destroy()` when disposing the controller.
+HTML destinations can be ordinary `<a href="…">` links, including `target`/`rel`,
+or `<button type="button">` actions with application click listeners. HTMX
+attributes such as `hx-get`, `hx-target` and `hx-push-url` belong on the original
+link/button. Navigation does not intercept native link navigation or modified
+clicks. The exported client emits `ui:navigate` with `{ page }`; the host owns
+routing, URLs, page content and Breadcrumbs.
 
-`storage` is optional and injected. For the existing application its prefix remains `top-schrank`, retaining the exact saved sidebar/group keys. The component itself never reads global `localStorage`. A restricted storage adapter may throw; restoration and saving catch failures.
+## JavaScript integration and menu data
 
-## Menu search
+The [standalone example](example.html) runs directly from `file://`, without a
+build, server, icon library or workspace code. Load shared `defaults.css` and
+`primitives.css`, Form `form.css`/`validation.js`/`field.js`, `shortcuts.js`, and
+Navigation CSS/JS. Breadcrumbs and a custom `renderIcon(name)` adapter are optional.
+Built-in SVG icons cover Navigation's own controls.
 
-Search is enabled by default. `mount(root, { searchEnabled: false })` disables it;
-`shell.setSearchEnabled(boolean)` changes it at runtime. The independent
-`slots.search` section stays above the scrolling destinations. Expanded/mobile
-menus show a Form Field search input; the icon rail shows a Search button opening the
-same input in a viewport-constrained Popover. This flyout is flush with the rail's
-right edge, with square left corners and the same outline, right-hand radii,
-header fill and shadow tokens as menu submenus. It follows viewport scroll/resize
-and narrows to the available space without introducing a gap from the rail.
+```js
+DesignSystemNavigation.renderStructure(root);
+const navigation = DesignSystemNavigation.mount(root, {
+  items: [
+    { id: 'dashboard', label: 'Dashboard', icon: 'home', href: '/dashboard' },
+    { id: 'projects', label: 'Projects', icon: 'folder', children: [
+      { id: 'all', label: 'All projects', icon: 'list', href: '/projects' },
+      { id: 'new', label: 'New project', icon: 'plus', onClick: openProjectDialog },
+    ] },
+  ],
+});
+navigation.setSearch(false);
+navigation.setCollapse(true);
+```
 
-Search covers every destination, including closed submenus, with group names and
-case/accent-insensitive multiword matching. Results navigate through the existing
-`onNavigate(page)` callback, without expanding groups or changing their saved
-state. Arrow Up/Down moves through results, Enter activates and Escape clears or
-closes search. Empty results are announced. Outside focus/click dismisses results;
-mobile selection closes the hamburger menu. Queries are transient, never stored.
+- Every item/group has a unique, nonempty `id` and a text `label`.
+- `href` creates a real link. Without `href`, an item is a button;
+  `onClick(event)` supplies an optional callback. `event.preventDefault()` cancels
+  native navigation and the host navigation callback.
+- `icon` is optional on both menu and submenu items; a label initial keeps items
+  identifiable in the icon rail when no icon is supplied. `children` supplies a group.
+- `disabled` prevents activation and excludes a destination from search.
+- Labels are rendered as text, never HTML; script/data URL schemes are neutralized.
+- `setItems(items)` replaces menu data without duplicate handlers, preserving
+  selection and expanded state for surviving IDs. Invalid IDs leave the current
+  menu intact. HTML inserted into the menu is also adopted after DOM updates.
+- `renderNavigation(root, items, { renderIcon })` remains available before mounting.
+  Legacy `page`/`group`/`pages` input is accepted for compatibility.
 
-`shell.search.setQuery(text)` returns matched `{page,label,group}` records;
-`shell.search.input`, `.results` and `.enabled` expose the live search state.
-`findMenuItems(entries, query)` is the pure matching helper. Labels are rendered as
-text, never interpreted as markup. Disabling search clears its query and closes
-any open search popup. `destroy()` removes search DOM/listeners.
+`mount` automatically installs mobile navigation, independent scrolling regions,
+collapse controls and the post-restoration motion gate. Repeated mounting returns
+the same live controller. `installMobile()`/`installOverflow()` remain idempotent
+compatibility methods; hosts no longer need to call them or reorganize menu DOM.
 
-### Global keyboard shortcut
+`slots.header`, `.breadcrumbs`, `.actions`, `.navigation`, `.footer`, `.content`
+and `.search` expose composition points. Put host utility controls before
+`navigation.sidebarToggle` in the footer; `.menu-utilities`, `.menu-utility` and
+`.menu-utility-label` provide shared row styling. Actions such as theme selection
+and device previews remain host-owned. Moving supplied DOM retains its listeners.
 
-By default **Cmd+F / Ctrl+F** (`Mod+F`) opens/focuses menu search from anywhere in
-the document, including other input fields. The icon rail opens its search Popover;
-mobile opens the hamburger menu first. Existing query text is selected. The
-shortcut is intercepted only when enabled search can receive focus; otherwise
-browser Find remains available. Handled events, IME and AltGraph are respected.
+## Shared keyboard shortcuts
 
-Navigation registers `navigation.search` in the shared Shortcuts catalogue. Pass
-`shortcuts` to `mount` to share the application's dispatcher; standalone consumers
-get a private registry disposed with Navigation. Pass `searchShortcut` to `mount`,
-or use `shell.setSearchShortcut('Mod+Shift+K')` to edit that same registry entry.
-`Mod` means Cmd or Ctrl; Alt/Shift combinations with letters or numbers are also
-supported. `null` disables only the shortcut. `shell.focusSearch()` returns whether
-focus succeeded and does not change group/sidebar preferences. Shortcut listeners
-are removed by `destroy()`. The effective shortcut is exposed with
-`aria-keyshortcuts` on the search controls.
+| Attribute | Shortcuts action ID | Default when omitted |
+| --- | --- | --- |
+| `data-search-shortcut` | `navigation.search` | `Mod+F` |
+| `data-collapse-shortcut` | `navigation.toggleSidebar` | `Mod+B` |
 
-### Sidebar toggle shortcut
+`Mod` means Cmd or Ctrl; Alt/Shift combinations with letters/digits are supported.
+An empty attribute declares no default binding. Invalid values fall back to the
+built-in default (or a supplied JavaScript default). Changing an attribute updates
+the registration default through Shortcuts, without overriding user preferences.
+Reset in the Shortcuts editor restores the current declared default.
 
-**Cmd+B / Ctrl+B** (`Mod+B`) toggles the sidebar through the same collapse API as
-the button. Its catalogue ID is `navigation.toggleSidebar`. The desktop collapse
-preference is saved as usual; mobile toggles the installed hamburger menu without
-changing that desktop preference. It works independently of Menu search.
+Navigation registers actions in the single document Shortcuts catalogue, even
+when the editor is absent. Pass `shortcuts` to use the application's catalogue;
+otherwise the shared document catalogue is obtained automatically. Shortcuts owns
+dispatch, binding changes, disabling and reset. Saved user preferences take
+precedence over HTML defaults. Disabling a feature disables its action, not its
+binding; unmounting unregisters actions without losing document preferences.
 
-Use `shell.toggleSidebar()` directly, pass `sidebarShortcut` to `mount`, or call
-`shell.setSidebarShortcut('Mod+Shift+M')`. `null` disables this binding. Holding the
-keys does not repeatedly toggle. Already handled events, IME and AltGraph remain
-untouched. The effective binding appears in `aria-keyshortcuts` on desktop and
-mobile toggle buttons. Closing mobile navigation restores focus to its button;
-desktop keeps focus outside Navigation, or moves it to the sidebar toggle when
-the focused menu control might become hidden. `destroy()` unregisters the action.
+Search focuses globally, opening the rail popup or mobile menu when necessary.
+The collapse action folds/unfolds desktop navigation or toggles mobile navigation.
+Repeated held collapse keys are ignored. Browser defaults remain available when an
+action cannot handle an event, including disabled search. Handled events, IME and
+AltGraph are respected. Effective bindings appear in `aria-keyshortcuts`.
 
-## Configuration
+Existing JavaScript `searchShortcut`/`sidebarShortcut` mount options declare
+defaults when HTML attributes are absent. `setSearchShortcut(value)` and
+`setSidebarShortcut(value)` delegate user binding changes to Shortcuts; `null`
+disables a binding. `setSearchEnabled` is a compatibility alias for `setSearch`.
 
-Navigation has no configurator. Use the public API for search, selection,
-collapse and shortcut settings. Shortcuts remains an independent component.
+## Search, state and lifecycle
 
-## Preserved behaviour
+Search matches every destination, including closed submenus, using group names
+and case/accent-insensitive multiword matching. Results activate the original
+link/button, including callbacks and HTMX behavior, without changing group state.
+Arrow Up/Down moves through results, Enter activates, and Escape clears/closes.
+Outside focus/click dismisses results; mobile activation closes the menu when
+folding is allowed. Queries are transient and never stored.
 
-- Expanded/rail state, remembered groups, no initial restore animation.
-- Arrow-key group access, Escape/ArrowLeft dismissal, outside click and focus restoration.
-- Current leaf and current parent selection; opening another group does not change the active route.
-- Connected top-layer flyouts, flush against the icon rail, with placement constrained to viewport height.
-- Mobile inline submenus and hamburger/X; the saved desktop rail state is retained across breakpoints.
-- Main navigation and footer each scroll independently. Both direction indicators remain visible while overflowing, disabled at the relevant boundary.
-- Sticky, fixed-height opaque header; header Breadcrumbs and menu icon alignment.
-- Existing application theme/preview controls keep their original nodes and handlers in the footer slot.
+`search.setQuery(text)` returns `{page,label,group}` matches. `search.input`,
+`.results`, `.enabled` and `.shortcuts` expose the live controls/catalogue.
+`focusSearch()` reports whether focus succeeded. `select(id)`, `setCollapsed(bool)`,
+`toggleSidebar()` and `toggleGroup(id)` remain available for local interactions.
 
-## Version 0.1 boundary
+`storage` is optional and injected; Navigation never reads global `localStorage`.
+`storageKey` retains the existing `-sidebar-collapsed` and `-menu-groups` suffixes.
+Restoration/saving tolerate storage failures. Call `remember()` as needed and
+`destroy()` when disposing the controller. Cleanup removes generated helpers,
+listeners and observers, unregisters actions and unwraps scroll regions, allowing
+safe reinitialization and HTMX replacement.
 
-This first extraction intentionally preserves compatibility identifiers and selectors. **One Navigation per document**, with root `id="menu-live"`; internal IDs belong to the component. This is a full-page layout component, not yet a multi-instance widget. The host's `viewport` must measure the same width as its `ui-preview` CSS container. Desktop/tablet preview selection is host-owned; mobile navigation changes at 620 px.
-
-Legacy application colour variables are accepted with shared semantic-token fallbacks. Application-only content spacing and preview tools remain in the host. Do not remove/reorder the retained CSS overrides casually: visual cleanup is a separate refactor from this preservation-focused extraction.
+**One Navigation per document**, using `id="menu-live"` and `id="menu-live-nav"`.
+The parent viewport must measure the same width as the `ui-preview` CSS container.
+The mobile breakpoint remains 620 px. Retained historical CSS overrides preserve
+the existing appearance; general CSS cleanup is not part of this extraction.
 
 ## Validation
 
-`node --test tests/*.test.cjs` exercises state restoration, group selection/focus, mobile dismissal, scroll boundaries, flyout positioning and listener/observer cleanup through a DOM fixture. These checks do not substitute for browser screenshots or touch-device visual verification.
+- `node --test ui/components/navigation/tests/*.test.cjs`
+- `npx playwright test ui/testing/navigation.browser.cjs`
+- `npm test` and `npm run test:browser` for complete regression checks.

@@ -247,60 +247,60 @@
     },
   };
   const navigation = [
-    { page: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
+    { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
     {
-      group: 'theme',
+      id: 'theme',
       label: 'Theme',
       icon: 'palette',
-      pages: [
-        ['palette', 'Colours'],
-        ['fonts', 'Typography'],
-        ['icons', 'Icons and Glyphs'],
-        ['shadows', 'Shadows'],
+      children: [
+        { id: 'palette', label: 'Colours' },
+        { id: 'fonts', label: 'Typography' },
+        { id: 'icons', label: 'Icons and Glyphs' },
+        { id: 'shadows', label: 'Shadows' },
       ],
     },
     {
-      group: 'components',
+      id: 'components',
       label: 'Components',
       icon: 'components',
-      pages: [
-        ['navigation', 'Navigation'],
-        ['shortcuts', 'Shortcuts'],
-        ['breadcrumbs', 'Breadcrumbs'],
-        ['kanban-board', 'Kanban board'],
-        ['card', 'Card'],
-        ['accordion', 'Accordion'],
-        ['notifications', 'Notifications'],
-        ['user-identity', 'User identity'],
-        ['surface', 'Surface'],
-        ['tooltip', 'Tooltip'],
-        ['buttons', 'Buttons'],
-        ['badges', 'Badges'],
-        ['forms', 'Form'],
-        ['list', 'List'],
-        ['autocomplete', 'Autocomplete'],
-        ['progress', 'Progress'],
-        ['timeline', 'Timeline'],
-        ['process-steps', 'Process steps'],
-        ['counts-and-summaries', 'Counts and summaries'],
-        ['window', 'Window'],
+      children: [
+        { id: 'navigation', label: 'Navigation' },
+        { id: 'shortcuts', label: 'Shortcuts' },
+        { id: 'breadcrumbs', label: 'Breadcrumbs' },
+        { id: 'kanban-board', label: 'Kanban board' },
+        { id: 'card', label: 'Card' },
+        { id: 'accordion', label: 'Accordion' },
+        { id: 'notifications', label: 'Notifications' },
+        { id: 'user-identity', label: 'User identity' },
+        { id: 'surface', label: 'Surface' },
+        { id: 'tooltip', label: 'Tooltip' },
+        { id: 'buttons', label: 'Buttons' },
+        { id: 'badges', label: 'Badges' },
+        { id: 'forms', label: 'Form' },
+        { id: 'list', label: 'List' },
+        { id: 'autocomplete', label: 'Autocomplete' },
+        { id: 'progress', label: 'Progress' },
+        { id: 'timeline', label: 'Timeline' },
+        { id: 'process-steps', label: 'Process steps' },
+        { id: 'counts-and-summaries', label: 'Counts and summaries' },
+        { id: 'window', label: 'Window' },
       ],
     },
     {
-      group: 'tools',
+      id: 'tools',
       label: 'Tools',
       icon: 'tools',
-      pages: [
-        ['contrast-checker', 'Contrast checker'],
-        ['palette-picker', 'Palette picker'],
-        ['export', 'Export'],
+      children: [
+        { id: 'contrast-checker', label: 'Contrast checker' },
+        { id: 'palette-picker', label: 'Palette picker' },
+        { id: 'export', label: 'Export' },
       ],
     },
-    { page: 'settings', label: 'Settings', icon: 'settings' },
+    { id: 'settings', label: 'Settings', icon: 'settings' },
   ];
   navigation
-    .find((entry) => entry.group === 'components')
-    .pages.sort((a, b) => a[1].localeCompare(b[1], 'en', { sensitivity: 'base' }));
+    .find((entry) => entry.id === 'components')
+    .children.sort((a, b) => a.label.localeCompare(b.label, 'en', { sensitivity: 'base' }));
   const releaseVersion = 'v0.1.4';
   DesignSystemNavigation.renderStructure(root, {
     user: { initials: releaseVersion, label: 'Templify ' + releaseVersion },
@@ -347,15 +347,9 @@
   });
   ExampleShortcuts.connect({ themes, shortcuts });
   root.dataset.popupPattern = 'soft';
-  const items = document.createElement('div');
-  items.className = 'workspace-nav-items';
-  Array.from(shell.slots.navigation.children)
-    .filter((node) => node !== shell.slots.footer && node !== shell.slots.search)
-    .forEach((node) => items.append(node));
-  shell.slots.navigation.insertBefore(items, shell.slots.footer);
   const utilities = document.createElement('div');
-  utilities.className = 'example-utilities';
-  shell.slots.footer.append(utilities);
+  utilities.className = 'menu-utilities';
+  shell.sidebarToggle.before(utilities);
   const deviceButtons = ['desktop', 'tablet', 'mobile'].map((device) =>
     utility(device, device[0].toUpperCase() + device.slice(1), () => setDevice(device)),
   );
@@ -365,11 +359,11 @@
   function utility(glyph, label, action) {
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'example-utility';
+    button.className = 'menu-utility';
     button.setAttribute('aria-label', label);
     button.innerHTML = icon(glyph);
     const text = document.createElement('span');
-    text.className = 'example-utility-label';
+    text.className = 'menu-utility-label';
     text.textContent = label;
     button.append(text);
     button.addEventListener('click', action);
@@ -400,127 +394,18 @@
     themeButton.querySelector('.ui-icon').outerHTML = DesignSystemIcons.svg(
       glyphs[next.id] || 'palette',
     );
-    themeButton.querySelector('.example-utility-label').textContent = next.label;
+    themeButton.querySelector('.menu-utility-label').textContent = next.label;
     themeButton.dataset.theme = state.theme;
     themeButton.setAttribute('aria-label', label);
   }
   themes.subscribe(syncThemeControl);
   syncThemeControl(themes.getState());
-  // Two placements, one Navigation state: footer control and a quiet edge affordance.
-  shell.slots.footer.append(shell.sidebarToggle);
-  const foldLabel = document.createElement('span');
-  foldLabel.className = 'example-sidebar-toggle-label';
-  shell.sidebarToggle.append(foldLabel);
-  const edgeToggle = document.createElement('button');
-  edgeToggle.type = 'button';
-  edgeToggle.className = 'example-sidebar-edge-toggle';
-  edgeToggle.setAttribute('aria-controls', shell.slots.navigation.id);
-  function syncFoldControls() {
-    const collapsed = root.dataset.sidebarCollapsed === 'true';
-    foldLabel.textContent = 'Sidebar';
-    edgeToggle.setAttribute('aria-expanded', String(!collapsed));
-    edgeToggle.setAttribute(
-      'aria-label',
-      (collapsed ? 'Expand' : 'Collapse') + ' sidebar from edge',
-    );
-    edgeToggle.innerHTML = DesignSystemIcons.svg(collapsed ? 'chevron-right' : 'chevron-left');
-    syncEdgeBackground();
-  }
-  function syncEdgeBackground() {
-    const edge = edgeToggle.getBoundingClientRect();
-    const y = edge.top + edge.height / 2;
-    const row = Array.from(items.querySelectorAll('.menu-nav-action,.menu-sub-action')).find(
-      (button) => {
-        const box = button.getBoundingClientRect();
-        return box.height > 0 && y >= box.top && y < box.bottom;
-      },
-    );
-    const selected =
-      row &&
-      (row.getAttribute('aria-current') === 'page' ||
-        row.classList.contains('has-current-page') ||
-        (root.dataset.sidebarCollapsed === 'true' && row.getAttribute('aria-expanded') === 'true'));
-    const collapsed = root.dataset.sidebarCollapsed === 'true';
-    edgeToggle.style.setProperty(
-      '--notch-fill',
-      !collapsed
-        ? 'var(--panel,var(--ds-colour-panel))'
-        : selected
-          ? 'var(--menu-selection,var(--ds-colour-selection))'
-          : 'var(--surface,var(--ds-colour-soft))',
-    );
-    shell.slots.navigation.querySelectorAll('.menu-scroll-indicator').forEach((arrow) => {
-      const box = arrow.getBoundingClientRect();
-      const sourceY = box.top + box.height / 2 + (arrow.classList.contains('up') ? 2 : -2);
-      const content = arrow.parentElement.querySelector(
-        '.workspace-nav-items,.menu-sidebar-footer',
-      );
-      const sourceRow =
-        content &&
-        Array.from(
-          content.querySelectorAll(
-            '.menu-nav-action,.menu-sub-action,.example-utility,#menu-sidebar-toggle',
-          ),
-        ).find((button) => {
-          const rect = button.getBoundingClientRect();
-          return rect.height > 0 && sourceY >= rect.top && sourceY < rect.bottom;
-        });
-      const active =
-        sourceRow &&
-        (sourceRow.getAttribute('aria-current') === 'page' ||
-          sourceRow.getAttribute('aria-pressed') === 'true' ||
-          sourceRow.classList.contains('has-current-page') ||
-          (collapsed && sourceRow.getAttribute('aria-expanded') === 'true'));
-      const fill = active
-        ? sourceRow.classList.contains('menu-sub-action')
-          ? 'var(--submenu-selection,var(--ds-colour-selection))'
-          : 'var(--menu-selection,var(--ds-colour-selection))'
-        : 'var(--surface,var(--ds-colour-soft))';
-      arrow.style.setProperty('--notch-fill', fill);
-    });
-  }
-  const edgeBackgroundObserver = new MutationObserver(syncEdgeBackground);
-  edgeBackgroundObserver.observe(shell.slots.navigation, {
-    subtree: true,
-    childList: true,
-    attributes: true,
-    attributeFilter: [
-      'aria-current',
-      'aria-expanded',
-      'aria-pressed',
-      'class',
-      'hidden',
-      'disabled',
-    ],
-  });
-  const edgeSizeObserver = new ResizeObserver(syncEdgeBackground);
-  edgeSizeObserver.observe(shell.slots.navigation);
-  shell.slots.navigation.addEventListener('scroll', syncEdgeBackground, true);
-  edgeToggle.addEventListener('click', () =>
-    shell.setCollapsed(root.dataset.sidebarCollapsed !== 'true'),
-  );
-  shell.slots.navigation.append(edgeToggle);
-  const foldObserver = new MutationObserver(syncFoldControls);
-  foldObserver.observe(root, { attributes: true, attributeFilter: ['data-sidebar-collapsed'] });
-  syncFoldControls();
-  syncEdgeBackground();
-  window.addEventListener('pagehide', (event) => {
-    if (!event.persisted) {
-      foldObserver.disconnect();
-      edgeBackgroundObserver.disconnect();
-      edgeSizeObserver.disconnect();
-      shell.slots.navigation.removeEventListener('scroll', syncEdgeBackground, true);
-    }
-  });
   setDevice(
     ['desktop', 'tablet', 'mobile'].includes(saved('device', 'desktop'))
       ? saved('device', 'desktop')
       : 'desktop',
   );
 
-  const mobile = shell.installMobile();
-  shell.installOverflow({ items, footer: shell.slots.footer, nav: shell.slots.navigation });
-  syncEdgeBackground();
   const headerBreadcrumbs = DesignSystemBreadcrumbs.mount(shell.slots.breadcrumbs, {
     appearance: settings.scope('components.breadcrumbs').snapshot(),
     items: [],
@@ -562,7 +447,6 @@
     shell.slots.content.replaceChildren(page);
     if (push && location.hash !== '#' + routes[id].anchor)
       history.pushState(null, '', '#' + routes[id].anchor);
-    if (mobile.isMobile()) mobile.setOpen(false);
   }
   function renderKanban(page, standalone = false) {
     page.dataset.example = standalone ? 'card' : 'kanban';
@@ -731,6 +615,11 @@
       'beforeend',
       '<p class="example-lead">The application frame around this page is the Navigation instance. Its header contains the Breadcrumbs module; its content and utility controls are supplied by this example.</p><div class="example-grid"><section class="example-card"><h2>Navigation → header</h2><p>Selecting Breadcrumbs updates the selected menu item, header path, URL and content together.</p><a class="example-link" href="#topschrank.components.breadcrumbs">Open Breadcrumbs →</a></section><section class="example-card"><h2>Responsive composition</h2><p>Change the device using the menu footer. Desktop and tablet retain sidebar controls; mobile uses a hamburger with inline submenus.</p></section></div>',
     );
+    const preview = document.createElement('iframe');
+    preview.className = 'example-navigation-preview';
+    preview.title = 'Standalone Navigation with HTML configuration and shared Shortcuts';
+    preview.src = './ui/components/navigation/example.html';
+    page.append(preview);
   }
   function renderBreadcrumbPage(page) {
     page.insertAdjacentHTML(

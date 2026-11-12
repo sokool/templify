@@ -4,6 +4,11 @@ Purpose: Register and edit keyboard shortcuts.
 Elements: Rows with an identifier, label, recorder input and reset button.
 JavaScript behavior: set(id, shortcut), reset(id), list(), recording Cmd/Ctrl/Alt + character;
 Backspace/Delete disables a shortcut. ui:change reports changes; the application saves data.
+All components register actions in one shared catalogue per document. This editor
+adopts existing rows and displays newly registered actions, including Navigation.
+Components may declare defaults through their own data-* shortcut attributes;
+saved user bindings take precedence. Removing the editor does not disable other
+components' shortcuts or destroy the shared catalogue.
 ui:shortcut is cancelable: the application handler calls preventDefault() when it
 handles the action; only then is the browser's default shortcut blocked.
 -->

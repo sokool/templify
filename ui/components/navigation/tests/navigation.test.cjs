@@ -4,7 +4,7 @@ const { readFileSync } = require('node:fs'),
   path = require('node:path');
 const { Document } = require('../../../testing/dom-fixture.cjs');
 const shell = require('../navigation.js');
-function setup(width = 1440, saved = {}) {
+function setup(width = 1440, saved = {}, attributes = {}) {
   const doc = new Document(),
     frames = [],
     observers = [];
@@ -23,11 +23,13 @@ function setup(width = 1440, saved = {}) {
       n.className = [...new Set([...n.className.split(' '), ...names])].filter(Boolean).join(' ');
     };
     n.classList.toggle = (name, on) => (on ? n.classList.add(name) : n.classList.remove(name));
+    n.classList.contains = name => n.className.split(' ').includes(name);
     n.matches = (selector) => {
+      if (selector.includes(',')) return selector.split(',').some(part => n.matches(part));
       if (selector === ':popover-open') return !!n.popoverOpen;
       if (selector[0] === '#') return n.id === selector.slice(1);
       if (selector[0] === '.') return n.className.split(' ').includes(selector.slice(1));
-      if (selector === 'button') return n.tagName === 'BUTTON';
+      if (selector === 'button' || selector === 'a') return n.tagName === selector.toUpperCase();
       const a = selector.match(/^\[([^=\]]+)(?:="?([^"\]]+)"?)?\]$/);
       if (a) {
         const value = a[1].startsWith('data-')
@@ -80,7 +82,10 @@ function setup(width = 1440, saved = {}) {
       this.callback = callback;
       observers.push(this);
     }
-    observe() {}
+    observe(target, options) {
+      this.targets ||= [];
+      this.targets.push({ target, options });
+    }
     disconnect() {
       this.disconnected = true;
     }
@@ -95,6 +100,10 @@ function setup(width = 1440, saved = {}) {
   const viewport = el('div', 'preview', doc);
   viewport.clientWidth = width;
   const root = el('div', 'menu-live', viewport, 'menu-live ds-navigation');
+  for (const [name, value] of Object.entries(attributes)) {
+    root.setAttribute(name, value);
+    root.dataset[name.slice(5).replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = value;
+  }
   const header = el('header', '', root, 'menu-live-header');
   el('nav', 'workspace-breadcrumbs', header);
   el('div', '', header, 'menu-header-actions');
@@ -653,9 +662,7 @@ test('sidebar shortcut toggles the mobile menu without changing desktop collapse
         prevented++;
       },
     });
-  // Without the mobile adapter there is no usable menu to toggle.
-  press();
-  assert.equal(prevented, 0);
+  // mount installs the mobile adapter; explicit installation remains idempotent.
   const mobile = fixture.control.installMobile();
   assert.equal(mobile.toggle.getAttribute('aria-keyshortcuts'), 'Control+B Meta+B');
   press();
@@ -671,4 +678,72 @@ test('sidebar shortcut toggles the mobile menu without changing desktop collapse
   assert.equal(prevented, 2);
   fixture.control.destroy();
   assert.equal(mobile.toggle.getAttribute('aria-keyshortcuts'), null);
+});
+
+test('feature attributes and JS setters control the same state and preserve shortcut bindings', () => {
+  const f = setup(1440, { 'test-sidebar-collapsed': 'true' }, { 'data-collapse': 'false', 'data-search': 'false' });
+  assert.equal(f.root.dataset.sidebarCollapsed, 'false');
+  assert.equal(f.toggle.hidden, true);
+  assert.equal(f.control.edgeToggle.hidden, true);
+  assert.equal(f.control.search.enabled, false);
+  assert.equal(f.control.toggleSidebar(), false);
+  assert.equal(f.control.focusSearch(), false);
+  const shortcuts = f.control.search.shortcuts;
+  shortcuts.set(shell.sidebarShortcutId, 'Mod+M');
+  shortcuts.set(shell.searchShortcutId, 'Mod+K');
+  assert.equal(f.control.setCollapse('true'), false);
+  f.control.setCollapse(true);
+  f.control.setSearch(true);
+  assert.equal(f.root.dataset.collapse, 'true');
+  assert.equal(f.root.dataset.search, 'true');
+  f.control.edgeToggle.emit('click');
+  assert.equal(f.root.dataset.sidebarCollapsed, 'true');
+  f.control.setCollapse(false);
+  f.control.setSearch(false);
+  assert.equal(f.root.dataset.sidebarCollapsed, 'false');
+  assert.equal(shortcuts.get(shell.sidebarShortcutId).shortcut, 'Mod+M');
+  assert.equal(shortcuts.get(shell.searchShortcutId).shortcut, 'Mod+K');
+  f.control.destroy();
+  assert.equal(shortcuts.get(shell.sidebarShortcutId), null);
+  assert.equal(shortcuts.get(shell.searchShortcutId), null);
+});
+
+test('shortcut attributes declare shared registration defaults, not separate bindings', () => {
+  const f = setup(1440, {}, { 'data-search-shortcut': 'Mod+K', 'data-collapse-shortcut': 'Mod+Shift+M' });
+  const registry = f.control.search.shortcuts;
+  assert.equal(registry.get(shell.searchShortcutId).defaultShortcut, 'Mod+K');
+  assert.equal(registry.get(shell.sidebarShortcutId).defaultShortcut, 'Mod+Shift+M');
+  f.control.setSearchShortcut('Mod+J');
+  registry.reset(shell.searchShortcutId);
+  assert.equal(registry.get(shell.searchShortcutId).shortcut, 'Mod+K');
+  f.control.destroy();
+});
+
+test('setItems renders text, native links and callbacks, validates IDs and detaches old handlers', () => {
+  const f = setup();
+  let calls = 0;
+  const entries = [
+    { id: 'home', label: '<b>Home</b>', href: '/home', icon: 'home' },
+    { id: 'projects', label: 'Projects', children: [
+      { id: 'create', label: 'Create project', onClick: () => calls++ },
+    ] },
+  ];
+  f.control.setItems(entries);
+  assert.equal(f.dash.listeners.get('click').size, 0);
+  const link = f.root.querySelector('[data-menu-page="home"]');
+  assert.equal(link.tagName, 'A');
+  assert.equal(link.getAttribute('href'), '/home');
+  assert.equal(link.querySelector('.menu-nav-label').textContent, '<b>Home</b>');
+  const action = f.root.querySelector('[data-menu-page="create"]');
+  action.emit('click');
+  assert.equal(calls, 1);
+  assert.equal(f.control.search.setQuery('create')[0].page, 'create');
+  f.control.setItems(entries);
+  action.emit('click');
+  assert.equal(calls, 1);
+  f.root.querySelector('[data-menu-page="create"]').emit('click');
+  assert.equal(calls, 2);
+  assert.throws(() => f.control.setItems([{ id: 'same' }, { id: 'same' }]), /unique/);
+  assert.equal(f.root.querySelectorAll('[data-menu-page]').length, 2);
+  f.control.destroy();
 });

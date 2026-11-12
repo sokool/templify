@@ -1,19 +1,30 @@
 <!--
 Component: Navigation
 Purpose: Application navigation with a header and collapsible sidebar.
-Elements: Header, grouped link panel, collapse button and content area.
-JavaScript behavior: setCollapsed(), toggleGroup(), focusSearch(), select(), search,
-keyboard navigation and mobile menu. Links can use hx-get/hx-target/hx-push-url.
-ui:navigate reports selection; the server handles URLs. The Shortcuts module handles
-keyboard shortcuts, but its editor is a separate component. The current controller
-requires one Navigation instance per document and the shown menu-live and menu-live-nav IDs.
+Elements: Header, menu links and groups, footer, collapse controls and content area.
+JavaScript behavior: setCollapse(boolean) and data-collapse enable sidebar folding;
+setSearch(boolean) and data-search enable menu search. Both default to true and
+attribute changes are observed. Navigation owns the current folded state, edge and
+footer controls, animations, scrolling, keyboard access and mobile menu. Disabling
+collapse expands the sidebar and keeps mobile navigation open. setItems(items)
+replaces menu data: {id, label, icon?, href?, onClick?, children?}. HTML links and
+buttons work without the data renderer; links retain native navigation and may use
+hx-get/hx-target/hx-push-url. ui:navigate reports activation; the host owns routing.
+data-search-shortcut (default Mod+F) and data-collapse-shortcut (default Mod+B)
+declare defaults in the shared Shortcuts catalogue. An empty value disables the
+default binding; saved user bindings take precedence. Shortcuts owns dispatch and
+editing, even when its editor is absent. Disabling a feature disables its action
+without clearing its binding. destroy() unregisters actions and removes helpers.
+One Navigation instance per document; retain the menu-live and menu-live-nav IDs.
 -->
-<section class="menu-live ds-navigation" id="menu-live" data-ui="navigation" data-menu-design="sidebar" data-sidebar-collapsed="false">
+<div class="navigation-viewport">
+<section class="menu-live ds-navigation" id="menu-live" data-ui="navigation" data-menu-design="sidebar" data-collapse="true" data-search="true" data-search-shortcut="Mod+F" data-collapse-shortcut="Mod+B">
   <header class="menu-live-header"><nav class="wordmark workspace-wordmark" id="workspace-breadcrumbs" aria-label="Breadcrumb">Workspace</nav><div class="menu-header-actions"><span class="menu-avatar" aria-label="Account">AK</span></div></header>
   <nav class="menu-live-nav" id="menu-live-nav" aria-label="Workspace navigation">
     <a class="menu-nav-action" data-menu-page="dashboard" href="#example-navigation" aria-label="Dashboard"><span class="menu-nav-icon" aria-hidden="true">⌂</span><span class="menu-nav-label">Dashboard</span></a>
     <div class="menu-section"><button type="button" class="menu-nav-action menu-nav-parent" data-menu-group="projects" aria-expanded="false" aria-controls="submenu-projects" aria-label="Projects"><span class="menu-nav-icon" aria-hidden="true">▤</span><span class="menu-nav-label">Projects</span><span class="menu-group-chevron" aria-hidden="true">›</span></button><div class="menu-submenu" id="submenu-projects" hidden><span class="submenu-heading">Projects</span><a class="menu-sub-action" data-menu-page="all-projects" href="#example-navigation"><span class="menu-sub-label">All projects</span></a><a class="menu-sub-action" data-menu-page="archive" href="#example-navigation"><span class="menu-sub-label">Archive</span></a></div></div>
-    <div class="menu-sidebar-footer"><button class="menu-sidebar-toggle" id="menu-sidebar-toggle" type="button" aria-expanded="true" aria-controls="menu-live-nav" aria-label="Collapse sidebar"><span class="sidebar-toggle-icon" aria-hidden="true">«</span></button></div>
+    <div class="menu-sidebar-footer"><button class="menu-sidebar-toggle" id="menu-sidebar-toggle" type="button" aria-expanded="true" aria-controls="menu-live-nav" aria-label="Collapse sidebar"><span class="sidebar-toggle-icon" aria-hidden="true">«</span><span class="menu-sidebar-toggle-label">Sidebar</span></button></div>
   </nav>
   <div class="menu-live-content"><h3>Workspace</h3><p>Server-rendered page content.</p></div>
 </section>
+</div>

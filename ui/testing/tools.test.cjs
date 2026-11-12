@@ -39,7 +39,7 @@ test('generic tools have one implementation under tools, with no obsolete Palett
 
 test('Tools has separate submenu routes and generic tools use shared compact controls', () => {
   const workspace = fs.readFileSync(path.join(root, '../workspace/workspace.js'), 'utf8');
-  assert.match(workspace, /group:\s*'tools'/);
+  assert.match(workspace, /id:\s*'tools',[\s\S]*?children:\s*\[/);
   for (const anchor of [
     'topschrank.tools',
     'topschrank.tools.palettepicker',

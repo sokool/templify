@@ -22,3 +22,22 @@ test('Shortcuts editor bindings persist through the host adapter, not the compon
   assert.equal(shortcuts.get('save').shortcut, 'Alt+S');
   shortcuts.destroy();
 });
+
+test('host persists only explicit overrides so HTML defaults remain live after reset', () => {
+  const themes = Themes.create({ target: new Document().createElement('html') });
+  const shortcuts = Shortcuts.create();
+  shortcuts.register({ id: 'search', defaultShortcut: 'Mod+F', handler: () => true });
+  shortcuts.register({ id: 'collapse', defaultShortcut: 'Mod+B', handler: () => true });
+  const connection = connect({ themes, shortcuts });
+  shortcuts.set('search', 'Mod+K');
+  assert.deepEqual(themes.getComponentSettings('light', 'shortcuts').bindings, { search: 'Mod+K' });
+  shortcuts.setDefault('collapse', 'Mod+M');
+  assert.equal(shortcuts.get('collapse').shortcut, 'Mod+M');
+  assert.deepEqual(themes.getComponentSettings('light', 'shortcuts').bindings, { search: 'Mod+K' });
+  shortcuts.reset('search');
+  assert.deepEqual(themes.getComponentSettings('light', 'shortcuts').bindings, {});
+  shortcuts.setDefault('search', 'Mod+J');
+  assert.equal(shortcuts.get('search').shortcut, 'Mod+J');
+  connection.destroy();
+  shortcuts.destroy();
+});

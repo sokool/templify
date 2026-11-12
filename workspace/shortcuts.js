@@ -14,10 +14,9 @@
     const offShortcuts = shortcuts.subscribe(({ type }) => {
       if (syncing) return;
       if (type === 'catalogue') { sync(); return; }
+      if (type !== 'binding') return;
       const theme = themes.getState().theme, saved = themes.getComponentSettings(theme, 'shortcuts') || {};
-      themes.setComponentSettings(theme, 'shortcuts', { ...saved, bindings: {
-        ...saved.bindings, ...Object.fromEntries(shortcuts.list().map(entry => [entry.id, entry.shortcut])),
-      } });
+      themes.setComponentSettings(theme, 'shortcuts', { ...saved, bindings: shortcuts.bindings() });
     });
     sync();
     return { destroy() { offThemes(); offShortcuts(); } };

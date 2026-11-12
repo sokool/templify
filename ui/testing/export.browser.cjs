@@ -114,7 +114,7 @@ test('HTML-first APIs update controls without replacing markup or swallowing sub
   await expect(page.locator('#example-process-steps li').nth(2)).toHaveAttribute('aria-current', 'step');
   await page.locator('#example-navigation #menu-sidebar-toggle').click();
   await expect(page.locator('#example-navigation #menu-live')).toHaveAttribute('data-sidebar-collapsed', 'true');
-  await page.locator('#example-shortcuts input').press('Control+Shift+J');
+  await page.locator('#example-shortcuts [data-shortcut-id="projects.search"] input').press('Control+Shift+J');
   expect(await page.evaluate(() => Templify.get(document.querySelector('[data-ui="shortcuts"]')).get('projects.search').shortcut)).toBe('Mod+Shift+J');
 });
 

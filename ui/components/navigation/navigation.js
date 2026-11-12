@@ -1,4 +1,4 @@
-/* Navigation: preserved navigation controller. Classic script for file:// use. */
+/* Navigation: HTML-first application shell. Classic script for file:// use. */
 (function (global) {
   const Shortcuts =
     typeof module === 'object' && module.exports
@@ -67,6 +67,71 @@
       (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char],
     );
   }
+  const itemActions = new WeakMap();
+  const mounted = new WeakMap();
+  function renderIcon(name) {
+    const paths = {
+      search: '<circle cx="10.5" cy="10.5" r="7.5"/><path d="m16 16 5 5"/>',
+      menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
+      x: '<path d="m6 6 12 12M6 18 18 6"/>',
+      'chevron-right': '<path d="m9 6 6 6-6 6"/>',
+      'chevron-left': '<path d="m15 6-6 6 6 6"/>',
+      'chevron-up': '<path d="m6 15 6-6 6 6"/>',
+      'chevron-down': '<path d="m6 9 6 6 6-6"/>',
+      'panel-left-open': '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18m4-12 3 3-3 3"/>',
+      'panel-left-close': '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18m7-12-3 3 3 3"/>',
+      home: '<path d="m3 10 9-7 9 7v11h-6v-7H9v7H3Z"/>',
+      dashboard: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+      folder: '<path d="M3 7V4h6l2 3h10v13H3Z"/>',
+      list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+      plus: '<path d="M12 4v16M4 12h16"/>',
+    };
+    return `<svg class="ui-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${paths[name] || '<rect x="4" y="4" width="16" height="16" rx="3"/>'}</svg>`;
+  }
+  function normaliseItems(entries, submenuIcons = {}) {
+    if (!Array.isArray(entries)) throw new TypeError('Navigation items must be an array');
+    const ids = new Set();
+    function normalise(entry) {
+      if (Array.isArray(entry)) entry = { id: entry[0], label: entry[1], icon: submenuIcons[entry[0]] };
+      if (!entry || typeof entry !== 'object') throw new TypeError('Navigation items must be objects');
+      const id = String(entry.id ?? entry.group ?? entry.page ?? '');
+      if (!id || ids.has(id)) throw new TypeError('Navigation item IDs must be nonempty and unique: ' + id);
+      if (entry.onClick != null && typeof entry.onClick !== 'function') throw new TypeError('Navigation onClick must be a function');
+      ids.add(id);
+      const children = entry.children ?? entry.pages;
+      if (children != null && !Array.isArray(children)) throw new TypeError('Navigation children must be an array');
+      return { ...entry, id, icon: entry.icon ?? submenuIcons[id], label: String(entry.label ?? ''), children: children?.map(normalise) };
+    }
+    return entries.map(normalise);
+  }
+  function navigationItem(document, item, uiIcon, nested = false) {
+    const node = document.createElement(item.href != null ? 'a' : 'button');
+    if (item.href != null) {
+      const href = String(item.href);
+      node.setAttribute('href', /^(?:javascript|data|vbscript):/i.test(href.replace(/[\u0000-\u0020]/g, '')) ? '#' : href);
+      for (const name of ['target', 'rel']) if (item[name]) node.setAttribute(name, item[name]);
+    } else node.type = 'button';
+    node.className = nested ? 'menu-sub-action' : 'menu-nav-action';
+    node.dataset.menuPage = item.id;
+    node.setAttribute('aria-label', item.label);
+    const icon = document.createElement('span');
+    icon.className = nested ? 'menu-sub-icon' : 'menu-nav-icon';
+    icon.setAttribute('aria-hidden', 'true');
+    if (item.icon) icon.innerHTML = uiIcon(item.icon);
+    else icon.textContent = Array.from(item.label.trim())[0] || '•';
+    node.append(icon);
+    const label = document.createElement('span');
+    label.className = nested ? 'menu-sub-label' : 'menu-nav-label';
+    label.textContent = item.label;
+    node.append(label);
+    if (item.disabled) {
+      node.setAttribute('aria-disabled', 'true');
+      if (node.tagName === 'BUTTON') node.disabled = true;
+      else node.tabIndex = -1;
+    }
+    if (item.onClick) itemActions.set(node, item.onClick);
+    return node;
+  }
   function createNavItem(root, page, label, icon, uiIcon) {
     const document = root.ownerDocument;
     const button = document.createElement('button');
@@ -85,56 +150,50 @@
   function renderNavigation(
     root,
     entries,
-    { renderIcon: uiIcon = () => '', submenuIcons: workspaceSubmenuIcons = {} } = {},
+    { renderIcon: uiIcon = renderIcon, submenuIcons = {} } = {},
   ) {
-    const document = root.ownerDocument,
-      libraryNavFooter = root.querySelector('.menu-sidebar-footer');
-    entries.forEach((entry) => {
-      if (!entry.group) {
-        libraryNavFooter.before(createNavItem(root, entry.page, entry.label, entry.icon, uiIcon));
-        return;
+    const items = normaliseItems(entries, submenuIcons), document = root.ownerDocument;
+    let container = root.querySelector('.workspace-nav-items');
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'workspace-nav-items';
+      Array.from(root.querySelector('.menu-live-nav').children)
+        .filter(node => node.matches('.menu-nav-action') || node.matches('.menu-section'))
+        .forEach(node => container.append(node));
+      root.querySelector('.menu-sidebar-footer').before(container);
+    }
+    function append(parent, entries, nested = false) {
+      for (const entry of entries) {
+        if (!entry.children) { parent.append(navigationItem(document, entry, uiIcon, nested)); continue; }
+        const section = document.createElement('div'), button = navigationItem(document, { ...entry, href: null }, uiIcon, nested);
+        section.className = 'menu-section';
+        delete button.dataset.menuPage;
+        button.dataset.menuGroup = entry.id;
+        button.classList.add('menu-nav-parent');
+        button.setAttribute('aria-expanded', 'false');
+        button.setAttribute('aria-controls', 'submenu-' + encodeURIComponent(entry.id));
+        const chevron = document.createElement('span');
+        chevron.className = 'menu-group-chevron';
+        chevron.setAttribute('aria-hidden', 'true');
+        chevron.innerHTML = uiIcon('chevron-right');
+        button.append(chevron);
+        const panel = document.createElement('div'), heading = document.createElement('span');
+        panel.className = 'menu-submenu';
+        panel.id = button.getAttribute('aria-controls');
+        panel.hidden = true;
+        heading.className = 'submenu-heading';
+        heading.textContent = entry.label;
+        panel.append(heading);
+        append(panel, entry.children, true);
+        section.append(button, panel);
+        parent.append(section);
       }
-      const section = document.createElement('div');
-      section.className = 'menu-section';
-      const parent = document.createElement('button');
-      parent.type = 'button';
-      parent.className = 'menu-nav-action menu-nav-parent';
-      parent.dataset.menuGroup = entry.group;
-      parent.setAttribute('aria-expanded', 'false');
-      parent.setAttribute('aria-controls', 'submenu-' + entry.group);
-      parent.setAttribute('aria-label', entry.label);
-      parent.innerHTML =
-        '<span class="menu-nav-icon" aria-hidden="true">' +
-        uiIcon(entry.icon) +
-        '</span><span class="menu-nav-label">' +
-        entry.label +
-        '</span><span class="menu-group-chevron" aria-hidden="true">' +
-        uiIcon('chevron-right') +
-        '</span>';
-      const submenu = document.createElement('div');
-      submenu.className = 'menu-submenu';
-      submenu.id = 'submenu-' + entry.group;
-      submenu.hidden = true;
-      const heading = document.createElement('span');
-      heading.className = 'submenu-heading';
-      heading.textContent = entry.label;
-      submenu.appendChild(heading);
-      entry.pages.forEach(([page, label]) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'menu-sub-action';
-        button.dataset.menuPage = page;
-        button.innerHTML =
-          '<span class="menu-sub-icon" aria-hidden="true">' +
-          uiIcon(workspaceSubmenuIcons[page]) +
-          '</span><span class="menu-sub-label">' +
-          escapeText(label) +
-          '</span>';
-        submenu.appendChild(button);
-      });
-      section.append(parent, submenu);
-      libraryNavFooter.before(section);
-    });
+    }
+    // Build off-DOM first so validation/rendering failures leave the current menu intact.
+    const staging = document.createElement('div');
+    append(staging, items);
+    container.replaceChildren(...Array.from(staging.children));
+    return container;
   }
   function normaliseMenuQuery(value) {
     return String(value ?? '')
@@ -223,7 +282,7 @@
       for (const button of root
         .querySelector('.menu-live-nav')
         .querySelectorAll('[data-menu-page]')) {
-        if (button.hidden || button.disabled) continue;
+        if (button.hidden || button.disabled || button.getAttribute('aria-disabled') === 'true') continue;
         const parent = button.closest('.menu-section')?.querySelector('[data-menu-group]');
         const page = button.dataset.menuPage;
         if (!unique.has(page))
@@ -254,15 +313,24 @@
       matches = enabled ? findMenuItems(entries(), input.value) : [];
       results.replaceChildren();
       for (const entry of matches) {
-        const button = element('button', 'menu-search-result');
-        button.type = 'button';
+        const source = Array.from(root.querySelectorAll('[data-menu-page]')).find(node => node.dataset.menuPage === entry.page);
+        const button = element(source?.tagName === 'A' ? 'a' : 'button', 'menu-search-result');
+        if (button.tagName === 'BUTTON') button.type = 'button';
+        else for (const name of ['href', 'target', 'rel']) {
+          const value = source.getAttribute(name);
+          if (value !== null) button.setAttribute(name, value);
+        }
         button.setAttribute(
           'aria-label',
           entry.group ? `${entry.group} → ${entry.label}` : entry.label,
         );
         button.append(element('span', '', entry.label));
         if (entry.group) button.append(element('small', '', entry.group));
-        button.addEventListener('click', () => activate(entry));
+        button.addEventListener('click', event => {
+          if (event.button > 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+          event.preventDefault?.();
+          activate(entry);
+        });
         results.append(button);
       }
       const searching = Boolean(normaliseMenuQuery(input.value));
@@ -288,7 +356,9 @@
 
     function activate(entry) {
       close(true);
-      onNavigate(entry.page);
+      const node = Array.from(root.querySelectorAll('[data-menu-page]')).find(node => node.dataset.menuPage === entry.page);
+      if (node?.click) node.click();
+      else onNavigate(entry.page);
     }
 
     function syncLayout() {
@@ -366,7 +436,7 @@
         event.preventDefault();
         activate(matches[0]);
       } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-        const buttons = [...results.querySelectorAll('button')];
+        const buttons = [...results.querySelectorAll('.menu-search-result')];
         if (!buttons.length) return;
         event.preventDefault();
         const current = buttons.indexOf(document.activeElement);
@@ -389,12 +459,11 @@
       id: searchShortcutId,
       group: 'Navigation',
       label: 'Menu search',
-      defaultShortcut: defaultSearchShortcut,
+      defaultShortcut: shortcut === undefined ? defaultSearchShortcut : shortcut,
       enabled: () => enabled,
       handler: focus,
     });
     const unsubscribeShortcut = shortcuts.subscribe(syncShortcut);
-    if (shortcut !== undefined) setShortcut(shortcut);
     syncShortcut();
     listen(window, 'resize', position);
     listen(window, 'scroll', position);
@@ -422,7 +491,6 @@
         close();
         unsubscribeShortcut();
         unregisterShortcut();
-        if (!sharedShortcuts) shortcuts.destroy();
         listeners.forEach((remove) => remove());
         searchField.destroy();
         section.remove();
@@ -432,10 +500,11 @@
 
   function mount(root, options = {}) {
     if (!root) throw new TypeError('Navigation requires a root element');
+    if (mounted.has(root)) return mounted.get(root);
     const document = root.ownerDocument,
       window = document.defaultView || global;
     const viewport = options.viewport || root.parentElement;
-    const uiIcon = options.renderIcon || (() => ''),
+    const uiIcon = options.renderIcon || renderIcon,
       storage = options.storage || {
         getItem() {
           return null;
@@ -444,6 +513,16 @@
       };
     const storageKey = options.storageKey || 'navigation';
     const status = options.statusElement || { textContent: '' };
+    if (options.items) renderNavigation(root, options.items, { renderIcon: uiIcon });
+    for (const [name, value] of [['collapse', options.collapse], ['search', options.search ?? options.searchEnabled]]) {
+      if (value !== undefined && root.dataset[name] === undefined) root.dataset[name] = String(value);
+    }
+    let collapseEnabled = root.dataset.collapse !== 'false';
+    const shortcutDefault = (attribute, fallback) => {
+      const value = root.getAttribute(attribute);
+      return value === null ? fallback : value === '' || value === 'false' ? null : Shortcuts.normalise(value) || fallback;
+    };
+    root.style.setProperty('--navigation-fold-duration', (options.foldDuration ?? 700) + 'ms');
     const observers = [],
       listeners = [];
     let destroyed = false,
@@ -476,11 +555,31 @@
       true,
     );
     let afterSync = () => {};
-    const sidebarToggle = document.getElementById('menu-sidebar-toggle');
+    const nav = root.querySelector('.menu-live-nav'), footer = root.querySelector('.menu-sidebar-footer');
+    const sidebarToggle = root.querySelector('#menu-sidebar-toggle');
+    let items = root.querySelector('.workspace-nav-items');
+    if (!items) {
+      items = document.createElement('div');
+      items.className = 'workspace-nav-items';
+      Array.from(nav.children).filter(node => node !== footer && !node.classList.contains('menu-search-section')).forEach(node => items.append(node));
+      footer.before(items);
+    }
+    const edgeToggle = document.createElement('button');
+    edgeToggle.type = 'button';
+    edgeToggle.className = 'menu-sidebar-edge-toggle';
+    edgeToggle.setAttribute('aria-controls', nav.id);
+    nav.append(edgeToggle);
+    let foldLabel = sidebarToggle.querySelector('.menu-sidebar-toggle-label');
+    if (!foldLabel) {
+      foldLabel = document.createElement('span');
+      foldLabel.className = 'menu-sidebar-toggle-label';
+      foldLabel.textContent = 'Sidebar';
+      sidebarToggle.append(foldLabel);
+    }
     const sidebarGroups = Array.from(document.querySelectorAll('#menu-live [data-menu-group]'));
-    const expandedMenuGroups = Object.fromEntries(
+    const expandedMenuGroups = Object.assign(Object.create(null), Object.fromEntries(
       sidebarGroups.map((button) => [button.dataset.menuGroup, false]),
-    );
+    ));
     let hasSavedMenuGroups = false;
     try {
       const savedGroups = JSON.parse(storage.getItem(storageKey + '-menu-groups'));
@@ -499,6 +598,33 @@
         );
         storage.setItem(storageKey + '-menu-groups', JSON.stringify(expandedMenuGroups));
       } catch {}
+    }
+
+    function syncEdgeBackground() {
+      const collapsed = root.dataset.sidebarCollapsed === 'true';
+      function fillAt(content, y) {
+        const row = Array.from(content.querySelectorAll('button,a')).find(node => {
+          const box = node.getBoundingClientRect();
+          return box.height > 0 && y >= box.top && y < box.bottom;
+        });
+        const active = row && (row.getAttribute('aria-current') === 'page' || row.getAttribute('aria-pressed') === 'true' || row.classList.contains('has-current-page') || (collapsed && row.getAttribute('aria-expanded') === 'true'));
+        return active ? row.classList.contains('menu-sub-action') ? 'var(--submenu-selection,var(--ds-colour-selection))' : 'var(--menu-selection,var(--ds-colour-selection))' : 'var(--surface,var(--ds-colour-soft))';
+      }
+      const box = edgeToggle.getBoundingClientRect();
+      edgeToggle.style.setProperty('--notch-fill', collapsed ? fillAt(items, box.top + box.height / 2) : 'var(--panel,var(--ds-colour-panel))');
+      root.querySelectorAll('.menu-scroll-indicator').forEach(arrow => {
+        const box = arrow.getBoundingClientRect(), content = arrow.parentNode.querySelector('.workspace-nav-items') || arrow.parentNode.querySelector('.menu-sidebar-footer');
+        if (content) arrow.style.setProperty('--notch-fill', fillAt(content, box.top + box.height / 2 + (arrow.classList.contains('up') ? 2 : -2)));
+      });
+    }
+    function syncFoldControls() {
+      const collapsed = root.dataset.sidebarCollapsed === 'true';
+      sidebarToggle.hidden = !collapseEnabled;
+      edgeToggle.hidden = !collapseEnabled;
+      edgeToggle.setAttribute('aria-expanded', String(!collapsed));
+      edgeToggle.setAttribute('aria-label', (collapsed ? 'Expand' : 'Collapse') + ' sidebar from edge');
+      edgeToggle.innerHTML = uiIcon(collapsed ? 'chevron-right' : 'chevron-left');
+      syncEdgeBackground();
     }
 
     let openSidebarFlyout = null;
@@ -578,7 +704,7 @@
       afterSync();
     }
     function setSidebarCollapsed(collapsed, remember = true) {
-      const value = Boolean(collapsed);
+      const value = collapseEnabled && Boolean(collapsed);
       const wasCollapsed = root.dataset.sidebarCollapsed === 'true';
       const visibleFlyout = openSidebarFlyout;
       clearFoldAnimations();
@@ -586,13 +712,14 @@
       openSidebarFlyout = null;
       const reduced =
         typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const duration = options.foldDuration ?? 420;
+      const duration = options.foldDuration ?? 700;
       const fading =
         remember &&
         wasCollapsed !== value &&
         viewport.clientWidth > 620 &&
         !reduced &&
         typeof sidebarGroups[0]?.animate === 'function';
+      if (value && !fading && remember) openSidebarFlyout = sidebarGroups.find(button => expandedMenuGroups[button.dataset.menuGroup])?.dataset.menuGroup || null;
       // During collapse retain inline submenus until their fade completes. Their
       // expanded state remains stored, ready for the next unfold.
       if (fading && value) root.dataset.sidebarFolding = 'collapse';
@@ -606,6 +733,7 @@
         ? 'Icon rail · collapsed · click an icon to open its submenu'
         : 'Workspace sidebar · expanded · groups contain nested pages';
       syncSidebarSubmenus(false);
+      syncFoldControls();
       if (fading) {
         const version = foldVersion;
         const panels = sidebarGroups
@@ -640,33 +768,62 @@
       rememberWorkspaceMenu();
       syncSidebarSubmenus();
     }
-    sidebarGroups.forEach((button) => {
-      listen(button, 'click', () => toggleSidebarGroup(button.dataset.menuGroup));
-      listen(button, 'keydown', (event) => {
-        if (event.key === 'ArrowRight') {
-          event.preventDefault();
-          if (button.getAttribute('aria-expanded') !== 'true')
-            toggleSidebarGroup(button.dataset.menuGroup);
-          document
-            .getElementById(button.getAttribute('aria-controls'))
-            .querySelector('[data-menu-page]')
-            .focus();
-        } else if (event.key === 'ArrowLeft' && button.getAttribute('aria-expanded') === 'true') {
-          event.preventDefault();
-          toggleSidebarGroup(button.dataset.menuGroup);
-        }
+    const itemListeners = [];
+    function bindItems() {
+      itemListeners.splice(0).forEach(off => off());
+      items.querySelectorAll('.menu-nav-action').forEach(node => {
+        if (node.querySelector('.menu-nav-icon')) return;
+        const label = node.getAttribute('aria-label') || node.textContent.trim(), icon = document.createElement('span');
+        node.setAttribute('aria-label', label);
+        icon.className = 'menu-nav-icon';
+        icon.setAttribute('aria-hidden', 'true');
+        icon.textContent = Array.from(label)[0] || '•';
+        node.prepend(icon);
       });
-    });
+      function on(node, type, handler) {
+        node.addEventListener(type, handler);
+        itemListeners.push(() => node.removeEventListener(type, handler));
+      }
+      sidebarGroups.forEach((button) => {
+        on(button, 'click', () => {
+          if (!button.disabled && button.getAttribute('aria-disabled') !== 'true') toggleSidebarGroup(button.dataset.menuGroup);
+        });
+        on(button, 'keydown', (event) => {
+          if (event.key === 'ArrowRight') {
+            event.preventDefault();
+            if (button.getAttribute('aria-expanded') !== 'true') toggleSidebarGroup(button.dataset.menuGroup);
+            document.getElementById(button.getAttribute('aria-controls')).querySelector('[data-menu-page]')?.focus();
+          } else if (event.key === 'ArrowLeft' && button.getAttribute('aria-expanded') === 'true') {
+            event.preventDefault();
+            toggleSidebarGroup(button.dataset.menuGroup);
+          }
+        });
+      });
+      root.querySelectorAll('[data-menu-page]').forEach(node => on(node, 'click', event => {
+        if (node.disabled || node.getAttribute('aria-disabled') === 'true') { event.preventDefault?.(); return; }
+        if (event.button > 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+        itemActions.get(node)?.(event);
+        if (event.defaultPrevented) return;
+        options.onNavigate?.(node.dataset.menuPage, event);
+      }));
+    }
+    bindItems();
+    function refreshItems() {
+      sidebarGroups.splice(0, sidebarGroups.length, ...Array.from(root.querySelectorAll('[data-menu-group]')));
+      const keys = new Set(sidebarGroups.map(button => button.dataset.menuGroup));
+      for (const key of Object.keys(expandedMenuGroups)) if (!keys.has(key)) delete expandedMenuGroups[key];
+      keys.forEach(key => { expandedMenuGroups[key] ??= false; });
+      if (!keys.has(openSidebarFlyout)) openSidebarFlyout = null;
+      bindItems();
+      syncSidebarSubmenus(false);
+      if (searchController) searchController.setQuery(searchController.input.value);
+    }
     listen(sidebarToggle, 'click', () =>
       setSidebarCollapsed(document.getElementById('menu-live').dataset.sidebarCollapsed !== 'true'),
     );
-
-    root
-      .querySelectorAll('[data-menu-page]')
-      .forEach((button) =>
-        listen(button, 'click', () => options.onNavigate?.(button.dataset.menuPage)),
-      );
+    listen(edgeToggle, 'click', () => setSidebarCollapsed(root.dataset.sidebarCollapsed !== 'true'));
     listen(document.getElementById('menu-live-nav'), 'keydown', (event) => {
+      if (event.defaultPrevented) return;
       if (event.key !== 'Escape' && event.key !== 'ArrowLeft') return;
       const group =
         sidebarGroups.find((button) =>
@@ -718,6 +875,7 @@
         content: root.querySelector('.menu-live-content'),
       },
       sidebarToggle,
+      edgeToggle,
       sidebarGroups,
       expandedGroups: expandedMenuGroups,
       get hasSavedGroups() {
@@ -732,7 +890,39 @@
       isCompact: isSidebarCompact,
       syncSubmenus: syncSidebarSubmenus,
       setCollapsed: setSidebarCollapsed,
+      setCollapse(value) {
+        if (typeof value !== 'boolean' || destroyed) return false;
+        if (root.dataset.collapse !== String(value)) root.dataset.collapse = String(value);
+        collapseEnabled = value;
+        if (!value) setSidebarCollapsed(false, false);
+        syncFoldControls();
+        if (api.mobile) {
+          api.mobile.toggle.hidden = !value;
+          api.mobile.setOpen(!value || root.dataset.mobileMenuOpen === 'true');
+        }
+        return true;
+      },
+      setItems(entries) {
+        if (destroyed) return false;
+        const selected = nav.querySelector('[aria-current="page"]')?.dataset.menuPage;
+        // Validate before closing or replacing the currently displayed menu.
+        normaliseItems(entries);
+        clearFoldAnimations();
+        sidebarGroups.forEach(button => {
+          const panel = document.getElementById(button.getAttribute('aria-controls'));
+          submenuAnimations.get(panel)?.cancel();
+          if (panel.matches(':popover-open')) panel.hidePopover();
+        });
+        renderNavigation(root, entries, { renderIcon: uiIcon });
+        openSidebarFlyout = null;
+        refreshItems();
+        if (selected) api.select(selected);
+        searchController.setQuery(searchController.input.value);
+        api.overflow?.schedule();
+        return true;
+      },
       toggleSidebar() {
+        if (!collapseEnabled || destroyed) return false;
         if (viewport.clientWidth <= 620) {
           if (!api.mobile) return false;
           api.mobile.setOpen(root.dataset.mobileMenuOpen !== 'true', true);
@@ -755,7 +945,7 @@
           button.classList.toggle(
             'has-current-page',
             button.dataset.menuGroup === page ||
-              Boolean(panel?.querySelector('[data-menu-page="' + page + '"]')),
+              Boolean(Array.from(panel?.querySelectorAll('[data-menu-page]') || []).some(node => node.dataset.menuPage === page)),
           );
         });
         if (isSidebarCompact() && openSidebarFlyout) {
@@ -766,6 +956,7 @@
           syncSidebarSubmenus();
           group?.focus();
         }
+        if (api.mobile?.isMobile() && collapseEnabled) api.mobile.setOpen(false, true);
       },
       installMobile() {
         if (api.mobile) return api.mobile;
@@ -784,7 +975,7 @@
         }
         function setMobileWorkspaceMenu(open, restoreFocus = false) {
           const mobile = isMobileWorkspace(),
-            value = mobile && Boolean(open);
+            value = mobile && (!collapseEnabled || Boolean(open));
           mobileWorkspace.dataset.mobileMenuOpen = String(value);
           mobileWorkspaceToggle.setAttribute('aria-expanded', String(value));
           mobileWorkspaceToggle.setAttribute(
@@ -822,6 +1013,7 @@
         listen(document, 'keydown', (event) => {
           if (
             event.key === 'Escape' &&
+            collapseEnabled &&
             !event.defaultPrevented &&
             isMobileWorkspace() &&
             mobileWorkspace.dataset.mobileMenuOpen === 'true'
@@ -1000,7 +1192,10 @@
         });
       },
       destroy() {
+        if (destroyed) return;
         destroyed = true;
+        mounted.delete(root);
+        itemListeners.splice(0).forEach(off => off());
         disposeSidebarShortcut();
         searchController?.destroy();
         clearFoldAnimations();
@@ -1017,11 +1212,15 @@
           if (panel.matches(':popover-open')) panel.hidePopover();
         });
         root.dataset.motionReady = 'false';
+        api.mobile?.toggle.remove();
+        api.slots.navigation.inert = false;
+        edgeToggle.remove();
+        api.overflow?.regions.forEach(({ region, content }) => { region.before(content); region.remove(); });
       },
     };
     searchController = createMenuSearch(root, {
-      enabled: options.searchEnabled !== false,
-      shortcut: options.searchShortcut,
+      enabled: root.dataset.search !== 'false',
+      shortcut: shortcutDefault('data-search-shortcut', options.searchShortcut === undefined ? defaultSearchShortcut : options.searchShortcut),
       shortcuts: options.shortcuts,
       isCompact: () => viewport.clientWidth > 620 && root.dataset.sidebarCollapsed === 'true',
       renderIcon: uiIcon,
@@ -1035,7 +1234,12 @@
     });
     api.search = searchController;
     api.slots.search = searchController.element;
-    api.setSearchEnabled = (value) => searchController.setEnabled(value);
+    api.setSearch = (value) => {
+      if (typeof value !== 'boolean' || destroyed) return false;
+      if (root.dataset.search !== String(value)) root.dataset.search = String(value);
+      return searchController.setEnabled(value);
+    };
+    api.setSearchEnabled = api.setSearch;
     api.setSearchShortcut = (value) => searchController.setShortcut(value);
     api.focusSearch = () => searchController.focus();
     const shortcuts = searchController.shortcuts;
@@ -1043,8 +1247,8 @@
       id: sidebarShortcutId,
       group: 'Navigation',
       label: 'Toggle sidebar',
-      defaultShortcut: defaultSidebarShortcut,
-      enabled: () => viewport.clientWidth > 620 || Boolean(api.mobile),
+      defaultShortcut: shortcutDefault('data-collapse-shortcut', options.sidebarShortcut === undefined ? defaultSidebarShortcut : options.sidebarShortcut),
+      enabled: () => collapseEnabled && (viewport.clientWidth > 620 || Boolean(api.mobile)),
       handler(event) {
         // Holding the keys must not repeatedly collapse and expand the menu.
         return event.repeat ? true : api.toggleSidebar();
@@ -1052,23 +1256,45 @@
     });
     function syncSidebarShortcut() {
       const value = Shortcuts.aria(shortcuts.get(sidebarShortcutId)?.shortcut);
-      for (const control of [sidebarToggle, api.mobile?.toggle].filter(Boolean)) {
+      for (const control of [sidebarToggle, edgeToggle, api.mobile?.toggle].filter(Boolean)) {
         if (value) control.setAttribute('aria-keyshortcuts', value);
         else control.removeAttribute('aria-keyshortcuts');
       }
     }
     const unsubscribeSidebarShortcut = shortcuts.subscribe(syncSidebarShortcut);
-    if (options.sidebarShortcut !== undefined)
-      shortcuts.set(sidebarShortcutId, options.sidebarShortcut);
     syncSidebarShortcut();
     api.setSidebarShortcut = (value) => shortcuts.set(sidebarShortcutId, value);
     disposeSidebarShortcut = () => {
       unsubscribeSidebarShortcut();
       unregisterSidebarShortcut();
-      for (const control of [sidebarToggle, api.mobile?.toggle].filter(Boolean)) {
+      for (const control of [sidebarToggle, edgeToggle, api.mobile?.toggle].filter(Boolean)) {
         control.removeAttribute('aria-keyshortcuts');
       }
     };
+    if (typeof MutationObserver !== 'undefined') {
+      observe(new MutationObserver(() => {
+        if (destroyed) return;
+        api.setCollapse(root.dataset.collapse !== 'false');
+        api.setSearch(root.dataset.search !== 'false');
+        shortcuts.setDefault(searchShortcutId, shortcutDefault('data-search-shortcut', options.searchShortcut === undefined ? defaultSearchShortcut : options.searchShortcut));
+        shortcuts.setDefault(sidebarShortcutId, shortcutDefault('data-collapse-shortcut', options.sidebarShortcut === undefined ? defaultSidebarShortcut : options.sidebarShortcut));
+      })).observe(root, { attributes: true, attributeFilter: ['data-collapse', 'data-search', 'data-search-shortcut', 'data-collapse-shortcut'] });
+      observe(new MutationObserver(syncEdgeBackground)).observe(nav, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-current', 'aria-expanded', 'aria-pressed', 'class', 'hidden', 'disabled'] });
+      observe(new MutationObserver(() => {
+        if (destroyed) return;
+        refreshItems();
+        api.overflow?.schedule();
+      })).observe(items, { subtree: true, childList: true });
+    }
+    listen(nav, 'scroll', syncEdgeBackground, true);
+    if (typeof ResizeObserver !== 'undefined') observe(new ResizeObserver(syncEdgeBackground)).observe(nav);
+    api.installMobile();
+    api.installOverflow({ items, footer, nav });
+    api.setCollapse(collapseEnabled);
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (!destroyed) root.dataset.motionReady = 'true';
+    }));
+    mounted.set(root, api);
     return api;
   }
   const api = {

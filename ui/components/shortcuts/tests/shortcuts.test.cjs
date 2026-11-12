@@ -98,3 +98,45 @@ test('catalogue validates IDs and bindings, snapshots do not mutate registry sta
   assert.equal(shortcuts.get(action.id).shortcut, 'Mod+F');
   shortcuts.destroy();
 });
+
+test('one document shares its catalogue and dispatcher independently of component lifetimes', () => {
+  const document = new Document();
+  const first = Shortcuts.create({ document }), second = Shortcuts.create({ document });
+  assert.equal(first, second);
+  const action = { id: 'navigation.search', defaultShortcut: 'Mod+F', handler: () => true };
+  const unregister = first.register(action);
+  assert.equal(document.listeners.get('keydown').size, 1);
+  second.set(action.id, 'Mod+K');
+  unregister();
+  assert.equal(document.listeners.get('keydown').size, 0);
+  const off = first.register(action);
+  assert.equal(second.get(action.id).shortcut, 'Mod+K');
+  assert.equal(document.listeners.get('keydown').size, 1);
+  off();
+  first.destroy();
+  const replacement = Shortcuts.create({ document });
+  assert.notEqual(replacement, first);
+  first.destroy();
+  assert.equal(Shortcuts.create({ document }), replacement);
+  replacement.destroy();
+});
+
+test('declared defaults respect saved preferences, including preferences loaded before registration', () => {
+  const shortcuts = Shortcuts.create();
+  shortcuts.configure({ 'navigation.search': 'Mod+J' });
+  const off = shortcuts.register({ id: 'navigation.search', defaultShortcut: 'Mod+K', handler: () => true });
+  assert.equal(shortcuts.get('navigation.search').shortcut, 'Mod+J');
+  shortcuts.setDefault('navigation.search', 'Mod+L');
+  assert.equal(shortcuts.get('navigation.search').defaultShortcut, 'Mod+L');
+  assert.equal(shortcuts.get('navigation.search').shortcut, 'Mod+J');
+  shortcuts.reset('navigation.search');
+  assert.equal(shortcuts.get('navigation.search').shortcut, 'Mod+L');
+  shortcuts.setDefault('navigation.search', 'Mod+K');
+  assert.equal(shortcuts.get('navigation.search').shortcut, 'Mod+K');
+  shortcuts.set('navigation.search', null);
+  shortcuts.setDefault('navigation.search', 'Mod+F');
+  assert.equal(shortcuts.get('navigation.search').shortcut, null);
+  assert.equal(shortcuts.setDefault('navigation.search', 'F'), false);
+  off();
+  shortcuts.destroy();
+});
