@@ -4,18 +4,27 @@ const path = require('node:path');
 const esbuild = require('esbuild');
 const { loadProject } = require('./export-sources.cjs');
 const project = require('../export/project.cjs');
+const Themes = require('../themes/themes.js');
 
 const root = path.resolve(__dirname, '../..');
 const available = () => project.available(loadProject());
 const resolveComponents = requested => project.resolveComponents(loadProject(), requested);
 
-async function buildExport({ outdir = path.join(root, 'export'), components } = {}) {
+function defaultThemeConfiguration() {
+  const target = {
+    dataset: {},
+    style: { setProperty() {}, removeProperty() {} },
+  };
+  return project.themeConfiguration(Themes.create({ target }));
+}
+
+async function buildExport({ outdir = path.join(root, 'export'), components, theme = defaultThemeConfiguration() } = {}) {
   const target = path.resolve(outdir);
   if (fs.existsSync(target) && fs.readdirSync(target).length) {
     throw new Error('Output directory must be empty (existing files are never deleted): ' + target);
   }
   // Compile in memory first: a failed build never leaves a partial export.
-  const result = await project.compileProject(loadProject(), components, esbuild.build);
+  const result = await project.compileProject(loadProject(), components, esbuild.build, { theme });
   for (const [relative, content] of Object.entries(result.files)) {
     const file = path.join(target, relative);
     fs.mkdirSync(path.dirname(file), { recursive: true });
@@ -35,4 +44,4 @@ if (require.main === module) {
     .catch(error => { console.error(error.message); process.exitCode = 1; });
 }
 
-module.exports = { available, resolveComponents, buildExport };
+module.exports = { available, resolveComponents, defaultThemeConfiguration, buildExport };

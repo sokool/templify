@@ -1,2 +1,2 @@
 /* Intrinsic SVG presentation only. Contexts own colour and sizing overrides. */
-.ui-icon{width:20px;height:20px;display:inline-block;vertical-align:middle;flex-shrink:0}
+.ui-icon{width:var(--ds-icon-size,20px);height:var(--ds-icon-size,20px);stroke-width:var(--ds-icon-stroke,1.75);display:inline-block;vertical-align:middle;flex-shrink:0}

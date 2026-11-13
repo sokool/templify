@@ -345,7 +345,7 @@ for (const [preset, profile] of [['default', 'medium'], ['soft', 'soft']]) {
     await expectProfile(submenu, profile);
     await expectProfile(search, profile);
 
-    for (const file of ['themes/tokens/tokens.js', 'themes/tokens/defaults.js', 'colours/colour-system.js', 'colours/colour-roles.js', 'shadows/shadows.js', 'themes/themes.js']) {
+    for (const file of ['themes/tokens/tokens.js', 'themes/tokens/defaults.js', 'colours/colour-system.js', 'colours/colour-roles.js', 'shadows/shadows.js', 'corners/corners.js', 'themes/themes.js']) {
       await page.addScriptTag({ url: url + '/source/ui/' + file });
     }
     await page.evaluate(profile => {

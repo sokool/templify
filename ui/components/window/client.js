@@ -6,6 +6,7 @@ export function init(element) {
     hydrate: true,
     mode: element.dataset.mode,
     side: element.dataset.side,
+    size: element.dataset.size,
     width: element.dataset.width,
     height: element.dataset.height,
     duration: element.dataset.duration ?? 220,

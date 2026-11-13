@@ -1,6 +1,6 @@
 import * as esbuild from 'esbuild-wasm';
 import { zipSync, strToU8 } from 'fflate';
-import { compileProject } from '../../export/project.cjs';
+import { compileProject, themeConfiguration } from '../../export/project.cjs';
 import { mount as mountUI } from './export.js';
 
 // Capture the URL synchronously while this classic generated script is executing.
@@ -18,7 +18,7 @@ async function loadProject({ signal }) {
   return project;
 }
 
-async function createArchive(project, components, { signal, onProgress }) {
+async function createArchive(project, components, { signal, onProgress, theme }) {
   signal.throwIfAborted();
   onProgress('Preparing the local JS / CSS compiler (first download may take a moment)…');
   if (!initialized) initialized = esbuild.initialize({ wasmURL: new URL('esbuild.wasm', assets).href })
@@ -26,11 +26,21 @@ async function createArchive(project, components, { signal, onProgress }) {
   await initialized;
   signal.throwIfAborted();
   onProgress('Bundling selected components and their dependencies…');
-  const result = await compileProject(project, components, esbuild.build);
+  const result = await compileProject(project, components, esbuild.build, { theme });
   signal.throwIfAborted();
   onProgress('Creating ZIP…');
   const files = Object.fromEntries(Object.entries(result.files).map(([name, contents]) => [name, typeof contents === 'string' ? strToU8(contents) : contents]));
   return { data: zipSync(files, { level: 6 }), components: result.components };
 }
 
-export function mount(host) { return mountUI(host, { loadProject, createArchive }); }
+export function mount(host, { themes } = {}) {
+  return mountUI(host, {
+    loadProject,
+    createArchive(project, components, options) {
+      return createArchive(project, components, {
+        ...options,
+        theme: themes ? themeConfiguration(themes) : undefined,
+      });
+    },
+  });
+}

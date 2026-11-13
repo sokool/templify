@@ -67,7 +67,7 @@
     "description": "More technical and distinctive letterforms."
   }
 ];
-  function create({document, storage, storageKey = 'design-system-examples-font'} = {}) {
+  function create({document, storage, themes, storageKey = 'design-system-examples-font'} = {}) {
     const views = new Set();
     let selected = choices[0].name;
     try { const value = storage?.getItem(storageKey); if (choices.some(font => font.name === value)) selected = value; } catch {}
@@ -78,15 +78,22 @@
       document.head.append(link);
     }
     function apply(name, remember = true) {
-      if (!choices.some(font => font.name === name)) return;
+      if (!choices.some(font => font.name === name) && !(themes && !remember)) return;
+      if (themes && remember) {
+        themes.setAppearance(themes.getState().theme, { fontFamily: name });
+        return;
+      }
       selected = name;
       document.documentElement.style.setProperty('--ds-font-family', '"' + selected + '", system-ui, sans-serif');
       views.forEach(update => update());
       if (remember) try { storage?.setItem(storageKey, selected); } catch {}
     }
-    apply(selected, false);
+    function syncTheme(state) { apply(state.appearance[state.theme].fontFamily, false); }
+    const unsubscribe = themes?.subscribe(syncTheme);
+    if (themes) syncTheme(themes.getState());
+    else apply(selected, false);
     function mount(element) {
-      element.innerHTML = '<p class="example-lead">Choose the typeface for the entire workspace. Your selection is saved automatically.</p><p class="example-status" data-font-status role="status" aria-live="polite"></p><div class="example-font-grid" role="group" aria-label="Workspace typeface"></div><section class="example-typography"><h2>Typography</h2><div class="example-type-grid"><div><span class="example-kicker">One typeface for the whole UI</span><h3 data-font-name></h3><p data-font-description></p><div class="example-font-weights"><span style="font-weight:400">400 · body</span><span style="font-weight:500">500 · labels</span><span style="font-weight:600">600 · headings</span><span style="font-weight:700">700 · buttons</span></div></div><div><p class="example-type-sentence">Space made for you.</p><p class="example-type-alphabet">The quick brown fox jumps over the lazy dog.</p><p class="example-status">ABCDEFGHIJKLMNOPQRSTUVWXYZ · abcdefghijklmnopqrstuvwxyz · 0123456789<br>Ąą Ćć Ęę Łł Ńń Óó Śś Źź Żż · Ää Öö Üü ß</p><a class="example-link" data-font-source target="_blank" rel="noopener"></a></div></div></section>';
+      element.innerHTML = '<p class="example-lead">Choose the typeface for the active theme. Your selection is saved automatically.</p><p class="example-status" data-font-status role="status" aria-live="polite"></p><div class="example-font-grid" role="group" aria-label="Workspace typeface"></div><section class="example-typography"><h2>Typography</h2><div class="example-type-grid"><div><span class="example-kicker">One typeface for the whole UI</span><h3 data-font-name></h3><p data-font-description></p><div class="example-font-weights"><span style="font-weight:400">400 · body</span><span style="font-weight:500">500 · labels</span><span style="font-weight:600">600 · headings</span><span style="font-weight:700">700 · buttons</span></div></div><div><p class="example-type-sentence">Space made for you.</p><p class="example-type-alphabet">The quick brown fox jumps over the lazy dog.</p><p class="example-status">ABCDEFGHIJKLMNOPQRSTUVWXYZ · abcdefghijklmnopqrstuvwxyz · 0123456789<br>Ąą Ćć Ęę Łł Ńń Óó Śś Źź Żż · Ää Öö Üü ß</p><a class="example-link" data-font-source target="_blank" rel="noopener"></a></div></div></section>';
       const grid = element.querySelector('.example-font-grid');
       choices.forEach(font => {
         const button = document.createElement('button'); button.type = 'button'; button.className = 'example-font-choice'; button.dataset.font = font.name;
@@ -100,7 +107,7 @@
         button.append(name, check, sample, alphabet); grid.append(button);
       });
       function update() {
-        const font = choices.find(font => font.name === selected);
+        const font = choices.find(font => font.name === selected) || { description: 'Custom theme typeface.' };
         grid.querySelectorAll('[data-font]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.font === selected)));
         element.querySelector('[data-font-status]').textContent = 'Selected: ' + selected;
         element.querySelector('[data-font-name]').textContent = selected;
@@ -111,7 +118,7 @@
       grid.addEventListener('click', onClick); views.add(update); update();
       return {destroy() { views.delete(update); grid.removeEventListener('click', onClick); element.replaceChildren(); }};
     }
-    return { mount, apply, get value() { return selected; } };
+    return { mount, apply, destroy() { unsubscribe?.(); views.clear(); }, get value() { return selected; } };
   }
   global.ExampleFonts = {create};
 })(typeof globalThis !== 'undefined' ? globalThis : this);

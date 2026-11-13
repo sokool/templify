@@ -5,10 +5,12 @@
   function mount(host, { kind, themes } = {}) {
     if (kind === 'shadows')
       return root.DesignSystemShadowsTool.mount(host, { themes, title: 'Shadow profiles' });
+    if (kind === 'corners')
+      return root.DesignSystemCornersTool.mount(host, { themes });
     if (kind === 'contrast-checker')
       return root.DesignSystemContrastCheckerTool.mount(host, { themes });
     if (kind === 'export') {
-      if (root.DesignSystemExportTool) return root.DesignSystemExportTool.mount(host);
+      if (root.DesignSystemExportTool) return root.DesignSystemExportTool.mount(host, { themes });
       const message = host.ownerDocument.createElement('p');
       message.setAttribute('role', 'alert');
       message.textContent = 'Export assets are missing. Run npm ci and npm run build, then reload this page.';

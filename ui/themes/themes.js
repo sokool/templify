@@ -19,6 +19,10 @@
     typeof module === 'object' && module.exports
       ? require('../shadows/shadows.js')
       : global.DesignSystemShadows;
+  const Corners =
+    typeof module === 'object' && module.exports
+      ? require('../corners/corners.js')
+      : global.DesignSystemCorners;
   const defaultDocument =
     typeof module === 'object' && module.exports
       ? require('./tokens/defaults.js')
@@ -30,6 +34,22 @@
   Object.freeze(tokens);
   const extension = 'org.topschrank.theme';
   const componentExtension = 'org.topschrank.components';
+  const appearanceExtension = 'org.topschrank.appearance';
+  const defaultAppearance = Object.freeze({ fontFamily: 'Manrope', iconSize: 20, iconStroke: 1.75 });
+  function appearance(doc, id) {
+    return { ...defaultAppearance, ...doc.themes[id].$extensions?.[appearanceExtension] };
+  }
+  function checkAppearance(value) {
+    if (Object.keys(value).some(key => !Object.hasOwn(defaultAppearance, key)) ||
+        typeof value.fontFamily !== 'string' || !/^[a-z0-9][a-z0-9 -]{0,79}$/i.test(value.fontFamily) ||
+        !Number.isFinite(value.iconSize) || value.iconSize < 16 || value.iconSize > 40 ||
+        !Number.isFinite(value.iconStroke) || value.iconStroke < 1 || value.iconStroke > 3)
+      throw new TypeError('Invalid theme typography or icon settings.');
+  }
+  function appearanceCSS(value) {
+    return [['--ds-font-family', '"' + value.fontFamily + '", system-ui, sans-serif'],
+      ['--ds-icon-size', value.iconSize + 'px'], ['--ds-icon-stroke', String(value.iconStroke)]];
+  }
   const metadata = (doc, id) => doc.themes[id].$extensions?.[extension] || {};
   const valid = (value) => typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value);
   function componentVariables(group) {
@@ -64,11 +84,13 @@
   function checkDocument(doc) {
     const palettes = Tokens.toPalettes(doc, tokens);
     Shadows.validate(doc, tokens);
+    Corners.validate(doc);
     if (
       Object.values(palettes).some((roles) => Object.values(roles).some((colour) => !valid(colour)))
     )
       throw new TypeError('Palette editor requires opaque sRGB colours');
     for (const id of Object.keys(palettes)) {
+      checkAppearance(appearance(doc, id));
       componentVariables(doc.themes[id]);
       const meta = metadata(doc, id);
       if (
@@ -115,6 +137,14 @@
       }
     } catch {}
     document = System.normalise(document, registry, defaultDocument);
+    // Import the previous workspace-wide font once, preserving existing theme profiles.
+    const legacyFont = settings?.get('layout.fonts.family', null);
+    if (legacyFont && /^[a-z0-9][a-z0-9 -]{0,79}$/i.test(legacyFont))
+      for (const group of Object.values(document.themes)) {
+        if (!group || typeof group !== 'object' || group.$extensions?.[appearanceExtension]) continue;
+        group.$extensions ||= {};
+        group.$extensions[appearanceExtension] = { ...defaultAppearance, fontFamily: legacyFont };
+      }
     function entries() {
       return Object.keys(Tokens.toPalettes(document, tokens)).map((id) => ({
         id,
@@ -134,15 +164,24 @@
           ids.map(({ id }) => [id, System.assignments(document, id, registry)]),
         ),
         shadows: Object.fromEntries(ids.map(({ id }) => [id, Shadows.read(document, id, tokens)])),
+        corners: Object.fromEntries(ids.map(({ id }) => [id, Corners.read(document, id)])),
+        appearance: Object.fromEntries(ids.map(({ id }) => [id, appearance(document, id)])),
       };
     }
     let appliedPrimitives = [];
     let appliedComponentVariables = [];
     function apply(remember = true) {
       const palettes = Tokens.toPalettes(document, tokens);
+      for (const id of Object.keys(palettes)) {
+        const group = document.themes[id];
+        group.$extensions ||= {};
+        group.$extensions[appearanceExtension] ||= { ...defaultAppearance };
+      }
       target.dataset.dsThemeBase = entries().find((entry) => entry.id === theme).base;
       target.dataset.dsTheme = theme;
       target.dataset.theme = theme;
+      for (const [name, value] of appearanceCSS(appearance(document, theme)))
+        target.style.setProperty(name, value);
       for (const [role, token] of Object.entries(tokens))
         target.style.setProperty(token, palettes[theme][role]);
       appliedPrimitives.forEach((key) => target.style.removeProperty?.(key));
@@ -163,6 +202,8 @@
       }
       for (const [id, profile] of Object.entries(Shadows.read(document, theme, tokens)))
         target.style.setProperty('--ds-shadow-' + id, Shadows.css(profile, tokens));
+      for (const [name, value] of Corners.declarations(Corners.read(document, theme)))
+        target.style.setProperty(name, value);
       appliedComponentVariables.forEach((name) => target.style.removeProperty?.(name));
       const variables = componentVariables(document.themes[theme]);
       for (const [name, value] of variables) target.style.setProperty(name, value);
@@ -195,6 +236,7 @@
         for (const [name, value] of componentVariables(document.themes[id]))
           variables.set(name, value);
         const declarations = [
+          ...appearanceCSS(appearance(document, id)).map(([name, value]) => `  ${name}: ${value};`),
           ...Object.entries(colours).flatMap(([category, items]) =>
             items.map((item) => `  --ds-palette-${category}-${item.id}: ${item.value};`),
           ),
@@ -203,6 +245,9 @@
             .map((item, index) => `  --ds-accent-${index + 1}: ${item.value};`),
           ...Object.entries(profiles).map(
             ([name, profile]) => `  --ds-shadow-${name}: ${Shadows.css(profile, tokens)};`,
+          ),
+          ...Corners.declarations(Corners.read(document, id)).map(
+            ([name, value]) => `  ${name}: ${value};`,
           ),
           ...[...variables].map(([name, value]) => `  ${name}: ${value};`),
         ];
@@ -217,6 +262,18 @@
       getTokens: () => Tokens.copy(document),
       exportTokens: () => JSON.stringify(document, null, 2),
       exportCSS,
+      setAppearance(id, values) {
+        if (!Object.hasOwn(document.themes, id) || !values || typeof values !== 'object' ||
+            Object.keys(values).some(key => !Object.hasOwn(defaultAppearance, key)))
+          throw new TypeError('Invalid theme appearance settings.');
+        const next = { ...appearance(document, id), ...values };
+        checkAppearance(next);
+        const group = document.themes[id];
+        group.$extensions ||= {};
+        group.$extensions[appearanceExtension] = next;
+        apply();
+        return true;
+      },
       getComponentSettings(id, name) {
         return Tokens.copy(document.themes[id]?.$extensions?.[componentExtension]?.[name] || null);
       },
@@ -250,6 +307,21 @@
       resetShadow(id, profile) {
         const next = Tokens.copy(document);
         if (!Shadows.reset(next, id, profile)) return false;
+        document = next;
+        apply();
+        return true;
+      },
+      setCorners(id, values) {
+        const next = Tokens.copy(document);
+        Corners.write(next, id, values);
+        checkDocument(next);
+        document = next;
+        apply();
+        return true;
+      },
+      resetCorners(id, section, key) {
+        const next = Tokens.copy(document);
+        if (!Corners.reset(next, id, section, key)) return false;
         document = next;
         apply();
         return true;

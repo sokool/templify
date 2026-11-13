@@ -76,6 +76,93 @@ test('right/left panels resize from their inner edge and keep full-height layout
   }
 });
 
+test('six named sizes set the active extent and explicit dimensions override presets', (t) => {
+  for (const [size, extent] of Object.entries({ xs: 320, sm: 400, md: 480, lg: 640, xl: 800 })) {
+    const { view } = setup(t, { size });
+    assert.deepEqual(view.getSize(), { width: extent, height: null });
+    assert.equal(view.element.dataset.size, size);
+    view.update({ mode: 'side', side: 'top' });
+    assert.deepEqual(view.getSize(), { width: extent, height: extent });
+    view.update({ side: 'bottom' });
+    assert.equal(view.element.dataset.side, 'bottom');
+    view.update({ side: 'left' });
+    assert.deepEqual(view.getSize(), { width: extent, height: null });
+    view.update({ width: 560 });
+    assert.equal(view.element.dataset.size, 'custom');
+    assert.equal(view.getSize().width, 560);
+    view.update({ size });
+    assert.equal(view.getSize().width, extent);
+  }
+  const { view } = setup(t, { size: 'lg', width: 520, height: 300 });
+  assert.deepEqual(view.getSize(), { width: 520, height: 300 });
+  assert.equal(view.element.dataset.size, 'custom');
+});
+
+test('auto fits content and cancelled resizing restores the selected preset', (t) => {
+  const { view, grip } = setup(t, { size: 'auto', mode: 'side', side: 'top', resizable: true });
+  assert.deepEqual(view.getSize(), { width: null, height: null });
+  assert.equal(view.element.style.getPropertyValue('--ds-window-width'), 'fit-content');
+  assert.equal(view.element.style.getPropertyValue('--ds-window-height'), 'fit-content');
+  view.open();
+  pointer(grip, 'pointerdown', 100, 100);
+  pointer(grip, 'pointermove', 100, 160);
+  assert.equal(view.element.dataset.size, 'custom');
+  grip.emit('pointercancel');
+  assert.equal(view.element.dataset.size, 'auto');
+  assert.deepEqual(view.getSize(), { width: null, height: null });
+  view.update({ size: 'sm' });
+  pointer(grip, 'pointerdown', 100, 100);
+  pointer(grip, 'pointermove', 100, 160);
+  view.update({ side: 'right' });
+  assert.equal(view.element.dataset.size, 'sm');
+  assert.deepEqual(view.getSize(), { width: 400, height: null });
+});
+
+test('top/bottom panels resize vertically from their inner edge and ignore horizontal keys', (t) => {
+  for (const side of ['top', 'bottom']) {
+    const changes = [];
+    const { view, grip } = setup(t, { mode: 'side', side, size: 'md', resizable: true, onResize: size => changes.push(size) });
+    view.open();
+    pointer(grip, 'pointerdown', 100, 100);
+    pointer(grip, 'pointermove', 500, side === 'top' ? 200 : 0);
+    pointer(grip, 'pointerup', 500, 200);
+    assert.deepEqual(changes, [{ width: 480, height: 380 }]);
+    assert.equal(view.element.dataset.size, 'custom');
+    grip.emit('keydown', { key: 'ArrowRight', preventDefault() {}, stopPropagation() {} });
+    assert.equal(changes.length, 1);
+    grip.emit('keydown', { key: 'ArrowDown', shiftKey: true, preventDefault() {}, stopPropagation() {} });
+    assert.equal(view.getSize().height, side === 'top' ? 330 : 230);
+    assert.equal(view.getSize().width, 480);
+  }
+});
+
+test('vertical manual resizing preserves an auto width, including later explicit height updates', (t) => {
+  const changes = [];
+  const { view, grip } = setup(t, { mode: 'side', side: 'top', size: 'auto', resizable: true, onResize: size => changes.push(size) });
+  view.open();
+  pointer(grip, 'pointerdown', 100, 100);
+  pointer(grip, 'pointermove', 100, 160);
+  pointer(grip, 'pointerup', 100, 160);
+  assert.deepEqual(changes, [{ width: null, height: 340 }]);
+  assert.equal(view.element.dataset.size, 'custom');
+  view.update({ mode: 'modal', height: 300 });
+  assert.deepEqual(view.getSize(), { width: null, height: 300 });
+  assert.equal(view.element.style.getPropertyValue('--ds-window-width'), 'fit-content');
+});
+
+test('vertical resizing is viewport-bounded and invalid size/side values stay safe', (t) => {
+  const { view, grip, window } = setup(t, { mode: 'side', side: 'top', size: 'xs', resizable: true });
+  window.innerHeight = 600;
+  view.open();
+  pointer(grip, 'pointerdown', 100, 100);
+  pointer(grip, 'pointermove', 100, 5000);
+  pointer(grip, 'pointerup', 100, 5000);
+  assert.equal(view.getSize().height, 600);
+  view.update({ side: 'unknown', size: 'unknown' });
+  assert.equal(view.element.dataset.side, 'right');
+  assert.equal(view.element.dataset.size, 'custom');
+});
+
 test('cancel, capture loss, disabling resize and destroy abandon unfinished gestures', (t) => {
   for (const action of ['pointercancel', 'lostpointercapture', 'disable', 'destroy']) {
     const changes = [];

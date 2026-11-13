@@ -8,6 +8,7 @@ const root = path.resolve(__dirname, '..');
 test('generic tools have one implementation under tools, with no obsolete Palette copies', () => {
   assert.equal(typeof require('../tools/palette-picker/palette-picker.js').mount, 'function');
   assert.equal(typeof require('../tools/shadows/shadows.js').mount, 'function');
+  assert.equal(typeof require('../tools/corners/corners.js').mount, 'function');
   assert.equal(typeof require('../tools/contrast-checker/contrast-checker.js').mount, 'function');
   assert.equal(typeof require('../tools/export/export.js').mount, 'function');
   for (const file of [
@@ -24,6 +25,8 @@ test('generic tools have one implementation under tools, with no obsolete Palett
     'tools/palette-picker/palette-picker.css',
     'tools/shadows/shadows.js',
     'tools/shadows/shadows.css',
+    'tools/corners/corners.js',
+    'tools/corners/corners.css',
     'tools/contrast-checker/contrast-checker.js',
     'tools/contrast-checker/contrast-checker.css',
     'tools/shared/tools.css',
@@ -44,6 +47,7 @@ test('Tools has separate submenu routes and generic tools use shared compact con
     'topschrank.tools',
     'topschrank.tools.palettepicker',
     'topschrank.tools.shadows',
+    'templify.theme.corners',
     'topschrank.tools.contrastchecker',
     'topschrank.tools.export',
   ]) {

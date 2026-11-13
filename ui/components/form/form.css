@@ -1,5 +1,5 @@
 /* Form-local styles. Colours and font come exclusively from shared semantic tokens. */
-.ds-form,.ds-field{font-family:var(--ds-font-family,system-ui,sans-serif);color:var(--ds-colour-text);font-size:14px;--ds-form-error:var(--ds-colour-error,#B43C4A);--ds-form-field-height:44px;--ds-form-field-radius:13px;--ds-form-control-font-size:14px;--ds-form-surface:var(--ds-colour-panel)}
+.ds-form,.ds-field{font-family:var(--ds-font-family,system-ui,sans-serif);color:var(--ds-colour-text);font-size:14px;--ds-form-error:var(--ds-colour-error,#B43C4A);--ds-form-field-height:44px;--ds-form-field-radius:var(--ds-radius-controls,13px);--ds-form-control-font-size:14px;--ds-form-surface:var(--ds-colour-panel)}
 .ds-form{container:ds-form / inline-size;min-width:0;width:100%}
 .ds-form-section{margin:0 0 24px;min-width:0}
 .ds-form-section>h3{font-size:14px;font-weight:650;margin:0 0 18px}
@@ -48,7 +48,7 @@
 .ds-field-button .ds-field-control[type=reset],.ds-field-button .ds-field-control[type=button]{background:var(--ds-form-surface);color:var(--ds-colour-accent);border-color:var(--ds-colour-border)}
 .ds-field-button input[type=image]{width:44px;height:44px;padding:9px}
 .ds-field-quantity .ds-field-body{display:flex;align-items:center;gap:5px}
-.ds-field-stepper{width:36px;height:36px;flex:none;border:1px solid var(--ds-colour-divider);border-radius:8px;background:var(--ds-colour-panel);color:var(--ds-colour-accent);font:inherit;cursor:pointer}
+.ds-field-stepper{width:36px;height:36px;flex:none;border:1px solid var(--ds-colour-divider);border-radius:var(--ds-radius-buttons,8px);background:var(--ds-colour-panel);color:var(--ds-colour-accent);font:inherit;cursor:pointer}
 .ds-field-stepper:disabled{opacity:.5;cursor:not-allowed}
 .ds-form-footer{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 /* The single-select surface is shared by every mount; no per-tool dropdown implementation. */
@@ -75,7 +75,7 @@
 .ds-field-actions{position:relative}
 .ds-field-action-trigger{display:flex;align-items:center;justify-content:space-between;list-style:none;min-height:44px;padding:10px 12px;border:1px solid var(--ds-colour-border);border-radius:var(--ds-form-field-radius);font:inherit;cursor:pointer}
 .ds-field-action-trigger::-webkit-details-marker{display:none}
-.ds-field-action-list{position:absolute;z-index:5;inset-inline:0;top:100%;padding:0;border:1px solid var(--ds-colour-border);border-radius:8px;background:var(--ds-colour-panel);overflow:hidden}
+.ds-field-action-list{position:absolute;z-index:5;inset-inline:0;top:100%;padding:0;border:1px solid var(--ds-colour-border);border-radius:var(--ds-radius-popups,8px);background:var(--ds-colour-panel);overflow:hidden}
 .ds-field-action{display:block;border:0;border-top:1px solid var(--ds-colour-divider);background:transparent;color:inherit;width:100%;text-align:left;font:inherit;padding:10px 12px;cursor:pointer}
 .ds-field-action:hover{background:var(--ds-colour-hover)}
 @container ds-form (max-width:560px){.ds-form-grid{grid-template-columns:1fr}.ds-field-full{grid-column:auto}}

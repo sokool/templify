@@ -6,10 +6,11 @@ Generic editors live here, independently of the components that use them.
 | --- | --- | --- |
 | Palette picker | `palette-picker/palette-picker.js` + `.css` | `#topschrank.tools.palettepicker` |
 | Shadows | `shadows/shadows.js` + `.css` | `#topschrank.tools.shadows` |
+| Corners | `corners/corners.js` + `.css` | `#templify.theme.corners` |
 | Contrast checker | `contrast-checker/contrast-checker.js` + `.css` | `#topschrank.tools.contrastchecker` |
 
 `../../workspace/tools.js` only composes their workspace pages. Component
-configurators use these same modules, not copies. The menu exposes Shadows under
+configurators use these same modules, not copies. The menu exposes Shadows and Corners under
 Theme, and Contrast checker / Palette picker under Tools. Components never import tools.
 
 ## Compact by default

@@ -179,7 +179,10 @@ uzależniać komponentu od hosta Templify.
 `ui/scripts/export.cjs` rozpoznaje komponenty po `<nazwa>.html`, zbiera kompozycję
 `data-ui` i łączy importy JS/CSS przez esbuild. Wynik nie zależy od workspace,
 storage ani narzędzi. HTML kopiowany jest z komentarzami bez składni konkretnego
-backendu. HTMX nie jest wbudowany w `ui.js`, lecz dostarczany osobno.
+backendu. Eksport uruchamiany z aplikacji otrzymuje aktualne kolory, typografię,
+parametry ikon, cienie i ustawienia komponentów dla wszystkich motywów; aktywny
+motyw jest ustawieniem początkowym. HTMX nie jest wbudowany w `ui.js`, lecz
+dostarczany osobno.
 
 ## Menu a katalogi
 

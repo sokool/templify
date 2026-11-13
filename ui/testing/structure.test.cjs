@@ -79,8 +79,8 @@ test('Theme and Tools navigation reflect user tasks rather than implementation d
   const navigation = vm.runInNewContext(declaration);
   const pages = (group) => Array.from(navigation.find((entry) => entry.id === group).children,
     (entry) => entry.id);
-  assert.deepEqual(pages('theme'), ['palette', 'fonts', 'icons', 'shadows']);
+  assert.deepEqual(pages('theme'), ['palette', 'fonts', 'icons', 'shadows', 'corners']);
   assert.deepEqual(pages('tools'), ['contrast-checker', 'palette-picker', 'export']);
   for (const anchor of ['topschrank.palette', 'topschrank.fonts', 'topschrank.iconsandglyphs',
-    'topschrank.tools.shadows']) assert(source.includes(anchor));
+    'topschrank.tools.shadows', 'templify.theme.corners']) assert(source.includes(anchor));
 });

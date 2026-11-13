@@ -1,0 +1,14 @@
+<!--
+Component: Theme switcher
+Purpose: Select a shared theme for colours, typography, icons, shadows and corners.
+Elements: A labelled native select lists theme IDs matching data-ds-theme CSS selectors. Optional buttons with data-theme-next cycle through the available themes.
+JavaScript behavior: Updates data-ds-theme, data-ds-theme-base and data-theme on the document root and synchronises other switchers. The host may supply a themes service to mount(element, { themes }) to apply and persist complete theme profiles. Exported applications provide theme CSS and font delivery. Emits a bubbling ui:theme-change event after selection. destroy() removes listeners and subscriptions without changing the selected theme.
+-->
+<label class="theme-switcher" data-ui="theme-switcher">
+  <span>Theme</span>
+  <select data-theme-select aria-label="Theme">
+    <option value="light" data-theme-base="light">Light</option>
+    <option value="dark" data-theme-base="dark">Dark</option>
+    <option value="matrix" data-theme-base="matrix">Matrix</option>
+  </select>
+</label>

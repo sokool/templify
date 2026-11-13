@@ -32,7 +32,7 @@ function mount(host, {
   const error = make('p', 'export-tool-error');
   error.setAttribute('role', 'alert');
   error.hidden = true;
-  const note = make('p', 'example-status', 'The package contains documented HTML examples and shared default styles. Server endpoints are supplied by your application. Settings imports and backups remain in Settings.');
+  const note = make('p', 'example-status', 'The package contains documented HTML examples and the current configuration of every theme, including colours, typography, icons, shadows and corners. Server endpoints are supplied by your application. Workspace-only settings and backups remain in Settings.');
   root.append(intro, toolbar, selection, summary, contents, actions, progress, error, note);
   host.append(root);
 
@@ -67,7 +67,7 @@ function mount(host, {
     contents.textContent = resolved.length ? [
       'index.html', 'ui.css', 'ui.js', 'htmx.min.js',
       ...resolved.map(name => 'components/' + name + '.html'),
-      'licenses/htmx.txt', 'licenses/templify.txt',
+      'licenses/htmx.txt', 'licenses/icons.txt', 'licenses/templify.txt',
     ].join('\n') : 'Select at least one component.';
   }
 

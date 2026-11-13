@@ -6,6 +6,8 @@ const http = require('node:http');
 const { unzipSync, strFromU8 } = require('fflate');
 const { compileProject } = require('../export/project.cjs');
 const { loadProject } = require('../scripts/export-sources.cjs');
+const { defaultThemeConfiguration } = require('../scripts/export.cjs');
+const Themes = require('../themes/themes.js');
 const root = path.resolve(__dirname, '../..');
 let directory, server, url;
 
@@ -30,13 +32,13 @@ test.afterAll(async () => {
   if (directory) fs.rmSync(directory, { recursive: true, force: true });
 });
 
-test('Tools Export downloads a working ZIP identical to the CLI selection', async ({ page, context }) => {
+test('Tools Export downloads a working ZIP built by the shared compiler', async ({ page, context }) => {
   const errors = [], requests = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('request', request => requests.push(request.url()));
   await page.goto(url + '/index.html#topschrank.tools.export');
-  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(22);
-  await expect(page.locator('.export-tool-summary')).toContainText('22 selected');
+  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(23);
+  await expect(page.locator('.export-tool-summary')).toContainText('23 selected');
   await page.getByRole('button', { name: 'Clear selection', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Download ZIP', exact: true })).toBeDisabled();
   await page.locator('[data-export-component="window"]').check();
@@ -53,11 +55,18 @@ test('Tools Export downloads a working ZIP identical to the CLI selection', asyn
   expect(download.suggestedFilename()).toBe('templify-components.zip');
   const bytes = fs.readFileSync(await download.path());
   const archive = unzipSync(bytes);
-  const native = await compileProject(loadProject(), ['window', 'tabs'], require('esbuild').build);
+  const native = await compileProject(loadProject(), ['window', 'tabs'], require('esbuild').build, {
+    theme: defaultThemeConfiguration(),
+  });
   expect(Object.keys(archive).sort()).toEqual(Object.keys(native.files).sort());
   for (const [name, content] of Object.entries(native.files)) {
     const expected = Buffer.from(content);
-    expect(Buffer.from(archive[name]).equals(expected), name + ' matches CLI').toBe(true);
+    if (name === 'ui.css') {
+      const marker = '/* Configured Templify themes. */';
+      expect(strFromU8(archive[name]).split(marker)[0]).toBe(Buffer.from(content).toString().split(marker)[0]);
+    } else {
+      expect(Buffer.from(archive[name]).equals(expected), name + ' matches CLI').toBe(true);
+    }
     const file = path.join(directory, name);
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, archive[name]);
@@ -77,6 +86,60 @@ test('Tools Export downloads a working ZIP identical to the CLI selection', asyn
   await preview.close();
 });
 
+test('Tools Export snapshots custom colours, typography, icons, shadows and every theme', async ({ page, context }) => {
+  const target = { dataset: {}, style: { setProperty() {}, removeProperty() {} } };
+  const themes = Themes.create({ target });
+  const ocean = themes.add('Ocean UI', 'dark');
+  themes.setColour(ocean, 'page', '#081018');
+  themes.setColour(ocean, 'panel', '#102030');
+  themes.setAppearance(ocean, { fontFamily: 'Inter', iconSize: 29, iconStroke: 2.5 });
+  themes.setShadow(ocean, 'soft', { blur: 33 });
+  themes.setComponentSettings(ocean, 'card', {
+    css: { '--ds-card-background': 'var(--ds-colour-panel)' },
+  });
+  const stored = {
+    schema: 'design-system-workspace',
+    version: 2,
+    data: { tokens: themes.getTokens(), layout: { theme: ocean } },
+  };
+  await page.addInitScript(value => localStorage.setItem('design-system-workspace', JSON.stringify(value)), stored);
+  await page.goto(url + '/index.html#topschrank.tools.export');
+  const downloadEvent = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download ZIP', exact: true }).click();
+  const files = unzipSync(fs.readFileSync(await (await downloadEvent).path()));
+  const css = strFromU8(files['ui.css']), html = strFromU8(files['index.html']);
+  expect(css).toContain(`[data-ds-theme="${ocean}"]`);
+  expect(css).toMatch(/#102030/i);
+  expect(css).toContain('--ds-font-family: "Inter", system-ui, sans-serif');
+  expect(css).toContain('--ds-icon-size: 29px');
+  expect(css).toContain('--ds-icon-stroke: 2.5');
+  expect(css).toMatch(/--ds-shadow-soft:[^;]*33px/);
+  expect(css).toContain('--ds-card-background: var(--ds-colour-panel)');
+  expect(css).toContain('fonts.googleapis.com/css2?family=Manrope');
+  expect(css).toContain('family=Inter');
+  expect(html).toContain(`data-ds-theme="${ocean}"`);
+  expect(html).toContain('data-ds-theme-base="dark"');
+  expect(strFromU8(files['ui.js'])).toContain('Ocean UI');
+  for (const [name, content] of Object.entries(files)) {
+    const file = path.join(directory, 'custom-theme', name);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, content);
+  }
+  const preview = await context.newPage();
+  await preview.goto(url + '/preview/custom-theme/index.html');
+  const switcher = preview.locator('#example-theme-switcher [data-theme-select]');
+  await expect(switcher.locator('option')).toHaveCount(4);
+  await expect(switcher).toHaveValue(ocean);
+  await expect(switcher.locator(`option[value="${ocean}"]`)).toHaveText('Ocean UI');
+  await expect(preview.locator('body')).toHaveCSS('background-color', 'rgb(8, 16, 24)');
+  await switcher.selectOption('light');
+  await expect(preview.locator('html')).toHaveAttribute('data-ds-theme', 'light');
+  await expect(preview.locator('body')).toHaveCSS('background-color', 'rgb(243, 246, 250)');
+  await switcher.selectOption(ocean);
+  await expect(preview.locator('body')).toHaveCSS('background-color', 'rgb(8, 16, 24)');
+  await preview.close();
+});
+
 test('default selection exports all components, without authoring or compiler files', async ({ page }) => {
   await page.goto(url + '/index.html#topschrank.tools.export');
   const submit = page.getByRole('button', { name: 'Download ZIP', exact: true });
@@ -85,15 +148,21 @@ test('default selection exports all components, without authoring or compiler fi
   await submit.click();
   const download = await downloadEvent;
   const files = unzipSync(fs.readFileSync(await download.path()));
-  expect(Object.keys(files).filter(file => file.startsWith('components/'))).toHaveLength(22);
+  expect(Object.keys(files).filter(file => file.startsWith('components/'))).toHaveLength(23);
   for (const name of Object.keys(files).filter(file => file.startsWith('components/'))) {
     const comment = strFromU8(files[name]).match(/^<!--([\s\S]*?)-->/);
     expect(comment, name + ' documentation').not.toBeNull();
     expect(comment[1]).toMatch(/Component: [\s\S]+Purpose: [\s\S]+Elements: [\s\S]+JavaScript behavior: /);
   }
   expect(Object.keys(files).some(file => /configurator|wasm|sources\.json|workspace|tools\//.test(file))).toBe(false);
-  expect(strFromU8(files['index.html']).match(/class="export-example"/g)).toHaveLength(22);
-  await expect(page.locator('.export-tool-progress')).toContainText('ZIP ready · 22 components');
+  expect(strFromU8(files['index.html']).match(/class="export-example"/g)).toHaveLength(23);
+  expect(strFromU8(files['ui.css'])).toContain('Configured Templify themes');
+  expect(strFromU8(files['ui.css'])).toContain('[data-ds-theme="dark"]');
+  expect(strFromU8(files['ui.css'])).toContain('--ds-icon-stroke: 1.75');
+  expect(strFromU8(files['ui.css'])).toContain('--ds-shadow-soft:');
+  expect(strFromU8(files['ui.css'])).toContain('fonts.googleapis.com/css2?family=Manrope');
+  expect(files['licenses/icons.txt']).toBeTruthy();
+  await expect(page.locator('.export-tool-progress')).toContainText('ZIP ready · 23 components');
 });
 
 test('failed compiler download can be retried without reloading the application', async ({ page }) => {
@@ -115,13 +184,13 @@ test('source download failure offers retry and tool navigation disposes the old 
   await expect(page.getByRole('button', { name: 'Download ZIP', exact: true })).toBeDisabled();
   await page.unroute('**/export/dist/sources.json');
   await page.getByRole('button', { name: 'Retry', exact: true }).click();
-  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(22);
+  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(23);
   await expect(page.locator('.export-tool-error')).toBeHidden();
   await page.evaluate(() => { location.hash = '#topschrank.tools'; });
   await expect(page.locator('.export-tool')).toHaveCount(0);
   await page.getByRole('link', { name: 'Export →', exact: true }).click();
   await expect(page.locator('.export-tool')).toHaveCount(1);
-  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(22);
+  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(23);
 });
 
 test('Export can be reached through the Tools submenu', async ({ page }) => {
@@ -130,12 +199,12 @@ test('Export can be reached through the Tools submenu', async ({ page }) => {
   await tools.click();
   await page.locator('[data-menu-page="export"]').click();
   await expect(page.locator('main.example-page')).toHaveAttribute('id', 'topschrank.tools.export');
-  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(22);
+  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(23);
 });
 
 test('package contents background and text follow Light, Dark and Matrix themes', async ({ page }) => {
   await page.goto(url + '/index.html#topschrank.tools.export');
-  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(22);
+  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(23);
   for (const theme of ['light', 'dark', 'matrix']) {
     await expect(page.locator('html')).toHaveAttribute('data-ds-theme', theme);
     const colours = await page.locator('.export-tool-contents').evaluate(element => {

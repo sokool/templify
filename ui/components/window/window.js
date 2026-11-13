@@ -6,6 +6,7 @@
 })(globalThis, function () {
   'use strict';
   let sequence = 0;
+  const sizes = Object.freeze({ xs: 320, sm: 400, md: 480, lg: 640, xl: 800 });
   const locks = new WeakMap(), stacks = new WeakMap();
   function lock(doc) {
     let state = locks.get(doc);
@@ -21,7 +22,7 @@
     ? Math.max(min, Math.min(max, Number(value))) : fallback;
   function mount(host, options = {}) {
     const doc = host.ownerDocument, win = doc.defaultView, id = 'ds-window-' + (++sequence);
-    const state = { mode: 'modal', side: 'right', width: 480, height: null, resizable: false,
+    const state = { mode: 'modal', side: 'right', size: null, width: 480, height: null, resizable: false,
       closeOnEscape: true, closeOnBackdrop: true, showClose: true, lockScroll: true, duration: 220, ...options };
     const listeners = [], resizeListeners = new Set();
     const stack = stacks.get(doc) || [];
@@ -59,14 +60,33 @@
       if (value?.nodeType) node.append(value);
       else if (value != null) node.textContent = String(value);
     }
+    function vertical() { return state.mode === 'side' && ['top', 'bottom'].includes(state.side); }
+    function configure(patch) {
+      Object.assign(state, patch);
+      state.mode = state.mode === 'side' ? 'side' : 'modal';
+      state.side = ['left', 'right', 'top', 'bottom'].includes(state.side) ? state.side : 'right';
+      state.size = state.size === 'auto' || Object.hasOwn(sizes, state.size) ? state.size : null;
+      if (state.size && ['size', 'mode', 'side'].some(key => key in patch)) {
+        const extent = state.size === 'auto' ? null : sizes[state.size];
+        state.width = extent;
+        state.height = vertical() ? extent : null;
+      }
+      // Explicit dimensions (including restored manual sizes) override a preset.
+      if (patch.width !== undefined || patch.height !== undefined) {
+        if (patch.width !== undefined) state.width = patch.width;
+        if (patch.height !== undefined) state.height = patch.height;
+        state.size = null;
+      }
+    }
     function sync(patch) {
-      state.width = dimension(state.width, 480, 240, 1200);
+      state.width = dimension(state.width, state.width === null ? null : 480, 240, 1200);
       state.height = dimension(state.height, null, 160, 2400);
-      dialog.dataset.mode = state.mode === 'side' ? 'side' : 'modal';
-      dialog.dataset.side = state.side === 'left' ? 'left' : 'right';
+      dialog.dataset.mode = state.mode;
+      dialog.dataset.side = state.side;
+      dialog.dataset.size = state.size || 'custom';
       dialog.dataset.blocking = String(Boolean(state.lockScroll));
       dialog.setAttribute('aria-modal', String(Boolean(state.lockScroll)));
-      dialog.style.setProperty('--ds-window-width', state.width + 'px');
+      dialog.style.setProperty('--ds-window-width', state.width == null ? 'fit-content' : state.width + 'px');
       dialog.style.setProperty('--ds-window-height', state.height == null ? 'fit-content' : state.height + 'px');
       dialog.style.setProperty('--ds-window-duration', Math.max(0, Math.min(2000, Number(state.duration) || 0)) + 'ms');
       if (!options.hydrate || 'title' in patch) title.textContent = state.title || 'Window';
@@ -148,8 +168,9 @@
     }
     function applySize(width, height) {
       const side = state.mode === 'side', margin = side ? 0 : 32;
-      state.width = Math.round(Math.min(Math.max(240, width), Math.min(1200, Math.max(1, win.innerWidth - margin))));
-      if (!side) state.height = Math.round(Math.min(Math.max(160, height), Math.max(1, win.innerHeight - 32)));
+      state.size = null;
+      if (!vertical()) state.width = Math.round(Math.min(Math.max(240, width), Math.min(1200, Math.max(1, win.innerWidth - margin))));
+      if (!side || vertical()) state.height = Math.round(Math.min(Math.max(160, height), Math.max(1, win.innerHeight - margin)));
       sync({});
     }
     function startResize(event) {
@@ -158,7 +179,7 @@
       dialog.classList.add('has-resized');
       const box = dialog.getBoundingClientRect();
       gesture = { id: event.pointerId, x: event.clientX, y: event.clientY, width: box.width, height: box.height,
-        size: getSize(), changed: false };
+        size: getSize(), preset: state.size, changed: false };
       grip.setPointerCapture?.(event.pointerId);
       dialog.classList.add('is-resizing');
     }
@@ -167,30 +188,35 @@
       event.preventDefault();
       const dx = event.clientX - gesture.x, dy = event.clientY - gesture.y;
       if (!dx && !dy) return;
-      if (state.mode === 'side' && !dx) return;
-      const factor = state.mode === 'side' ? (state.side === 'left' ? 1 : -1) : 2;
-      applySize(gesture.width + dx * factor, gesture.height + dy * 2);
+      if (state.mode === 'side' && (vertical() ? !dy : !dx)) return;
+      const factor = ['right', 'bottom'].includes(state.side) ? -1 : 1;
+      applySize(gesture.width + dx * (state.mode === 'side' ? factor : 2),
+        gesture.height + dy * (vertical() ? factor : 2));
       gesture.changed = true;
     }
     function endResize(commit) {
       if (!gesture) return;
       const previous = gesture;
       gesture = null;
-      if (!commit) { Object.assign(state, previous.size); sync({}); }
+      if (!commit) { Object.assign(state, previous.size, { size: previous.preset }); sync({}); }
       dialog.classList.remove('is-resizing');
       if (grip.hasPointerCapture?.(previous.id)) grip.releasePointerCapture(previous.id);
       if (commit && previous.changed && (state.width !== previous.size.width || state.height !== previous.size.height)) resized();
     }
     function resizeKey(event) {
       if (!state.resizable || !dialog.open || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
-      if (state.mode === 'side' && ['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+      if (state.mode === 'side' && (vertical()
+        ? ['ArrowLeft', 'ArrowRight'].includes(event.key)
+        : ['ArrowUp', 'ArrowDown'].includes(event.key))) return;
       event.preventDefault();
       event.stopPropagation();
       const box = dialog.getBoundingClientRect(), step = event.shiftKey ? 50 : 10;
       const dx = event.key === 'ArrowLeft' ? -step : event.key === 'ArrowRight' ? step : 0;
       const dy = event.key === 'ArrowUp' ? -step : event.key === 'ArrowDown' ? step : 0;
       const before = getSize();
-      applySize(box.width + dx * (state.mode === 'side' && state.side === 'right' ? -1 : 1), box.height + dy);
+      dialog.classList.add('has-resized');
+      applySize(box.width + dx * (state.mode === 'side' && state.side === 'right' ? -1 : 1),
+        box.height + dy * (vertical() && state.side === 'bottom' ? -1 : 1));
       if (before.width !== state.width || before.height !== state.height) resized();
     }
     listen(closeButton, 'click', () => close('button'));
@@ -208,6 +234,7 @@
     listen(grip, 'lostpointercapture', () => endResize(false));
     listen(grip, 'keydown', resizeKey);
     listen(win, 'resize', () => endResize(false));
+    configure(options);
     sync(state);
     return { element: dialog, body, open, close, getSize, isOpen: () => dialog.open && !closing,
       subscribeResize(fn) { resizeListeners.add(fn); return () => resizeListeners.delete(fn); },
@@ -215,7 +242,7 @@
         if (destroyed) return;
         endResize(false);
         const changeBlocking = 'lockScroll' in patch && Boolean(patch.lockScroll) !== Boolean(state.lockScroll);
-        Object.assign(state, patch);
+        configure(patch);
         sync(patch);
         if (dialog.open && changeBlocking) {
           const focused = doc.activeElement;

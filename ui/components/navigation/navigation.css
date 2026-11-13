@@ -3,7 +3,7 @@
   font-family: var(--ds-font-family);
   color: var(--text, var(--ds-colour-text));
   --workspace-header-size: 64px;
-  --pattern-radius: 16px;
+  --pattern-radius: var(--ds-radius-popups, 16px);
   --pattern-rule: 0px;
   --pattern-width: 220px;
   --pattern-gap: 0px;
@@ -101,7 +101,7 @@
   background: transparent;
   color: var(--muted, var(--ds-colour-muted));
   padding: 9px 12px;
-  border-radius: 10px;
+  border-radius: var(--ds-radius-navigation, 10px);
   min-height: 40px;
   font-size: 13px;
   font-weight: 500;
@@ -587,7 +587,7 @@
   width: 100%;
   padding: 7px 9px;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-navigation, 8px);
   background: transparent;
   color: var(--muted, var(--ds-colour-muted));
   font-size: 12px;
@@ -847,14 +847,14 @@
 #menu-live[data-menu-design='sidebar'] .menu-sub-action {
   min-height: 30px;
   padding: 5px 9px;
-  border-radius: 6px;
+  border-radius: var(--ds-radius-navigation, 6px);
 }
 
 @container ui-preview (min-width:621px) {
   #menu-live[data-menu-design='sidebar'][data-sidebar-collapsed='false'] .menu-nav-action {
     min-height: 34px;
     padding: 6px 10px;
-    border-radius: 8px;
+    border-radius: var(--ds-radius-navigation, 8px);
   }
   #menu-live[data-menu-design='sidebar'][data-sidebar-collapsed='true']
     .menu-nav-parent.has-current-page {
@@ -868,7 +868,7 @@
   #menu-live[data-menu-design='sidebar'][data-sidebar-collapsed='false'] .menu-nav-action {
     min-height: 28px;
     padding: 3px 6px;
-    border-radius: 6px;
+    border-radius: var(--ds-radius-navigation, 6px);
   }
   #menu-live[data-menu-design='sidebar'] .menu-sub-action {
     min-height: 26px;
@@ -2253,7 +2253,7 @@ html[data-workspace-restoring='true'] #menu-live * {
 }
 #menu-live {
   --submenu-title-bg: var(--menu-selection, var(--ds-colour-soft));
-  --pattern-radius: 10px;
+  --pattern-radius: var(--ds-radius-popups, 10px);
   --pattern-rule: 1px;
   --pattern-shadow: var(--ds-shadow-medium, none);
   --pattern-width: 210px;
@@ -2263,7 +2263,7 @@ html[data-workspace-restoring='true'] #menu-live * {
 /* Selected preset belongs to the component, independent of the playground editor.
    The row fill and selected edge use the same radius as the popup outline. */
 #menu-live[data-popup-pattern='soft'] {
-  --pattern-radius: 16px;
+  --pattern-radius: var(--ds-radius-popups, 16px);
   --pattern-rule: 0px;
   --pattern-width: 220px;
   --pattern-gap: 0px;
@@ -2280,7 +2280,7 @@ html[data-workspace-restoring='true'] #menu-live * {
   .submenu-heading {
   background: var(--menu-selection, var(--ds-colour-soft));
   border-bottom: var(--pattern-rule) solid var(--link, var(--ds-colour-accent));
-  border-radius: calc(var(--pattern-radius) - 1px) calc(var(--pattern-radius) - 1px) 0 0;
+  border-radius: max(0px, calc(var(--pattern-radius) - 1px)) max(0px, calc(var(--pattern-radius) - 1px)) 0 0;
   color: var(--text, var(--ds-colour-text));
 }
 #menu-live[data-menu-design='sidebar'][data-sidebar-collapsed='true'] .menu-submenu:before {
@@ -2318,12 +2318,12 @@ html[data-workspace-restoring='true'] #menu-live * {
   #menu-live[data-menu-design='sidebar'][data-sidebar-collapsed='true'][data-popup-pattern='soft']
     .menu-submenu {
     left: 100%;
-    border-radius: 0 16px 16px 0;
+    border-radius: 0 var(--pattern-radius) var(--pattern-radius) 0;
   }
   #menu-live[data-menu-design='sidebar'][data-sidebar-collapsed='true'][data-popup-pattern='soft']
     .menu-submenu
     .submenu-heading {
-    border-radius: 0 15px 0 0;
+    border-radius: 0 max(0px, calc(var(--pattern-radius) - 1px)) 0 0;
   }
   #menu-live[data-menu-design='sidebar'][data-sidebar-collapsed='true'][data-popup-pattern='soft']
     .menu-submenu:before {
@@ -2350,7 +2350,7 @@ html[data-workspace-restoring='true'] #menu-live * {
   #menu-live[data-menu-design='sidebar'][data-sidebar-collapsed='true']
     .menu-submenu
     .menu-sub-action:last-child {
-    border-bottom-right-radius: calc(var(--pattern-radius) - 1px);
+    border-bottom-right-radius: max(0px, calc(var(--pattern-radius) - 1px));
   }
   #menu-live[data-menu-design='sidebar'][data-sidebar-collapsed='true']
     .menu-submenu
@@ -2529,7 +2529,7 @@ html[data-workspace-restoring='true'] #menu-live * {
     right: -1px;
     top: -1px;
     bottom: -1px;
-    width: max(3px, var(--pattern-radius));
+    width: max(3px, min(50%, var(--pattern-radius)));
     box-sizing: border-box;
     background: transparent;
     border-right: 3px solid var(--link, var(--ds-colour-accent));
@@ -2987,7 +2987,7 @@ html[data-workspace-restoring='true'] #menu-live * {
   min-height: 34px;
   padding: 6px 8px;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--ds-radius-navigation, 6px);
   background: transparent;
   color: var(--ds-colour-text);
   font: 400 12px/1.4 var(--ds-font-family);

@@ -45,6 +45,25 @@
   --ds-shadow-strong: 0 16px 40px 0 color-mix(in srgb, var(--ds-colour-text) 24%, transparent);
 }
 
+/* Shared corner scale and group defaults; theme profiles can override both. */
+:root,
+[data-ds-theme],
+[data-ds-theme-base] {
+  --ds-radius-none: 0px;
+  --ds-radius-small: 4px;
+  --ds-radius-medium: 8px;
+  --ds-radius-large: 12px;
+  --ds-radius-xlarge: 16px;
+  --ds-radius-pill: 9999px;
+  --ds-radius-buttons: var(--ds-radius-large);
+  --ds-radius-controls: var(--ds-radius-large);
+  --ds-radius-panels: var(--ds-radius-large);
+  --ds-radius-popups: var(--ds-radius-medium);
+  --ds-radius-windows: var(--ds-radius-xlarge);
+  --ds-radius-navigation: var(--ds-radius-medium);
+  --ds-radius-badges: var(--ds-radius-medium);
+}
+
 /* Theme defaults mirrored from themes/themes.js; the optional runtime applies user overrides. */
 :root,
 [data-ds-theme='light'] {

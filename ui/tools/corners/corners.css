@@ -1,0 +1,125 @@
+/* Compact authoring controls; live previews keep their production styling. */
+.corners-tool {
+  max-width: 1100px;
+}
+
+.corners-tool h2 {
+  margin: 24px 0 10px;
+  font-size: 15px;
+}
+
+.corners-tool h3 {
+  margin: 0;
+  font-size: 12px;
+}
+
+.corners-note,
+.corners-group-value {
+  margin: 6px 0;
+  color: var(--ds-colour-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.corners-scale,
+.corners-groups,
+.corners-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.corners-profile {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--ds-colour-divider);
+  border-radius: 10px;
+  background: var(--ds-colour-panel);
+}
+
+.corners-profile-sample,
+.corners-group-sample {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--ds-colour-accent);
+  background: var(--ds-colour-selection);
+  color: var(--ds-colour-accent);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.corners-profile-sample {
+  width: 64px;
+  height: 48px;
+  margin-bottom: 12px;
+}
+
+.corners-profile-controls {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.corners-groups {
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+}
+
+.corners-group {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--ds-colour-divider);
+  border-radius: 10px;
+}
+
+.corners-group-sample {
+  width: 54px;
+  height: 40px;
+}
+
+.corners-group-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 10px;
+  grid-column: 1 / -1;
+}
+
+.corners-group-controls .ds-button {
+  max-width: 130px;
+}
+
+.corners-preview {
+  grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+  padding: 16px;
+  border: 1px solid var(--ds-colour-divider);
+  border-radius: 10px;
+  background: var(--ds-colour-page);
+}
+
+.corners-preview-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.corners-preview-item > .ds-field {
+  width: 100%;
+}
+
+.corners-preview-popup {
+  position: static;
+  width: 100%;
+  min-width: 0;
+  max-height: none;
+}
+
+.corners-actions {
+  margin-top: 16px;
+}

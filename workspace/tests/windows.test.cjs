@@ -53,6 +53,27 @@ test('shared behaviour updates existing windows and unsubscription prevents upda
   assert.equal(document.querySelector('.ds-window'), null);
 });
 
+test('vertical manual sizes restore an auto width without replacing it with a preset', () => {
+  const stored = new Map(), storage = { getItem: key => stored.get(key), setItem: (key, value) => stored.set(key, value) };
+  const { element } = createWindowFixture();
+  let settings = Settings.create({ storage });
+  let view = Windows.create({ settings, Window }).mount(element, 'window.preview', {
+    mode: 'side', side: 'bottom', size: 'auto', resizable: true,
+  });
+  view.open();
+  const grip = view.element.querySelector('.ds-window-resize');
+  pointer(grip, 'pointerdown', 100, 100);
+  pointer(grip, 'pointermove', 100, 40);
+  pointer(grip, 'pointerup', 100, 40);
+  assert.deepEqual(settings.get('preview.windows.window.preview.size'), { width: null, height: 340 });
+  view.destroy();
+  settings = Settings.create({ storage });
+  view = Windows.create({ settings, Window }).mount(element, 'window.preview', { mode: 'side', side: 'bottom', size: 'md' });
+  assert.deepEqual(view.getSize(), { width: null, height: 340 });
+  assert.equal(view.element.dataset.size, 'custom');
+  view.destroy();
+});
+
 test('malformed stored sizes are ignored, and mounting/programmatic updates do not save a size', () => {
   const { element } = createWindowFixture(), settings = Settings.create();
   for (const size of [null, [], { width: '800', height: -1 }, { width: 999999, height: {} }]) {

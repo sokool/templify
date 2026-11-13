@@ -37,7 +37,7 @@ test('export opens without JS errors and preserves server-rendered nodes', async
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(url);
-  await expect(page.locator('.export-example')).toHaveCount(22);
+  await expect(page.locator('.export-example')).toHaveCount(23);
   expect(await page.evaluate(() => !!window.Templify && !!window.htmx)).toBe(true);
   await page.evaluate(() => {
     const card = document.querySelector('#example-card [data-ui="card"]');
@@ -63,6 +63,11 @@ test('export opens without JS errors and preserves server-rendered nodes', async
   await expect(page.locator('#example-autocomplete input[type="hidden"]')).toHaveValue('oak');
   await page.locator('#example-list [data-list-page="next"]').click();
   await expect(page.locator('#example-list tbody tr:visible')).toHaveCount(1);
+  const switcher = page.locator('#example-theme-switcher [data-theme-select]');
+  await expect(switcher.locator('option')).toHaveCount(3);
+  await switcher.selectOption('dark');
+  await expect(page.locator('html')).toHaveAttribute('data-ds-theme', 'dark');
+  await expect(page.locator('html')).toHaveAttribute('data-ds-theme-base', 'dark');
   await page.evaluate(() => {
     const board = document.querySelector('[data-ui="kanban-board"]'), card = board.querySelector('.ds-card');
     window.originalKanbanCard = card;
@@ -71,6 +76,21 @@ test('export opens without JS errors and preserves server-rendered nodes', async
   });
   await expect(page.locator('#example-kanban-board [data-column-id="done"] .ds-card')).toHaveCount(1);
   expect(errors).toEqual([]);
+});
+
+test('export page background follows Light, Dark and Matrix themes', async ({ page }) => {
+  await page.goto(url);
+  const switcher = page.locator('#example-theme-switcher [data-theme-select]');
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(243, 246, 250)');
+  for (const [theme, background] of [
+    ['dark', 'rgb(36, 36, 36)'],
+    ['matrix', 'rgb(12, 17, 14)'],
+    ['light', 'rgb(243, 246, 250)'],
+  ]) {
+    await switcher.selectOption(theme);
+    await expect(page.locator('html')).toHaveAttribute('data-ds-theme', theme);
+    await expect(page.locator('body')).toHaveCSS('background-color', background);
+  }
 });
 
 test('Window adopts HTML and retains form values while updating every behaviour option', async ({ page }) => {
@@ -91,6 +111,36 @@ test('Window adopts HTML and retains form values while updating every behaviour 
   await page.keyboard.press('Escape'); await expect(dialog).toBeVisible();
   await page.evaluate(() => Templify.get(document.querySelector('#window-preview')).close());
   await expect(dialog).toBeHidden();
+});
+
+test('exported Window reads four-edge and named-size HTML settings without demo dependencies', async ({ page }) => {
+  await page.goto(url);
+  const dialog = page.locator('#window-preview');
+  for (const [side, size, height] of [['top', 'sm', 400], ['bottom', 'xs', 320]]) {
+    await page.evaluate(({ side, size }) => {
+      const element = document.getElementById('window-preview');
+      Templify.destroy(element);
+      Object.assign(element.dataset, { side, size, duration: '0' });
+      Templify.init(element);
+    }, { side, size });
+    await page.locator('[data-ui-open="window-preview"]').click();
+    await expect(dialog).toHaveAttribute('data-side', side);
+    await expect(dialog).toHaveAttribute('data-size', size);
+    await expect(dialog).toHaveCSS('height', height + 'px');
+    await expect(dialog).toHaveCSS('width', '1280px');
+    await dialog.locator('[data-ui-close]').click();
+    await expect(dialog).toBeHidden();
+  }
+  await page.evaluate(() => {
+    const view = Templify.get(document.getElementById('window-preview'));
+    view.update({ size: 'auto' });
+    view.open();
+  });
+  await expect(dialog).toHaveCSS('--ds-window-height', 'fit-content');
+  const box = await dialog.boundingBox();
+  expect(box.height).toBeGreaterThan(0);
+  expect(box.height).toBeLessThan(320);
+  await expect(page.locator('.window-demo')).toHaveCount(0);
 });
 
 test('HTML-first APIs update controls without replacing markup or swallowing submission', async ({ page }) => {

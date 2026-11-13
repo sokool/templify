@@ -38,7 +38,10 @@ Wymagane zależności są dołączane automatycznie z opisem przyczyny.
 Narzędzie generuje paczkę lokalnie w przeglądarce. Nie przesyła danych na serwer
 i nie wymaga usługi eksportowej. Pierwszy eksport pobiera lokalny kompilator WASM;
 następne korzystają z tej samej instancji. Do paczki nie trafia kompilator ani narzędzie.
-Style są wspólnymi stylami domyślnymi; importy/backupy ustawień pozostają w Settings.
+`ui.css` zawiera aktualną konfigurację wszystkich motywów: kolory, typografię,
+parametry ikon, cienie, zaokrąglenia i ustawienia komponentów. Aktywny motyw staje się motywem
+początkowym eksportu. Fonty wybrane w motywach są pobierane z Google Fonts i wymagają
+połączenia z siecią. Importy i backupy ustawień workspace pozostają w Settings.
 
 `npm run build` generuje `tools/export/dist/` ze źródeł, w tym źródłowy snapshot dla
 przeglądarki (nie ręczny rejestr/manifest komponentów). Katalog nie jest wersjonowany;
@@ -61,7 +64,7 @@ być nowy lub pusty — eksporter nie usuwa i nie nadpisuje istniejącej pracy.
 ```text
 export/
   index.html          prezentacja wszystkich wyeksportowanych komponentów
-  ui.css              jeden CSS, wraz ze wspólnymi stylami
+  ui.css              jeden CSS, wraz ze wspólnymi stylami i motywami
   ui.js               jeden JS, z modułów wybranych komponentów
   htmx.min.js         lokalna, przypięta wersja HTMX
   components/*.html   kopie źródłowych HTML wraz z komentarzami

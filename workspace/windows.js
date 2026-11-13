@@ -11,7 +11,7 @@
       const preferences = settings.scope('preview.windows.' + id);
       function size() {
         const saved = preferences.get('size', {}), result = {};
-        if (saved && Number.isFinite(saved.width) && saved.width >= 240 && saved.width <= 1200) result.width = saved.width;
+        if (saved && (saved.width === null || Number.isFinite(saved.width) && saved.width >= 240 && saved.width <= 1200)) result.width = saved.width;
         if (saved && (saved.height === null || Number.isFinite(saved.height) && saved.height >= 160 && saved.height <= 2400)) result.height = saved.height;
         return result;
       }

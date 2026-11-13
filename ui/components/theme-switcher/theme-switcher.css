@@ -1,0 +1,3 @@
+.theme-switcher{display:inline-flex;align-items:center;gap:10px;color:var(--ds-colour-text);font:inherit}
+.theme-switcher select{max-width:100%;padding:8px 12px;border:1px solid var(--ds-colour-border);border-radius:var(--ds-radius-controls,8px);background:var(--ds-colour-panel);color:inherit;font:inherit;font-size:max(var(--ds-input-font-size-min,0px),1em);cursor:pointer}
+.theme-switcher select:focus-visible{outline:2px solid var(--ds-colour-accent);outline-offset:3px}

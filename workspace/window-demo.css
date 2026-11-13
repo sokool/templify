@@ -1,0 +1,12 @@
+/* Playground controls only; not part of the Window component or its export. */
+.window-demo{max-width:900px;min-width:0}
+.window-demo-options{display:grid;gap:20px;min-width:0;margin-top:24px}
+.window-demo-group{min-width:0;margin:0;padding:20px;border:1px solid var(--ds-colour-border);border-radius:12px}
+.window-demo-group>legend{padding-inline:8px;font-size:16px;font-weight:600}
+.window-demo-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.window-demo-content{display:grid;gap:20px;min-width:0;max-width:64ch}
+.window-demo-content>h3,.window-demo-content>p,.window-demo-tasks>h3{margin:0}
+.window-demo-meta{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.window-demo-tasks{display:grid;gap:12px}
+.window-demo-footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:12px}
+@container ds-shell-content (max-width:500px){.window-demo-fields{grid-template-columns:minmax(0,1fr)}.window-demo-group{padding:16px}}

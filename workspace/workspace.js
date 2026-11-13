@@ -34,7 +34,7 @@
     themes,
     settings,
   });
-  const fonts = ExampleFonts.create({ document, storage, storageKey: prefix + '-font' });
+  const fonts = ExampleFonts.create({ document, storage, themes, storageKey: prefix + '-font' });
   settings.batch(() => {
     settings.scope('layout.fonts').defaults({ family: fonts.value });
     settings.scope('layout.navigation').defaults({
@@ -125,6 +125,12 @@
       anchor: 'topschrank.tools.shadows',
       path: ['theme', 'shadows'],
       render: (page) => renderTool(page, 'shadows'),
+    },
+    corners: {
+      label: 'Corners',
+      anchor: 'templify.theme.corners',
+      path: ['theme', 'corners'],
+      render: (page) => renderTool(page, 'corners'),
     },
     fonts: { label: 'Typography', anchor: 'topschrank.fonts', path: ['theme', 'fonts'], render: renderFontsPage },
     ...Object.fromEntries(
@@ -239,6 +245,18 @@
         contentComponents.push(DesignSystemShortcuts.mount(controls, { shortcuts }));
       },
     },
+    'theme-switcher': {
+      label: 'Theme switcher',
+      anchor: 'topschrank.components.themeswitcher',
+      path: ['components', 'theme-switcher'],
+      render(page) {
+        const lead = document.createElement('p');
+        lead.className = 'example-lead';
+        lead.textContent = 'Switch the complete Theme profile: colours, typography, icons, shadows and corners. Configure each profile in the Theme section.';
+        page.append(lead);
+        mountThemeSwitcher(page);
+      },
+    },
     breadcrumbs: {
       label: 'Breadcrumbs',
       anchor: 'topschrank.components.breadcrumbs',
@@ -257,6 +275,7 @@
         { id: 'fonts', label: 'Typography' },
         { id: 'icons', label: 'Icons and Glyphs' },
         { id: 'shadows', label: 'Shadows' },
+        { id: 'corners', label: 'Corners' },
       ],
     },
     {
@@ -266,6 +285,7 @@
       children: [
         { id: 'navigation', label: 'Navigation' },
         { id: 'shortcuts', label: 'Shortcuts' },
+        { id: 'theme-switcher', label: 'Theme switcher' },
         { id: 'breadcrumbs', label: 'Breadcrumbs' },
         { id: 'kanban-board', label: 'Kanban board' },
         { id: 'card', label: 'Card' },
@@ -301,7 +321,7 @@
   navigation
     .find((entry) => entry.id === 'components')
     .children.sort((a, b) => a.label.localeCompare(b.label, 'en', { sensitivity: 'base' }));
-  const releaseVersion = 'v0.1.6';
+  const releaseVersion = 'v0.1.7';
   DesignSystemNavigation.renderStructure(root, {
     user: { initials: releaseVersion, label: 'Templify ' + releaseVersion },
   });
@@ -321,6 +341,7 @@
     list: 'table-2',
     navigation: 'layout-panel-left',
     shortcuts: 'keyboard',
+    'theme-switcher': 'sun-moon',
     notifications: 'bell',
     'process-steps': 'workflow',
     progress: 'loader-circle',
@@ -353,9 +374,11 @@
   const deviceButtons = ['desktop', 'tablet', 'mobile'].map((device) =>
     utility(device, device[0].toUpperCase() + device.slice(1), () => setDevice(device)),
   );
-  const themeButton = utility('theme', 'Change theme', () => {
-    themes.next();
-  });
+  const themeButton = utility('theme', 'Change theme', () => {});
+  themeButton.dataset.ui = 'theme-switcher';
+  themeButton.dataset.themeNext = '';
+  themeButton.querySelector('.menu-utility-label').dataset.themeLabel = '';
+  DesignSystemThemeSwitcher.mount(themeButton, { themes });
   function utility(glyph, label, action) {
     const button = document.createElement('button');
     button.type = 'button';
@@ -383,23 +406,6 @@
   function setTheme(theme) {
     themes.select(theme);
   }
-  function syncThemeControl(state) {
-    const modes = state.themes;
-    const glyphs = { light: 'sun', dark: 'moon', matrix: 'square-terminal' };
-    const name = modes.find((entry) => entry.id === state.theme).label;
-    const next = modes[(modes.findIndex((entry) => entry.id === state.theme) + 1) % modes.length];
-    const label =
-      'Theme: ' + name + (modes.length > 1 ? '. Switch to ' + next.label : '. No other themes');
-    themeButton.disabled = modes.length < 2;
-    themeButton.querySelector('.ui-icon').outerHTML = DesignSystemIcons.svg(
-      glyphs[next.id] || 'palette',
-    );
-    themeButton.querySelector('.menu-utility-label').textContent = next.label;
-    themeButton.dataset.theme = state.theme;
-    themeButton.setAttribute('aria-label', label);
-  }
-  themes.subscribe(syncThemeControl);
-  syncThemeControl(themes.getState());
   setDevice(
     ['desktop', 'tablet', 'mobile'].includes(saved('device', 'desktop'))
       ? saved('device', 'desktop')
@@ -444,9 +450,23 @@
       section === 'components' ? 'Component workspace' : 'Templify';
     page.querySelector('h1').textContent = routes[id].label;
     routes[id].render(page);
+    if (section === 'theme') {
+      const host = document.createElement('div');
+      page.querySelector('h1').after(host);
+      mountThemeSwitcher(host);
+    }
     shell.slots.content.replaceChildren(page);
     if (push && location.hash !== '#' + routes[id].anchor)
       history.pushState(null, '', '#' + routes[id].anchor);
+  }
+  function mountThemeSwitcher(host) {
+    const label = document.createElement('label');
+    label.className = 'theme-switcher'; label.dataset.ui = 'theme-switcher';
+    const text = document.createElement('span'); text.textContent = 'Theme';
+    const select = document.createElement('select');
+    select.dataset.themeSelect = ''; select.setAttribute('aria-label', 'Theme');
+    label.append(text, select); host.append(label);
+    contentComponents.push(DesignSystemThemeSwitcher.mount(label, { themes }));
   }
   function renderKanban(page, standalone = false) {
     page.dataset.example = standalone ? 'card' : 'kanban';
@@ -574,7 +594,7 @@
     const tool = document.createElement('div');
     page.append(tool);
     contentComponents.push(
-      ExampleIcons.mount(tool, { icons: DesignSystemIcons, categories: ExampleIconCategories }),
+      ExampleIcons.mount(tool, { icons: DesignSystemIcons, categories: ExampleIconCategories, themes }),
     );
   }
   function renderPalettePage(page) {
@@ -591,7 +611,7 @@
   function renderThemeIndex(page) {
     page.insertAdjacentHTML(
       'beforeend',
-      '<p class="example-lead">Configure the shared look and feel of your components.</p><nav class="example-tools-index" aria-label="Theme"><a class="example-link" href="#topschrank.palette">Colours →</a><a class="example-link" href="#topschrank.fonts">Typography →</a><a class="example-link" href="#topschrank.iconsandglyphs">Icons and Glyphs →</a><a class="example-link" href="#topschrank.tools.shadows">Shadows →</a></nav>',
+      '<p class="example-lead">Configure the shared look and feel of your components.</p><nav class="example-tools-index" aria-label="Theme"><a class="example-link" href="#topschrank.palette">Colours →</a><a class="example-link" href="#topschrank.fonts">Typography →</a><a class="example-link" href="#topschrank.iconsandglyphs">Icons and Glyphs →</a><a class="example-link" href="#topschrank.tools.shadows">Shadows →</a><a class="example-link" href="#templify.theme.corners">Corners →</a></nav>',
     );
   }
   function renderTool(page, kind) {

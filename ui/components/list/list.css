@@ -2,13 +2,13 @@
 .ds-list{min-width:0;max-width:100%;color:var(--ds-colour-text);font-family:var(--ds-font-family);font-size:var(--ds-font-size-body,14px)}
 .ds-list,.ds-list *{box-sizing:border-box}
 .ds-list-toolbar{display:flex;justify-content:flex-end;margin-bottom:12px}
-.ds-list-density{display:inline-flex;padding:3px;border:1px solid var(--ds-colour-divider);border-radius:14px;background:var(--ds-colour-soft)}
-.ds-list .ds-list-button{font:inherit;color:var(--ds-colour-text);border:1px solid var(--ds-colour-border);border-radius:7px;background:var(--ds-colour-panel);cursor:pointer}
+.ds-list-density{display:inline-flex;padding:3px;border:1px solid var(--ds-colour-divider);border-radius:var(--ds-radius-panels,14px);background:var(--ds-colour-soft)}
+.ds-list .ds-list-button{font:inherit;color:var(--ds-colour-text);border:1px solid var(--ds-colour-border);border-radius:var(--ds-radius-buttons,7px);background:var(--ds-colour-panel);cursor:pointer}
 .ds-list-density .ds-list-button{padding:8px 14px;border-color:transparent;background:transparent;color:var(--ds-colour-muted);font-weight:600}
 .ds-list-density .ds-list-button[aria-pressed=true]{background:var(--ds-colour-panel);border-color:var(--ds-colour-accent);color:var(--ds-colour-accent)}
 .ds-list .ds-list-button:hover:not(:disabled){background:var(--ds-colour-hover)}
 .ds-list .ds-list-button:focus-visible{outline:2px solid var(--ds-colour-accent);outline-offset:2px}
-.ds-list-frame{border:1px solid var(--ds-list-border,var(--ds-colour-divider));border-radius:16px;overflow:hidden;background:var(--ds-list-background,var(--ds-colour-panel))}
+.ds-list-frame{border:1px solid var(--ds-list-border,var(--ds-colour-divider));border-radius:var(--ds-list-radius,var(--ds-radius-panels,16px));overflow:hidden;background:var(--ds-list-background,var(--ds-colour-panel))}
 .ds-list-table{border-collapse:collapse;table-layout:fixed;width:100%;font-size:12px;text-align:left}
 .ds-list-table th{padding:12px 10px;text-transform:uppercase;letter-spacing:.04em;font-weight:700;font-size:11px;color:var(--ds-colour-muted);background:var(--ds-colour-soft);overflow-wrap:anywhere}
 .ds-list-table td{padding:12px 10px;border-top:1px solid var(--ds-colour-divider);vertical-align:middle;overflow-wrap:anywhere}

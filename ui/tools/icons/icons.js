@@ -1,14 +1,21 @@
 /* Catalogue tool, not a component dependency. The asset library knows none of this UI. */
 (function(global){
 'use strict';
-function mount(element,{icons=global.DesignSystemIcons,categories=global.ExampleIconCategories,tags=global.ExampleIconTags||{},controls,copy,onCopied=()=>{}}={}){
+ function mount(element,{icons=global.DesignSystemIcons,categories=global.ExampleIconCategories,tags=global.ExampleIconTags||{},themes,controls,copy,onCopied=()=>{}}={}){
  const document=element.ownerDocument;
  element.classList.add('example-icon-catalogue');
  if(!controls){
   element.innerHTML='<p class="example-lead">Find an icon, adjust its preview size, or click to copy its name.</p><div class="example-icon-tools"><label class="example-icon-search"><span>Find an icon</span><input type="search" placeholder="Search by name or context…" autocomplete="off"></label><label class="example-icon-size">Icon size <input type="range" min="16" max="40" step="2" value="20"><output>20 px</output></label><span class="example-icon-count" role="status" aria-live="polite"></span></div><div class="example-icon-groups"></div><p class="example-icon-status" role="status" aria-live="polite"></p><section class="example-glyphs"><h2>Keyboard glyphs</h2><p>Text symbols for shortcuts and instructions; they inherit the interface font.</p><div><kbd>Ctrl</kbd><kbd>⌘</kbd><kbd>⌥</kbd><kbd>⇧</kbd><kbd>Esc</kbd><kbd>↵</kbd><kbd>←</kbd><kbd>→</kbd></div></section>';
   controls={search:element.querySelector('input[type=search]'),size:element.querySelector('input[type=range]'),output:element.querySelector('output'),count:element.querySelector('.example-icon-count'),groups:element.querySelector('.example-icon-groups'),status:element.querySelector('.example-icon-status')};
  }
- const {search,size,output,count,groups,status}=controls;
+  const {search,size,output,count,groups,status}=controls;
+  size.setAttribute('aria-label','Icon size');
+  let stroke;
+  if(themes){
+   const label=document.createElement('label');label.className='example-icon-size';label.textContent='Stroke weight ';
+   stroke=document.createElement('input');stroke.type='range';stroke.min='1';stroke.max='3';stroke.step='0.25';stroke.setAttribute('aria-label','Icon stroke weight');label.append(stroke);size.parentElement.after(label);
+   const lead=element.querySelector('.example-lead');if(lead)lead.textContent='Find an icon or configure icon size and stroke weight for the active theme. Click an icon to copy its name.';
+  }
  const write=copy|| (value=>global.navigator.clipboard.writeText(value));
  let disposed=false;
  function render(){
@@ -29,8 +36,12 @@ function mount(element,{icons=global.DesignSystemIcons,categories=global.Example
  }
  function resize(){const pixels=Math.max(16,Math.min(40,Number(size.value)||20));element.style.setProperty('--catalog-icon-size',pixels+'px');element.style.setProperty('--catalog-tile-size',(pixels+24)+'px');size.value=pixels;output.value=pixels+' px';output.textContent=pixels+' px'}
  async function onClick(event){const button=event.target.closest('[data-icon-name]');if(!button||!groups.contains(button))return;const name=button.dataset.iconName;try{await write(name);if(disposed)return;if(status)status.textContent='Copied: '+name;onCopied('Copied icon name: '+name)}catch{if(disposed)return;if(status)status.textContent='Icon name: '+name;onCopied('Icon name: '+name)}}
- search.addEventListener('input',render);size.addEventListener('input',resize);groups.addEventListener('click',onClick);resize();render();
- return {destroy(){disposed=true;search.removeEventListener('input',render);size.removeEventListener('input',resize);groups.removeEventListener('click',onClick)}};
+  function sync(state){const value=state.appearance[state.theme];size.value=value.iconSize;if(stroke)stroke.value=value.iconStroke;resize()}
+  function changeSize(){if(themes)themes.setAppearance(themes.getState().theme,{iconSize:Number(size.value)});else resize()}
+  function changeStroke(){themes.setAppearance(themes.getState().theme,{iconStroke:Number(stroke.value)})}
+  const unsubscribe=themes?.subscribe(sync);
+  search.addEventListener('input',render);size.addEventListener('input',changeSize);stroke?.addEventListener('input',changeStroke);groups.addEventListener('click',onClick);if(themes)sync(themes.getState());else resize();render();
+  return {destroy(){disposed=true;unsubscribe?.();search.removeEventListener('input',render);size.removeEventListener('input',changeSize);stroke?.removeEventListener('input',changeStroke);groups.removeEventListener('click',onClick)}};
 }
 global.ExampleIcons={mount};
 })(typeof globalThis!=='undefined'?globalThis:this);
