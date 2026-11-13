@@ -1,0 +1,10 @@
+<!--
+Component: Telephone input
+Purpose: A telephone field with the platform telephone keyboard.
+Elements: Label, telephone input and inline validation message.
+JavaScript behavior: Displays native validation errors and clears them on form reset. Supply pattern when the application requires a particular format.
+-->
+<div class="ds-component ds-field" data-ui="field-tel" data-type="tel">
+  <div class="ds-field-caption"><label class="ds-field-label" for="field-tel-input">Telephone</label><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></div>
+  <div class="ds-field-body"><input class="ds-field-control" id="field-tel-input" type="tel" name="telephone" autocomplete="tel" placeholder="+48 123 456 789"></div>
+</div>

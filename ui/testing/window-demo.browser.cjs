@@ -276,6 +276,13 @@ test('numeric validation, touch sizing and narrow layouts stay usable', async ({
     await demo(page).getByRole('button', { name: 'Open window', exact: true }).click();
     await expect(preview(page)).toBeInViewport();
     await expect(preview(page)).toHaveCSS('width', '370px');
+    await expect(preview(page)).toHaveCSS('height', '824px');
+    const bounds = await preview(page).boundingBox();
+    expect(bounds.x).toBeCloseTo(10);
+    expect(bounds.y).toBeCloseTo(10);
+    await expect(preview(page).locator('.ds-window-resize')).toBeHidden();
+    await expect(preview(page).locator('.ds-window-header')).toBeInViewport();
+    await expect(preview(page).locator('.ds-window-footer')).toBeInViewport();
     await preview(page).getByRole('button', { name: 'Cancel', exact: true }).click();
   } finally { await context.close(); }
 });

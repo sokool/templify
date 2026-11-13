@@ -2,9 +2,9 @@
 Component: Theme switcher
 Purpose: Select a shared theme for colours, typography, icons, shadows and corners.
 Elements: A labelled native select lists theme IDs matching data-ds-theme CSS selectors. Optional buttons with data-theme-next cycle through the available themes.
-JavaScript behavior: Updates data-ds-theme, data-ds-theme-base and data-theme on the document root and synchronises other switchers. The host may supply a themes service to mount(element, { themes }) to apply and persist complete theme profiles. Exported applications provide theme CSS and font delivery. Emits a bubbling ui:theme-change event after selection. destroy() removes listeners and subscriptions without changing the selected theme.
+JavaScript behavior: Updates data-ds-theme, data-ds-theme-base and data-theme on the document root and synchronises other switchers. Registers theme-switcher.nextTheme to cycle through themes, with Mod+Shift+L as its default shortcut; data-theme-shortcut declares another default, or an empty value removes the default binding. Saved Shortcuts preferences take precedence. Search lists individual Theme: [label] actions under stable theme-switcher.selectTheme.[id] identifiers, not Next theme. These actions call the same selection handler as the select and track added, renamed and removed themes. Actions are unavailable with fewer than two themes. The host may supply a themes service to mount(element, { themes }) to apply and persist complete theme profiles. Exported applications provide theme CSS and font delivery. Emits a bubbling ui:theme-change event after selection. destroy() removes listeners and subscriptions and releases shared actions without changing the selected theme.
 -->
-<label class="theme-switcher" data-ui="theme-switcher">
+<label class="theme-switcher" data-ui="theme-switcher" data-theme-shortcut="Mod+Shift+L">
   <span>Theme</span>
   <select data-theme-select aria-label="Theme">
     <option value="light" data-theme-base="light">Light</option>

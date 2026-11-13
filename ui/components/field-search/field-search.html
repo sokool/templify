@@ -1,0 +1,10 @@
+<!--
+Component: Search input
+Purpose: A single-line search field.
+Elements: Label, native search input and inline validation message.
+JavaScript behavior: Displays native validation errors and clears them on form reset. Search requests are application-owned.
+-->
+<div class="ds-component ds-field" data-ui="field-search" data-type="search">
+  <div class="ds-field-caption"><label class="ds-field-label" for="field-search-input">Search</label><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></div>
+  <div class="ds-field-body"><input class="ds-field-control" id="field-search-input" type="search" name="query" placeholder="Search…" autocomplete="off"></div>
+</div>

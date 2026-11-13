@@ -1,0 +1,10 @@
+<!--
+Component: Week input
+Purpose: An ISO week field with a theme-aware calendar.
+Elements: Label, native week input and validation message; JavaScript adds a week calendar.
+JavaScript behavior: Highlights and selects a complete ISO Monday–Sunday week, including year boundaries. Native min/max/step/required and reset remain authoritative.
+-->
+<div class="ds-component ds-field" data-ui="field-week" data-type="week">
+  <div class="ds-field-caption"><label class="ds-field-label" for="field-week-input">Week</label><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></div>
+  <div class="ds-field-body"><input class="ds-field-control" id="field-week-input" type="week" name="week" min="2026-W01" max="2030-W52"></div>
+</div>

@@ -1,88 +1,115 @@
-# Form
+# Form fields
 
-Native form controls with the migrated floating fine-line field, divided-row select, compact spacing and inline label errors. Missing HTML control types have been added. Runtime does not import any catalogue, configuration tool, theme selector, icon gallery, application data or storage.
+One field per type, with one shared implementation. The Form catalogue loads the
+actual exported HTML templates rather than building a second demonstration form.
+There is no duplicate playground or separate disabled/read-only field catalogue.
 
-## Boundaries
+## Independent exports
 
-- `field.js`: one field frame, label, hint, errors and native control. Includes the shared single-select enhancement. Use this directly from other components/tools: supply data rather than duplicating a dropdown.
-- `validation.js`: descriptive messages based on native `ValidityState`, plus at-least-one group validation.
-- `form.js`: optional composition of fields into sections; owns submit/reset and field lifecycle.
-- `form.css`: shared control typography, focus, state and responsive layout. It uses semantic foundation colours and the inherited font.
-- `form.html` / `client.js`: server-rendered form and optional validation enhancement; see [UI export](../../README.md).
-- `../../../workspace/form-data.js`, `form.js`, `form.css`: catalogue, local submission inspector, demo data and playground. Not a component dependency.
+Choose any `field-*` component in **Tools → Export**, or use:
 
-The old monolithic prototype remains untouched. New examples consume this module.
-
-## Usage
-
-Load foundation CSS once, then `form.css`, `validation.js`, `field.js`, `form.js`, in that order. Classic browser globals and CommonJS exports are available; no bundler or package is required.
-
-```js
-const form = DesignSystemForm.mount(host, {
-  label: 'Project form',
-  sections: [{label: 'Contact', fields: [
-    {name: 'name', label: 'Full name',
-     attrs: {required: true, minlength: 2, autocomplete: 'name'},
-     messages: {required: 'Enter your full name.'}},
-    {kind: 'select', name: 'project', label: 'Project',
-     attrs: {required: true}, options: [
-       {value: '', label: 'Choose a project…'},
-       {value: 'wardrobe', label: 'Made-to-measure wardrobe'}
-     ]}
-  ]}],
-  onSubmit({data, submitter}) { /* caller sends FormData, if desired */ }
-});
-form.addField({kind: 'button', type: 'submit', name: 'action',
-  text: 'Save', attrs: {value: 'save'}});
+```sh
+npm run export -- --components field-number,field-range,field-select --out ./my-fields
 ```
 
-Independent select (including from a configurator):
+Each field includes its documented HTML, shared CSS and local JavaScript. It does
+not require the Form container, Buttons, workspace, storage or configuration tools.
+The existing exporter discovers fields by the same directory convention as every
+other component; no field manifest or special export path is needed.
 
-```js
-const select = DesignSystemFormField.mount(host, {
-  kind: 'select', name: 'padding', label: 'Padding', value: 'regular',
-  options: [{value: 'tight', label: 'Tight · 4 × 7 px'},
-            {value: 'regular', label: 'Regular · 8 × 11 px'}],
-  onChange({value, eventType}) { if (eventType === 'change') apply(value); }
-});
-```
+| Family | Export names |
+| --- | --- |
+| Text | `field-text`, `field-password`, `field-email`, `field-tel`, `field-url`, `field-search`, `field-textarea` |
+| Numeric | `field-number`, `field-quantity`, `field-range` |
+| Date/time | `field-date`, `field-time`, `field-datetime-local`, `field-month`, `field-week` |
+| Choices | `field-checkbox`, `field-radio`, `field-switch` |
+| Lists | `field-select`, `field-multiselect`, `field-suggestions` |
+| Other | `field-file`, `field-color`, `field-hidden` |
 
-No outer Form instance is necessary for individual fields. `field.control` is the real input/textarea/select, `field.controls` the group members, and `field.focusTarget` the visible target (select trigger when enhanced). Programmatic native property changes should be followed by `field.sync()` or a native input/change event. `destroy()` removes owned DOM and all event listeners. Fields have no hidden dependency on Buttons; native submit/reset semantics are local to Form.
+Single/grouped selects use the same renderer; single/multiple files use the same
+file field. A checkbox group can contain one or several options. Attributes such as
+`multiple`, `disabled`, `readonly`, `required`, `min`, `max` and `step` configure the
+existing field rather than introducing another implementation.
 
-## Data contract
+## Runtime boundaries
 
-Common: `kind` (default `input`), `type` (default `text`), `id` (generated if omitted), `name`, `label`, `accessibleLabel` for fields without visible labels, `hint`, `unit`, `fullWidth`, `attrs`, `messages`, `patternHint`, `onChange`, `onClick` (receives `{control,event}`).
+- `field.js`: builds fields with `mount(host, options)` or hydrates existing HTML
+  with `enhance(element, options)`. Both paths share validation, events and cleanup.
+- `controls.js`: one select/multiselect option renderer, number stepping, slider
+  fill, free-text suggestions and shared popup positioning/dismissal.
+- `pickers.js`: themed calendar, time, month, ISO-week and hex-colour dialogs.
+- `validation.js`: native `ValidityState` messages and at-least-one group rules.
+- `form.css`: field geometry and theme-token styling, including all popups.
+- `field-client.js`: the HTML-first lifecycle used by independent field exports.
+- `form.html` / `client.js`: optional empty native form container. The application
+  inserts selected field templates and its own buttons/endpoints.
+- `form.js`: retained classic composition API; submission is intercepted only by
+  this explicit JavaScript API, never by the HTML-first Form/field clients.
+- `workspace/form*.js/css`: catalogue ordering/loading/layout only; not exported.
 
-- `input`: text, password, email (including `multiple`), tel, url, search, number, range, date, time, datetime-local, month, week, checkbox, radio, file, color, hidden, submit, image, reset, button.
-- `textarea`: `kind:'textarea'`; rows, cols, maxlength and default value via `attrs`.
-- `select`: data options `{value,label,selected,disabled}` or `{label,disabled,options:[...]}` for optgroups. `value` may initialize a single value or an array. `attrs.multiple/size` retain a native listbox. Single selects share one divided-row renderer and one event/keyboard implementation. The underlying native select remains the form value source.
-- `checkbox-group` / `radio-group`: one `name`, `label` as legend, `options` with label/value/checked/disabled, `required` and optional required message. Checkboxes require at least one enabled option, not every option. `disabled:true` disables the entire fieldset.
-- `suggestions`: datalist strings or `{value,label}`. Free text remains permitted. Only the input is submitted.
-- `switch:true` on a checkbox gives the existing switch presentation while retaining native checkbox semantics.
-- `quantity:true` on a number input adds min/max/step-aware decrement/increment controls.
-- `actions`: details/summary commands using `options:[{label,type,value,onClick}]` and `onAction`. Commands do not select or submit a field value unless explicitly given a submit type/name. Errors may be assigned using `field.setError(message)`.
-
-`attrs` forwards name, value, required, disabled, readonly, placeholder, minlength, maxlength, min, max, step, pattern, autocomplete, form, accept, multiple, checked, rows, cols, size, src, alt, inputmode, title, spellcheck, capture, dirname, form submit overrides and ARIA attributes. Browser applicability rules still apply (for example readonly has no effect on checkboxes). Use boolean values for boolean attributes.
+Native controls stay in the DOM and remain the source of values, native validity,
+`FormData`, defaults and reset. Without JavaScript, controls retain platform UI.
+The system file chooser remains system-owned even with JavaScript.
 
 ## Behaviour
 
-- Standard `FormData` controls inclusion: disabled excluded; readonly/hidden included; unchecked checks omitted; multi-values repeat the key; files remain File objects. `formData(submitter)` includes the chosen submit action. Image submit adds `.x/.y` coordinates of the click.
-- Submit is intercepted with `novalidate`; field messages replace native browser popups. `onSubmit` runs only when registered fields are valid, unless the chosen submitter has `formnovalidate`. No request happens automatically. Native `form.submit()` bypasses submit events; use a submit button or `requestSubmit()`.
-- Validation uses `ValidityState`; required, format, range, step, lengths and custom validity stay native. Custom messages can override required, typeMismatch, min, max, step, minlength, maxlength, pattern or customError. After a validation attempt, input/change updates affected errors.
-- Error text is adjacent to the label on the top border, or alone on that border for an unlabelled field; ARIA invalid/describedby refer to the same message. Group errors cover all group controls. No grey error fill and no native tooltip.
-- `attrs.form` supports externally associated fields. Use `form.attachField(externalField)` to include their custom validation/reset lifecycle, as well as native FormData. The Form takes ownership of attached fields for destruction. Arbitrary foreign controls are not silently enrolled in custom validation.
-- Native reset restores value/defaultSelected/defaultChecked and clears errors, select state and action menus. Never call `field.reset()` to reset native values: it resets the field UI after a native form reset.
-- Select keyboard: arrows, Home/End, typeahead, Enter/Space, Escape, Tab; disabled options/groups skipped; outside pointer/focus dismisses. Focus stays on the combobox and active descendant exposes navigation.
-- Two-column compact grid becomes one column below 560px **of available form width**, including when the sidebar grows. Fields and option text share `--ds-form-control-font-size`. Dates, time, file pickers, color, native multi-select and datalist retain platform UI; visual details vary by browser. File accept is a picker hint, not server validation. Month/week pickers may fall back to text in browsers without native support.
+- Numbers: compact themed up/down buttons or `data-quantity="true"` for minus/plus.
+  Both use native `stepUp`/`stepDown`; disabled/read-only and bounds disable buttons.
+- Slider: native range keyboard behaviour, themed track/fill/thumb, live output
+  and optional `data-unit`. The fill and accessible value update on input/reset.
+- Select: arrows, Home/End, typeahead, Enter/Space, Escape and outside dismissal.
+  Selected options retain a tick and selection colour independently of hover and
+  the keyboard focus outline.
+- Multiselect: the same renderer in an always-visible listbox. Click/Space toggles
+  without modifier keys; Shift+click adds a range. `selectedOptions`, native size,
+  optgroups, disabled options and repeated FormData keys remain supported.
+- Suggestions: a native datalist supplies values to a themed filtered combobox;
+  users may still submit arbitrary free text.
+- Date/time: custom themed popups replace unstyleable platform popups. Calendar
+  arrows/Home/End/PageUp/PageDown move focus; heading buttons switch month/year
+  views. ISO text entry permits distant dates and precise time steps/seconds.
+  Datetime/time changes are drafts until Apply; Escape/outside dismissal cancels.
+  Weeks are ISO Monday–Sunday weeks, including cross-year boundaries.
+- Colour: current-theme palette shortcuts plus arbitrary six-digit hex entry.
+- Every field exposes `control`, `controls`, `focusTarget`, `getValue()`,
+  `validate()`, `setError()`, `sync()`, `reset()` and `destroy()`.
+  `reset()` clears field UI after native form reset, not native values itself.
+- Native property changes should be followed by `sync()` or input/change events;
+  supported attribute mutations are observed automatically.
+- HTML-first fields never intercept submission. Applications own `action/method`,
+  HTMX attributes and server validation. Error messages are shared with ARIA.
+- Destroy removes owned helpers, listeners and observers, restores native focus
+  targets and leaves server-owned markup intact. Classic `mount` owns its DOM and
+  removes it on destroy.
 
-## Styling and exporting
+## Classic API compatibility
 
-Public overrides: `--ds-form-field-height`, `--ds-form-field-radius`, `--ds-form-control-font-size`, `--ds-form-surface`, `--ds-form-error`. Semantic colours and `--ds-font-family` come from Foundations; Light/Dark/Matrix work without importing their tools.
+Load foundations and `form.css`, then `validation.js`, `pickers.js`, `controls.js`,
+`field.js` and optionally `form.js`. CommonJS is also supported.
 
-The exporter bundles CSS/JS dependencies from imports, and copies `form.html`.
-The classic standalone field API still uses field.js, validation.js and form.css
-plus foundations. The visual error-preview configurator has been removed.
+```js
+const field = DesignSystemFormField.mount(host, {
+  type: 'number', name: 'budget', label: 'Budget', unit: 'PLN',
+  attrs: { value: 14200, min: 0, max: 1000000, step: 100 },
+});
+```
 
-## Verification
+The composition API still supports sections, `addField`, `attachField`, submitter
+values, image coordinates, externally associated fields and native reset.
 
-`node --test tests/validation.test.cjs` checks message mapping and group rules. Open `tests/browser.html` through your local development server to run real native DOM/FormData tests: all input types, option groups, keyboard selection, disabled/readonly/hidden semantics, multi-selection, files, image coordinates, submitters, form association, reset, errors, lifecycle. These are separate from the tiny DOM fixture used by other components.
+## Themes and verification
+
+Light, Dark, Matrix and custom themes use shared semantic tokens, font, corners and
+shadows. No popup retains platform grey/blue colours. Field overrides:
+`--ds-form-field-height`, `--ds-form-field-radius`, `--ds-form-control-font-size`,
+`--ds-form-surface`, `--ds-form-error`.
+
+```sh
+npm test
+npx playwright test ui/testing/form-fields.browser.cjs
+```
+
+Browser tests cover every independent export, catalogue uniqueness, native
+submission/reset, number bounds, slider keyboard/fill, select hover/selection,
+themed pickers, calendar navigation, ISO weeks and HTMX teardown/reinitialization.
+`tests/browser.html` retains the classic native DOM/FormData regression suite.

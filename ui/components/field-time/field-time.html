@@ -1,0 +1,10 @@
+<!--
+Component: Time input
+Purpose: A time field with a theme-aware hour/minute picker.
+Elements: Label, native time input and inline validation message; JavaScript adds a time dialog.
+JavaScript behavior: Uses themed hour/minute buttons and precise text entry, including seconds. Apply checks native min/max/step/required. Escape/outside focus dismisses without committing.
+-->
+<div class="ds-component ds-field" data-ui="field-time" data-type="time">
+  <div class="ds-field-caption"><label class="ds-field-label" for="field-time-input">Time</label><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></div>
+  <div class="ds-field-body"><input class="ds-field-control" id="field-time-input" type="time" name="time" value="10:00" min="08:00" max="18:00" step="900"></div>
+</div>

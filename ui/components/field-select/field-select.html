@@ -1,0 +1,14 @@
+<!--
+Component: Select
+Purpose: A single choice with optional grouped options.
+Elements: Label, native select with options/optgroups and inline validation message.
+JavaScript behavior: Adds one shared themed combobox/listbox. Selection has a persistent tick; pointer hover and keyboard focus remain distinct. Supports arrows, Home/End, typeahead, Enter/Space and Escape. The native select owns FormData and reset.
+-->
+<div class="ds-component ds-field" data-ui="field-select" data-kind="select" data-type="select">
+  <div class="ds-field-caption"><label class="ds-field-label" for="field-select-input">Finish</label><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></div>
+  <div class="ds-field-body"><select class="ds-field-control" id="field-select-input" name="finish" required>
+    <option value="">Choose a finish…</option>
+    <optgroup label="Wood"><option value="oak">Natural oak</option><option value="walnut" selected>Walnut</option></optgroup>
+    <optgroup label="Paint"><option value="white" disabled>Unavailable white</option></optgroup>
+  </select></div>
+</div>

@@ -1,0 +1,12 @@
+<!--
+Component: Text suggestions
+Purpose: A free-text field with optional suggested values.
+Elements: Label, text input, datalist source and inline validation message.
+JavaScript behavior: Enhances the datalist with a themed filtered listbox, arrows/Enter/Escape and pointer selection. Free text remains valid; only the input is submitted. Without JavaScript the native datalist is used.
+-->
+<div class="ds-component ds-field" data-ui="field-suggestions" data-type="text">
+  <div class="ds-field-caption"><label class="ds-field-label" for="field-suggestions-input">City</label><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></div>
+  <div class="ds-field-body"><input class="ds-field-control" id="field-suggestions-input" type="text" name="city" placeholder="Type or choose a city…" list="field-suggestions-options" autocomplete="off">
+    <datalist id="field-suggestions-options"><option value="Berlin"></option><option value="Cottbus"></option><option value="Frankfurt (Oder)"></option><option value="Guben"></option></datalist>
+  </div>
+</div>

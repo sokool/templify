@@ -1,0 +1,13 @@
+<!--
+Component: Multiselect
+Purpose: Multiple choices in a theme-aware listbox.
+Elements: Label, native multiple select with option groups and inline validation message.
+JavaScript behavior: Uses the same option renderer as Select. Click or Space toggles a choice without modifier keys; Shift+click selects a range. Arrows/Home/End move keyboard focus. Native selectedOptions, repeated FormData keys, size and reset are preserved.
+-->
+<div class="ds-component ds-field" data-ui="field-multiselect" data-kind="select" data-type="select">
+  <div class="ds-field-caption"><label class="ds-field-label" for="field-multiselect-input">Materials</label><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></div>
+  <div class="ds-field-body"><select class="ds-field-control" id="field-multiselect-input" name="materials" multiple size="6">
+    <optgroup label="Wood"><option value="oak" selected>Oak</option><option value="walnut">Walnut</option></optgroup>
+    <optgroup label="Metal"><option value="steel" selected>Steel</option><option value="brass" disabled>Brass</option></optgroup>
+  </select></div>
+</div>

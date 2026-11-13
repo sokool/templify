@@ -26,6 +26,16 @@ Nie ma manifestów komponentów ani konfiguratorów. Shortcuts jest samodzielnym
 komponentem edycji skrótów. Role kolorów komponentów są osobnymi dokumentami
 `colour-roles.json` używanymi przez generator katalogu kolorów, nie przez eksporter.
 
+Search jest niezależną wyszukiwarką typu Spotlight, opartą na Window. Indeksuje
+linki, nazwane anchory, podłączone menu oraz akcje komponentów. Opcja
+`data-navigation` dodaje lupkę do menu; Navigation deleguje dotychczasowe
+wyszukiwanie do tego komponentu, zachowując zapisane skróty.
+Komponenty mogą udostępniać akcje przez wspólny katalog Shortcuts:
+`searchable: true`, stabilne ID, opis, słowa kluczowe, ikonę i wspólny handler.
+Przypisanie skrótu nie jest wymagane. Szczegóły:
+[Search](components/search/README.md) i
+[Shortcuts](components/shortcuts/README.md#searchable-component-actions).
+
 ## Eksport
 
 ### Z przeglądarki
@@ -73,6 +83,10 @@ export/
 
 Zależności kompozycji wynikają z `data-ui` w HTML (np. Kanban zawiera Card).
 Zależności JS/CSS wynikają z importów; esbuild łączy je bez duplikatów.
+Pola formularza są niezależnymi komponentami `field-*` (np. `field-number`,
+`field-range`, `field-date`, `field-select`). Można eksportować każde osobno,
+bez kontenera `form`. Katalog Form wyświetla te same źródłowe szablony HTML,
+po jednym przykładzie na typ; motywy obejmują również popupy i suwaki.
 Konfiguratory, workspace, storage, testy i narzędzia projektowe nie są eksportowane.
 Build jest potrzebny do **utworzenia** eksportu, nie do jego używania.
 

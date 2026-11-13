@@ -2,11 +2,12 @@
 (function (root) {
   'use strict';
 
+  const modifierKeys = new Set(['Control', 'Meta', 'Alt', 'Shift']);
+
   function normalise(value) {
     if (typeof value !== 'string') return null;
     const parts = value.split('+').map((part) => part.trim().toLowerCase());
-    const key = parts.pop();
-    if (!key || !/^[a-z0-9]$/.test(key)) return null;
+    const key = /^[a-z0-9]$/.test(parts.at(-1)) ? parts.pop().toUpperCase() : null;
     const aliases = {
       mod: 'Mod',
       ctrl: 'Mod',
@@ -24,10 +25,10 @@
       if (!modifier || modifiers.has(modifier)) return null;
       modifiers.add(modifier);
     }
-    if (!modifiers.has('Mod') && !modifiers.has('Alt')) return null;
+    if (!modifiers.size || (!key && modifiers.size < 2)) return null;
     return [
       ...['Mod', 'Alt', 'Shift'].filter((modifier) => modifiers.has(modifier)),
-      key.toUpperCase(),
+      ...(key ? [key] : []),
     ].join('+');
   }
 
@@ -42,7 +43,7 @@
         event.ctrlKey || event.metaKey ? 'Mod' : null,
         event.altKey ? 'Alt' : null,
         event.shiftKey ? 'Shift' : null,
-        key,
+        modifierKeys.has(event.key) ? null : key,
       ]
         .filter(Boolean)
         .join('+'),
@@ -60,11 +61,36 @@
       : value;
   }
 
+  // Commit modifier-only chords on the first release, never a prefix of a
+  // longer shortcut. After any other key, wait until all modifiers are released.
+  function modifierSequence() {
+    let pending = null, blocked = false;
+    const ignored = (event) => event.defaultPrevented || event.isComposing || event.getModifierState?.('AltGraph');
+    return {
+      reset() { pending = null; blocked = false; },
+      keydown(event) {
+        if (!modifierKeys.has(event.key) || ignored(event)) {
+          pending = null;
+          blocked = true;
+        } else if (!blocked) {
+          pending = fromEvent(event);
+        }
+      },
+      keyup(event) {
+        const shortcut = modifierKeys.has(event.key) && !blocked && !ignored(event) ? pending : null;
+        pending = null;
+        blocked = Boolean(event.ctrlKey || event.metaKey || event.altKey || event.shiftKey);
+        return shortcut;
+      },
+    };
+  }
+
   const catalogues = new WeakMap();
   function create({ document } = {}) {
     if (document && catalogues.has(document)) return catalogues.get(document);
     const entries = new Map();
     const listeners = new Set();
+    const modifiers = modifierSequence();
     let preferences = {}, listening = false;
     const binding = (id, fallback) => Object.hasOwn(preferences, id)
       ? preferences[id] === null ? null : normalise(preferences[id]) || fallback
@@ -75,6 +101,12 @@
       group: entry.group,
       defaultShortcut: entry.defaultShortcut,
       shortcut: entry.shortcut,
+      description: entry.description,
+      keywords: entry.keywords,
+      icon: entry.icon,
+      image: entry.image,
+      searchable: entry.searchable,
+      enabled: entry.enabled?.() !== false,
     });
     function notify(type, id) {
       listeners.forEach((listener) => listener({ type, id }));
@@ -91,21 +123,39 @@
       }
       return true;
     }
-    function dispatch(event) {
+    function execute(id, event = {}) {
+      const entry = entries.get(id);
+      return Boolean(entry && entry.enabled?.() !== false && entry.handler(event) === true);
+    }
+    function dispatch(event, shortcut) {
       if (event.defaultPrevented) return;
-      const shortcut = fromEvent(event);
       if (!shortcut) return;
       for (const entry of entries.values()) {
-        if (entry.shortcut !== shortcut || entry.enabled?.() === false) continue;
+        if (entry.shortcut !== shortcut) continue;
         // A handler must confirm success before native browser behavior is replaced.
-        if (entry.handler(event) === true) {
+        if (execute(entry.id, event)) {
           event.preventDefault();
           return;
         }
       }
     }
+    function keydown(event) {
+      modifiers.keydown(event);
+      if (!modifierKeys.has(event.key)) dispatch(event, fromEvent(event));
+    }
+    function keyup(event) {
+      dispatch(event, modifiers.keyup(event));
+    }
+    function detach() {
+      document?.removeEventListener('keydown', keydown);
+      document?.removeEventListener('keyup', keyup);
+      document?.defaultView?.removeEventListener('blur', modifiers.reset);
+      modifiers.reset();
+      listening = false;
+    }
     const catalogue = {
-      register({ id, label, group = '', defaultShortcut = null, handler, enabled }) {
+      register({ id, label, group = '', defaultShortcut = null, handler, enabled,
+        description = '', keywords = '', icon = '', image = '', searchable = false }) {
         if (!id || entries.has(id)) throw new TypeError('Shortcut ID must be unique: ' + id);
         const shortcut = normalise(defaultShortcut);
         if (defaultShortcut !== null && !shortcut) throw new TypeError('Invalid default shortcut');
@@ -118,10 +168,17 @@
           shortcut: binding(id, shortcut),
           handler,
           enabled,
+          description: String(description),
+          keywords: Array.isArray(keywords) ? keywords.join(' ') : String(keywords),
+          icon: String(icon),
+          image: String(image),
+          searchable: Boolean(searchable),
         };
         entries.set(id, entry);
         if (document && !listening) {
-          document.addEventListener('keydown', dispatch);
+          document.addEventListener('keydown', keydown);
+          document.addEventListener('keyup', keyup);
+          document.defaultView?.addEventListener('blur', modifiers.reset);
           listening = true;
         }
         notify('catalogue', id);
@@ -129,14 +186,14 @@
           if (entries.get(id) !== entry) return;
           entries.delete(id);
           if (!entries.size && listening) {
-            document.removeEventListener('keydown', dispatch);
-            listening = false;
+            detach();
           }
           notify('catalogue', id);
         };
       },
       get: (id) => (entries.has(id) ? snapshot(entries.get(id)) : null),
       list: () => [...entries.values()].map(snapshot),
+      execute,
       bindings: () => ({ ...preferences }),
       set,
       reset(id) {
@@ -176,11 +233,10 @@
         return () => listeners.delete(listener);
       },
       destroy() {
-        document?.removeEventListener('keydown', dispatch);
+        detach();
         entries.clear();
         listeners.clear();
         if (document && catalogues.get(document) === catalogue) catalogues.delete(document);
-        listening = false;
       },
     };
     if (document) catalogues.set(document, catalogue);
@@ -189,7 +245,7 @@
 
   // The recorder is the Shortcuts component itself, not a component configurator.
   // The caller owns the catalogue and persistence; this UI only edits bindings.
-  function mount(host, { shortcuts = create({ document: host.ownerDocument }), onChange } = {}) {
+  function mount(host, { shortcuts = create({ document: host.ownerDocument }), actionIds, onChange } = {}) {
     const doc = host.ownerDocument;
     host.classList.add('ds-shortcuts');
     const rows = doc.createElement('div');
@@ -201,6 +257,7 @@
       cleanups = [];
       rows.replaceChildren();
       for (const entry of shortcuts.list()) {
+        if (actionIds && !actionIds.includes(entry.id)) continue;
         let row = Array.from(host.querySelectorAll('[data-shortcut-id]')).find(node => node.dataset.shortcutId === entry.id);
         const adopted = Boolean(row);
         row = row || doc.createElement('div');
@@ -221,27 +278,48 @@
         reset.textContent = 'Reset';
         if (!adopted) { label.append(input); row.append(label, reset); rows.append(row); }
         row.append(error);
+        const modifiers = modifierSequence();
+        const save = (value) => {
+          const success = value !== undefined && shortcuts.set(entry.id, value);
+          error.textContent = success ? '' : 'Use Cmd/Ctrl, Alt or Shift with a letter/number, or combine at least two modifiers.';
+          if (success) onChange?.({ id: entry.id, shortcut: shortcuts.get(entry.id).shortcut });
+        };
         const record = (event) => {
-          if (['Tab', 'Control', 'Meta', 'Alt', 'Shift', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+          modifiers.keydown(event);
+          if (modifierKeys.has(event.key)) {
+            event.stopPropagation();
+            error.textContent = '';
+            return;
+          }
+          if (['Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
           event.preventDefault();
           event.stopPropagation();
           if (event.key === 'Escape') { error.textContent = ''; return; }
           const clear = ['Backspace', 'Delete'].includes(event.key) && !event.ctrlKey && !event.metaKey && !event.altKey;
-          const value = clear ? null : fromEvent(event);
-          const success = (clear || value) && shortcuts.set(entry.id, value);
-          error.textContent = success ? '' : 'Use Cmd/Ctrl/Alt with a letter or number.';
-          if (success) onChange?.({ id: entry.id, shortcut: shortcuts.get(entry.id).shortcut });
+          save(clear ? null : fromEvent(event) || undefined);
+        };
+        const release = (event) => {
+          const value = modifiers.keyup(event);
+          // Let the document observe the release and clear its sequence, but
+          // never dispatch an action while its binding is being recorded.
+          if (modifierKeys.has(event.key)) event.preventDefault();
+          if (!value) return;
+          save(value);
         };
         const restore = () => {
           shortcuts.reset(entry.id);
           onChange?.({ id: entry.id, shortcut: shortcuts.get(entry.id).shortcut });
         };
         input.addEventListener('keydown', record);
+        input.addEventListener('keyup', release);
+        input.addEventListener('blur', modifiers.reset);
         reset.addEventListener('click', restore);
         const unsubscribe = shortcuts.subscribe(() => { input.value = format(shortcuts.get(entry.id)?.shortcut); });
         cleanups.push(() => {
           unsubscribe();
           input.removeEventListener('keydown', record);
+          input.removeEventListener('keyup', release);
+          input.removeEventListener('blur', modifiers.reset);
           reset.removeEventListener('click', restore);
         });
       }

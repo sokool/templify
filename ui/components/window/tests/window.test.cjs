@@ -43,6 +43,22 @@ test('blocking can change while open without dismissal, lost content, focus or l
   assert.equal(document.documentElement.style.overflow, undefined);
 });
 
+test('a command palette can close without stealing focus from the action it launches', (t) => {
+  const { view, document } = setup(t);
+  const opener = document.createElement('button'), destination = document.createElement('input');
+  document.body.append(opener, destination);
+  opener.focus();
+  view.open();
+  destination.focus();
+  view.close('select', { immediate: true, restoreFocus: false });
+  assert.equal(document.activeElement, destination);
+  opener.focus();
+  view.open();
+  destination.focus();
+  view.close();
+  assert.equal(document.activeElement, opener);
+});
+
 test('manual popup resize commits dimensions once; programmatic and viewport changes do not notify', (t) => {
   const changes = [];
   const { view, grip, window } = setup(t, { resizable: true, onResize: size => changes.push(size) });

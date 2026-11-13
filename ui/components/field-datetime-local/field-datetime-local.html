@@ -1,0 +1,10 @@
+<!--
+Component: Date and time input
+Purpose: A local date/time field with a shared calendar and time picker.
+Elements: Label, native datetime-local input and validation message; JavaScript adds a combined dialog.
+JavaScript behavior: Calendar and time changes remain drafts until Apply. Native min/max/step/required validate the combined local value, without timezone conversion. ISO text entry supports precise values.
+-->
+<div class="ds-component ds-field" data-ui="field-datetime-local" data-type="datetime-local">
+  <div class="ds-field-caption"><label class="ds-field-label" for="field-datetime-local-input">Date and time</label><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></div>
+  <div class="ds-field-body"><input class="ds-field-control" id="field-datetime-local-input" type="datetime-local" name="appointment" min="2026-01-01T08:00" max="2030-12-31T18:00"></div>
+</div>

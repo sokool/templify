@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const http = require('node:http');
-const { buildExport } = require('../scripts/export.cjs');
+const { buildExport, available } = require('../scripts/export.cjs');
 let directory, server, url;
 
 test.beforeAll(async () => {
@@ -37,7 +37,7 @@ test('export opens without JS errors and preserves server-rendered nodes', async
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(url);
-  await expect(page.locator('.export-example')).toHaveCount(23);
+  await expect(page.locator('.export-example')).toHaveCount(available().length);
   expect(await page.evaluate(() => !!window.Templify && !!window.htmx)).toBe(true);
   await page.evaluate(() => {
     const card = document.querySelector('#example-card [data-ui="card"]');
@@ -143,10 +143,102 @@ test('exported Window reads four-edge and named-size HTML settings without demo 
   await expect(page.locator('.window-demo')).toHaveCount(0);
 });
 
+test('mobile exported windows fill the screen with a small gap for every layout and keep long content scrollable', async ({ browser }) => {
+  const context = await browser.newContext({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
+  try {
+    const page = await context.newPage();
+    await page.route('https://fonts.googleapis.com/**', route => route.abort());
+    await page.goto(url);
+    const dialog = page.locator('#window-preview');
+    for (const lockScroll of [true, false]) {
+      for (const side of [null, 'left', 'right', 'top', 'bottom']) {
+        await page.evaluate(({ side, lockScroll }) => {
+          const view = Templify.get(document.getElementById('window-preview'));
+          view.update({ mode: side ? 'side' : 'modal', side: side || 'right', size: 'xs', lockScroll, duration: 0 });
+          view.open();
+        }, { side, lockScroll });
+        await expect(dialog).toBeVisible();
+        const bounds = await dialog.boundingBox();
+        expect(bounds.x).toBeCloseTo(10);
+        expect(bounds.y).toBeCloseTo(10);
+        expect(bounds.width).toBeCloseTo(370);
+        expect(bounds.height).toBeCloseTo(824);
+        await expect(dialog).toHaveCSS('border-radius', '16px');
+        await expect(dialog.locator('.ds-window-resize')).toBeHidden();
+        await expect(dialog.locator('.ds-window-header')).toBeInViewport();
+        await expect(dialog.locator('.ds-window-footer')).toBeInViewport();
+        await dialog.locator('[data-ui-close]').click();
+        await expect(dialog).toBeHidden();
+      }
+    }
+    await page.evaluate(() => {
+      const view = Templify.get(document.getElementById('window-preview'));
+      view.update({ mode: 'modal', lockScroll: true });
+      const content = document.createElement('div');
+      content.style.height = '1600px';
+      content.textContent = 'Long content';
+      view.body.append(content);
+      view.open();
+    });
+    const body = dialog.locator('.ds-window-body');
+    expect(await body.evaluate(element => element.scrollHeight > element.clientHeight)).toBe(true);
+    await body.evaluate(element => { element.scrollTop = element.scrollHeight; });
+    expect(await body.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+    await expect(dialog.locator('.ds-window-header')).toBeInViewport();
+    await expect(dialog.locator('.ds-window-footer')).toBeInViewport();
+    await dialog.locator('.ds-window-close').click();
+    await expect(dialog).toBeHidden();
+  } finally { await context.close(); }
+});
+
+test('mobile viewport changes and rotation retain desktop dimensions and form values without resize events', async ({ browser }) => {
+  const context = await browser.newContext({ hasTouch: true, isMobile: true, viewport: { width: 1280, height: 900 } });
+  try {
+    const page = await context.newPage();
+    await page.route('https://fonts.googleapis.com/**', route => route.abort());
+    await page.goto(url);
+    const dialog = page.locator('#window-preview');
+    await page.evaluate(() => {
+      const element = document.getElementById('window-preview');
+      window.mobileResizeEvents = 0;
+      element.addEventListener('ui:resize', () => window.mobileResizeEvents++);
+      const view = Templify.get(element);
+      view.update({ mode: 'modal', width: 520, height: 400, duration: 0 });
+      view.open();
+    });
+    await expect(dialog).toHaveCSS('width', '520px');
+    await expect(dialog).toHaveCSS('height', '400px');
+    await dialog.locator('input').fill('Keep across viewport changes');
+    for (const viewport of [
+      { width: 320, height: 640 }, { width: 390, height: 844 },
+      { width: 390, height: 560 }, { width: 620, height: 900 },
+      { width: 844, height: 390 },
+    ]) {
+      await page.setViewportSize(viewport);
+      await expect(dialog).toHaveCSS('width', viewport.width - 20 + 'px');
+      await expect(dialog).toHaveCSS('height', viewport.height - 20 + 'px');
+      const bounds = await dialog.boundingBox();
+      expect(bounds.x).toBeCloseTo(10);
+      expect(bounds.y).toBeCloseTo(10);
+      await expect(dialog.locator('input')).toHaveValue('Keep across viewport changes');
+    }
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await expect(dialog).toHaveCSS('width', '520px');
+    await expect(dialog).toHaveCSS('height', '400px');
+    await expect(dialog.locator('.ds-window-resize')).toBeVisible();
+    expect(await page.evaluate(() => ({
+      size: Templify.get(document.getElementById('window-preview')).getSize(),
+      resizeEvents: window.mobileResizeEvents,
+    }))).toEqual({ size: { width: 520, height: 400 }, resizeEvents: 0 });
+  } finally { await context.close(); }
+});
+
 test('HTML-first APIs update controls without replacing markup or swallowing submission', async ({ page }) => {
   await page.goto(url);
   const results = await page.evaluate(() => {
-    const form = document.querySelector('[data-ui="form"]'), input = form.querySelector('input');
+    const form = document.querySelector('[data-ui="form"]');
+    form.append(document.querySelector('[data-ui="field-text"]'));
+    const input = form.querySelector('input');
     const validBefore = Templify.get(form).validate(); input.value = 'PRJ-123';
     const validAfter = Templify.get(form).validate();
     const button = document.querySelector('#example-buttons [data-ui="buttons"]');
@@ -251,12 +343,12 @@ test('touch exports keep text controls at least 16px in portrait and landscape w
     const viewport = await page.locator('meta[name="viewport"]').getAttribute('content');
     expect(viewport).not.toMatch(/user-scalable\s*=\s*(?:no|0)|maximum-scale|minimum-scale/i);
     await expectTouchControlFonts(page);
-    await page.locator('#form-reference').focus();
-    await expect(page.locator('#form-reference')).toHaveCSS('font-size', '16px');
-    await page.locator('#form-reference').evaluate(element => {
+    await page.locator('#field-text-input').focus();
+    await expect(page.locator('#field-text-input')).toHaveCSS('font-size', '16px');
+    await page.locator('#field-text-input').evaluate(element => {
       element.closest('.ds-field').style.setProperty('--ds-form-control-font-size', '24px');
     });
-    await expect(page.locator('#form-reference')).toHaveCSS('font-size', '24px');
+    await expect(page.locator('#field-text-input')).toHaveCSS('font-size', '24px');
     await page.setViewportSize({ width: 844, height: 390 });
     await expectTouchControlFonts(page);
     // The foundation opts components in; it must not reset unrelated host controls.
@@ -287,8 +379,8 @@ test('touch workspace controls stay readable despite compact navigation and tool
     }
     await page.setViewportSize({ width: 844, height: 390 });
     await expectTouchControlFonts(page);
-    await page.locator('#menu-search-panel input').evaluate(element => element.focus());
-    await expect(page.locator('#menu-search-panel input')).toHaveCSS('font-size', '16px');
+    await page.getByRole('button', { name: 'Search pages and actions', exact: true }).click();
+    await expect(page.locator('#menu-search-panel input')).toHaveCSS('font-size', '20px');
     const viewport = await page.locator('meta[name="viewport"]').getAttribute('content');
     expect(viewport).not.toMatch(/user-scalable\s*=\s*(?:no|0)|maximum-scale|minimum-scale/i);
   } finally { await context.close(); }
@@ -297,11 +389,11 @@ test('touch workspace controls stay readable despite compact navigation and tool
 test('desktop fields retain their original sizes even in a narrow preview', async ({ page }) => {
   await page.goto(url);
   expect(await page.evaluate(() => matchMedia('(any-pointer: coarse)').matches)).toBe(false);
-  await expect(page.locator('#form-reference')).toHaveCSS('font-size', '14px');
-  await expect(page.locator('#menu-search-panel input')).toHaveCSS('font-size', '12px');
+  await expect(page.locator('#field-text-input')).toHaveCSS('font-size', '14px');
+  await expect(page.locator('#menu-search-panel input')).toHaveCSS('font-size', '28px');
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.locator('#form-reference')).toHaveCSS('font-size', '14px');
+  await expect(page.locator('#field-text-input')).toHaveCSS('font-size', '14px');
   await page.goto(url + '/source/index.html#topschrank.palette');
   await expect(page.locator('.palette-colour-row input[type="text"]').first()).toHaveCSS('font-size', '10px');
-  await expect(page.locator('#menu-search-panel input')).toHaveCSS('font-size', '12px');
+  await expect(page.locator('#menu-search-panel input')).toHaveCSS('font-size', '20px');
 });

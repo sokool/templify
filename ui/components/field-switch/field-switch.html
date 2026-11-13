@@ -1,0 +1,10 @@
+<!--
+Component: Switch
+Purpose: A boolean setting presented as an on/off switch.
+Elements: Labelled native checkbox with role="switch" and inline validation message.
+JavaScript behavior: Shares checkbox validation and reset. Native checked/disabled and keyboard semantics remain intact.
+-->
+<div class="ds-component ds-field ds-field-check" data-ui="field-switch" data-type="checkbox">
+  <div class="ds-field-caption" hidden><span class="ds-field-label"></span><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></div>
+  <div class="ds-field-body"><label class="ds-field-choice"><input class="ds-field-control ds-field-switch" id="field-switch-input" type="checkbox" role="switch" name="notifications" value="enabled" checked><span>Enable notifications</span></label></div>
+</div>

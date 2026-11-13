@@ -30,11 +30,15 @@ function setup(width = 1440, saved = {}, attributes = {}) {
       if (selector[0] === '#') return n.id === selector.slice(1);
       if (selector[0] === '.') return n.className.split(' ').includes(selector.slice(1));
       if (selector === 'button' || selector === 'a') return n.tagName === selector.toUpperCase();
+      const tag = selector.match(/^([a-z][a-z0-9-]*)(\[.*)$/i);
+      if (tag) return n.tagName === tag[1].toUpperCase() && n.matches(tag[2]);
+      const attributes = selector.match(/\[[^\]]+\]/g);
+      if (attributes?.length > 1) return attributes.every(attribute => n.matches(attribute));
       const a = selector.match(/^\[([^=\]]+)(?:="?([^"\]]+)"?)?\]$/);
       if (a) {
         const value = a[1].startsWith('data-')
           ? n.dataset[a[1].slice(5).replace(/-([a-z])/g, (_, c) => c.toUpperCase())]
-          : n.getAttribute(a[1]);
+          : a[1] === 'id' ? n.id || null : n.getAttribute(a[1]);
         return a[2] === undefined ? value !== null && value !== undefined : value === a[2];
       }
       return false;
@@ -66,11 +70,24 @@ function setup(width = 1440, saved = {}, attributes = {}) {
     n.showPopover = () => (n.popoverOpen = true);
     n.hidePopover = () => (n.popoverOpen = false);
     n.scrollBy = ({ top }) => (n.scrollTop += top);
+    Object.defineProperty(n, 'childNodes', { get: () => n.children });
+    Object.defineProperty(n, 'isConnected', { get: () => doc.contains(n) });
+    n.click = () => n.emit('click', { target: n, preventDefault() {} });
+    if (tag === 'dialog') {
+      n.showModal = () => { n.open = true; };
+      n.close = reason => { n.open = false; n.returnValue = reason; n.emit('close'); };
+    }
     return n;
   };
   doc.getElementById = (id) => doc.querySelector('#' + id);
   doc.defaultView = doc.createElement('window');
   doc.defaultView.innerHeight = 800;
+  doc.defaultView.innerWidth = width;
+  doc.defaultView.matchMedia = () => ({ matches: true });
+  doc.defaultView.clearTimeout = clearTimeout;
+  doc.defaultView.location = {};
+  doc.documentElement = doc.createElement('html');
+  doc.body = doc;
   global.matchMedia = () => ({ matches: false });
   global.requestAnimationFrame = (fn) => {
     frames.push(fn);
@@ -206,10 +223,15 @@ test('mobile uses inline groups and hamburger; Escape closes and restores focus'
   mobile.toggle.emit('click');
   assert.equal(f.root.dataset.mobileMenuOpen, 'true');
   assert.equal(f.nav.inert, false);
+  assert.equal(f.doc.activeElement, mobile.close);
   f.parent.emit('click');
   assert.equal(f.panel.hidden, false);
   f.doc.emit('keydown', { key: 'Escape', defaultPrevented: false, preventDefault() {} });
   assert.equal(f.root.dataset.mobileMenuOpen, 'false');
+  assert.equal(f.doc.activeElement, mobile.toggle);
+  mobile.setOpen(true);
+  mobile.close.emit('click');
+  assert.equal(f.nav.inert, true);
   assert.equal(f.doc.activeElement, mobile.toggle);
   mobile.setOpen(true);
   f.nav.emit('click', { target: f.leaf });
@@ -388,10 +410,10 @@ test('fold fades inline submenu before hiding, unfold fades the retained group i
 
 test('search matches all destinations and group names, including closed submenus, without changing group state', () => {
   const fixture = setup();
-  assert(fixture.control.search.input.closest('.ds-field'));
-  assert(fixture.control.search.input.className.split(' ').includes('ds-field-control'));
+  assert(fixture.control.search.dialog.className.split(' ').includes('ds-search-dialog'));
+  assert(fixture.control.search.input.className.split(' ').includes('ds-search-input'));
   assert.equal(fixture.control.search.input.type, 'search');
-  assert.equal(fixture.control.search.input.getAttribute('aria-label'), 'Search menu');
+  assert.equal(fixture.control.search.input.getAttribute('aria-label'), 'Search pages and actions');
   assert(
     !readFileSync(path.resolve(__dirname, '../navigation.css'), 'utf8').includes(
       '.menu-search-input',
@@ -404,69 +426,77 @@ test('search matches all destinations and group names, including closed submenus
   assert.equal(fixture.control.expandedGroups.components, false);
   const result = fixture.control.search.results.querySelector('button');
   assert.equal(result.getAttribute('aria-label'), 'Components → Forms');
-  result.emit('click');
+  fixture.control.search.results.emit('click', { target: result, preventDefault() {} });
   assert.deepEqual(fixture.navigated, ['forms']);
   assert.equal(fixture.control.search.input.value, '');
-  assert.equal(fixture.doc.activeElement, fixture.control.search.input);
   fixture.control.search.setQuery('not a destination');
   assert.equal(fixture.control.search.results.hidden, true);
   assert.match(
-    fixture.control.slots.search.querySelector('.menu-search-status').textContent,
+    fixture.control.slots.search.querySelector('.ds-search-status').textContent,
     /No matching/,
   );
   fixture.control.destroy();
 });
 
-test('search supports the icon rail popup, keyboard selection, dismissal and runtime disabling', () => {
+test('Search owns a central Window, keyboard selection, dismissal and runtime disabling', () => {
   const fixture = setup();
   fixture.control.setCollapsed(true);
   const search = fixture.control.search;
-  const trigger = search.element.querySelector('.menu-search-toggle');
-  const panel = search.element.querySelector('.menu-search-panel');
-  assert.equal(search.element.dataset.compact, 'true');
-  trigger.emit('click');
-  assert(panel.matches(':popover-open'));
+  const trigger = search.trigger;
+  const panel = search.dialog;
+  assert.equal(trigger.closest('.menu-sidebar-footer'), fixture.footer);
+  search.update({ showNavigationTrigger: false });
+  assert.equal(search.trigger, null);
+  assert.equal(search.enabled, true);
+  assert.equal(search.shortcut, 'Mod+K');
+  assert.equal(search.setQuery('forms').length, 1);
+  search.update({ showNavigationTrigger: true });
+  assert.equal(search.trigger.closest('.menu-sidebar-footer'), fixture.footer);
+  const footerTrigger = search.trigger;
+  footerTrigger.focus();
+  footerTrigger.emit('click');
+  assert(panel.open);
   assert.equal(fixture.doc.activeElement, search.input);
   search.setQuery('forms');
-  panel.emit('keydown', { key: 'ArrowDown', target: search.input, preventDefault() {} });
-  assert.equal(fixture.doc.activeElement, search.results.querySelector('button'));
-  panel.emit('keydown', { key: 'Escape', target: search.input, preventDefault() {} });
-  assert(!panel.matches(':popover-open'));
-  assert.equal(fixture.doc.activeElement, trigger);
-  trigger.emit('click');
+  search.input.emit('keydown', { key: 'ArrowDown', target: search.input, preventDefault() {} });
+  assert.equal(fixture.doc.activeElement, search.input);
+  assert.equal(search.input.getAttribute('aria-activedescendant'), search.results.querySelector('button').id);
+  search.input.emit('keydown', { key: 'Escape', target: search.input, preventDefault() {} });
+  assert(!panel.open);
+  assert.equal(fixture.doc.activeElement, footerTrigger);
+  footerTrigger.emit('click');
   search.setQuery('forms');
   fixture.control.setSearchEnabled(false);
   assert.equal(search.enabled, false);
-  assert(search.element.hidden);
-  assert(!panel.matches(':popover-open'));
+  assert(search.trigger.parentNode.hidden);
+  assert(!panel.open);
   assert.deepEqual(search.setQuery('forms'), []);
   fixture.control.setSearchEnabled(true);
-  assert(!search.element.hidden);
+  assert(!search.trigger.parentNode.hidden);
   fixture.control.setCollapsed(false);
-  assert.equal(search.element.dataset.compact, 'false');
   assert.equal(panel.hasAttribute('popover'), false);
   assert.equal(fixture.control.setSearchEnabled('false'), false);
   fixture.control.destroy();
   assert.equal(fixture.root.querySelector('.menu-search-section'), null);
 });
 
-test('rail search flyout is flush with the navigation edge and fits the available viewport', () => {
+test('search is not positioned against the rail and keeps its Window size across navigation layouts', () => {
   const fixture = setup();
   fixture.doc.defaultView.innerWidth = 1024;
   fixture.nav.getBoundingClientRect = () => ({ right: 62 });
   fixture.control.setCollapsed(true);
   fixture.control.focusSearch();
-  const panel = fixture.control.search.element.querySelector('.menu-search-panel');
-  assert.equal(panel.style.left, '62px');
-  assert.equal(panel.style.width, '320px');
-  assert.equal(panel.style.top, '100px');
+  const panel = fixture.control.search.dialog;
+  assert.equal(panel.style.left, undefined);
+  assert.equal(panel.style.getPropertyValue('--ds-window-width'), '680px');
+  assert.equal(panel.hasAttribute('popover'), false);
   fixture.doc.defaultView.innerWidth = 330;
   fixture.doc.defaultView.emit('resize');
-  assert.equal(panel.style.left, '62px');
-  assert.equal(panel.style.width, '260px');
+  assert.equal(panel.style.left, undefined);
+  assert.equal(panel.style.getPropertyValue('--ds-window-width'), '680px');
   fixture.nav.getBoundingClientRect = () => ({ right: 72 });
   fixture.doc.defaultView.emit('scroll');
-  assert.equal(panel.style.left, '72px');
+  assert.equal(panel.style.left, undefined);
   fixture.control.setCollapsed(false);
   assert.equal(panel.hasAttribute('popover'), false);
   fixture.control.destroy();
@@ -483,13 +513,13 @@ test('search normalization is case/accent insensitive, supports multiword paths 
   assert.deepEqual(shell.findMenuItems(entries, 'missing'), []);
 });
 
-test('Cmd/Ctrl+F focuses search globally, opens the rail popup and respects disabled/prevented events', () => {
+test('Cmd/Ctrl+K opens Search globally and respects disabled/prevented events without replacing browser Find', () => {
   const fixture = setup();
   let intercepted = 0;
   for (const modifiers of [{ ctrlKey: true }, { metaKey: true }]) {
     fixture.leaf.focus();
     fixture.doc.emit('keydown', {
-      key: 'f',
+      key: 'k',
       ...modifiers,
       preventDefault() {
         intercepted++;
@@ -498,22 +528,25 @@ test('Cmd/Ctrl+F focuses search globally, opens the rail popup and respects disa
     assert.equal(fixture.doc.activeElement, fixture.control.search.input);
   }
   assert.equal(intercepted, 2);
-  assert.equal(fixture.control.search.input.getAttribute('aria-keyshortcuts'), 'Control+F Meta+F');
+  assert.equal(fixture.control.search.input.getAttribute('aria-keyshortcuts'), 'Control+K Meta+K');
+  fixture.control.search.close();
+  fixture.leaf.focus();
+  fixture.doc.emit('keydown', { key: 'f', ctrlKey: true, preventDefault() { intercepted++; } });
+  assert.equal(fixture.doc.activeElement, fixture.leaf);
+  assert.equal(intercepted, 2);
   fixture.control.setCollapsed(true);
   fixture.doc.emit('keydown', {
-    key: 'f',
+    key: 'k',
     ctrlKey: true,
     preventDefault() {
       intercepted++;
     },
   });
-  assert(
-    fixture.control.search.element.querySelector('.menu-search-panel').matches(':popover-open'),
-  );
+  assert(fixture.control.search.dialog.open);
   fixture.control.setSearchEnabled(false);
   fixture.leaf.focus();
   fixture.doc.emit('keydown', {
-    key: 'f',
+    key: 'k',
     ctrlKey: true,
     preventDefault() {
       intercepted++;
@@ -523,7 +556,7 @@ test('Cmd/Ctrl+F focuses search globally, opens the rail popup and respects disa
   assert.equal(fixture.doc.activeElement, fixture.leaf);
   fixture.control.setSearchEnabled(true);
   fixture.doc.emit('keydown', {
-    key: 'f',
+    key: 'k',
     ctrlKey: true,
     defaultPrevented: true,
     preventDefault() {
@@ -568,7 +601,11 @@ test('custom shortcuts match modifiers exactly, support disabling and are remove
 test('shortcut parsing is portable and ignores unsupported keys, IME and AltGraph', () => {
   assert.equal(shell.normaliseSearchShortcut('cmd + shift + k'), 'Mod+Shift+K');
   assert.equal(shell.normaliseSearchShortcut('Alt+1'), 'Alt+1');
-  for (const value of ['F', 'Shift+F', 'Mod+Mod+F', 'Mod+Escape', 'Mod+<script>', '', 12]) {
+  assert.equal(shell.normaliseSearchShortcut('Shift+F'), 'Shift+F');
+  assert.equal(shell.normaliseSearchShortcut('Control+Shift'), 'Mod+Shift');
+  assert.equal(shell.normaliseSearchShortcut('Command+Alt'), 'Mod+Alt');
+  assert.equal(shell.normaliseSearchShortcut('Alt+Shift'), 'Alt+Shift');
+  for (const value of ['F', 'Shift', 'Mod+Mod+F', 'Mod+Escape', 'Mod+<script>', '', 12]) {
     assert.equal(shell.normaliseSearchShortcut(value), null);
   }
   assert.equal(
@@ -665,10 +702,11 @@ test('sidebar shortcut toggles the mobile menu without changing desktop collapse
   // mount installs the mobile adapter; explicit installation remains idempotent.
   const mobile = fixture.control.installMobile();
   assert.equal(mobile.toggle.getAttribute('aria-keyshortcuts'), 'Control+B Meta+B');
+  assert.equal(mobile.close.getAttribute('aria-keyshortcuts'), 'Control+B Meta+B');
   press();
   assert.equal(fixture.root.dataset.mobileMenuOpen, 'true');
   assert.equal(mobile.nav.inert, false);
-  assert.equal(fixture.doc.activeElement, mobile.toggle);
+  assert.equal(fixture.doc.activeElement, mobile.close);
   press();
   assert.equal(fixture.root.dataset.mobileMenuOpen, 'false');
   assert.equal(mobile.nav.inert, true);
@@ -678,6 +716,7 @@ test('sidebar shortcut toggles the mobile menu without changing desktop collapse
   assert.equal(prevented, 2);
   fixture.control.destroy();
   assert.equal(mobile.toggle.getAttribute('aria-keyshortcuts'), null);
+  assert.equal(mobile.close.getAttribute('aria-keyshortcuts'), null);
 });
 
 test('feature attributes and JS setters control the same state and preserve shortcut bindings', () => {

@@ -9,10 +9,11 @@ const { themeConfiguration } = require('../export/project.cjs');
 const { Document } = require('./dom-fixture.cjs');
 
 test('component discovery and HTML composition replace manifests', () => {
-  assert.equal(available().length, 23);
+  assert.equal(available().filter(name => name.startsWith('field-')).length, 24);
   assert.deepEqual(resolveComponents(['theme-switcher']), ['theme-switcher']);
   assert.deepEqual(resolveComponents(['kanban-board']), ['card', 'kanban-board']);
-  assert.deepEqual(resolveComponents(['form']), ['buttons', 'form']);
+  assert.deepEqual(resolveComponents(['form']), ['form']);
+  for (const name of available().filter(name => name.startsWith('field-'))) assert.deepEqual(resolveComponents([name]), [name]);
   assert.deepEqual(resolveComponents(['navigation']), ['navigation']);
   for (const name of ['tooltip', 'window', 'shortcuts']) assert(resolveComponents([name]).includes('buttons'));
   assert.throws(() => resolveComponents(['../workspace']), /Unknown component/);
@@ -79,9 +80,9 @@ test('full export contains every component, local HTMX and licenses', async t =>
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'templify-export-all-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const result = await buildExport({ outdir: directory });
-  assert.equal(result.components.length, 23);
+  assert.equal(result.components.length, available().length);
   assert(!result.inputs.some(file => /configurator|workspace|storage|tools\//.test(file)));
-  assert.equal(fs.readdirSync(path.join(directory, 'components')).length, 23);
+  assert.equal(fs.readdirSync(path.join(directory, 'components')).length, available().length);
   const index = fs.readFileSync(path.join(directory, 'index.html'), 'utf8');
   for (const name of result.components) {
     const source = fs.readFileSync(path.join(__dirname, '../components', name, name + '.html'), 'utf8');

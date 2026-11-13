@@ -38,8 +38,9 @@ test('component exports contain only existing runtime files, never configurators
   for (const name of available()) {
     const base = path.join(root, 'ui/components', name);
     assert(!fs.existsSync(path.join(base, 'manifest.json')));
-    for (const extension of ['html','css','js']) assert(fs.existsSync(path.join(base, name + '.' + extension)));
-    const runtime = fs.readFileSync(path.join(base, name + '.js'), 'utf8');
+    for (const extension of ['html','css']) assert(fs.existsSync(path.join(base, name + '.' + extension)));
+    const runtimeFile = fs.existsSync(path.join(base, name + '.js')) ? name + '.js' : 'client.js';
+    const runtime = fs.readFileSync(path.join(base, runtimeFile), 'utf8');
     assert(!/require\(["'][^"']*(?:configurator|tools|workspace|storage)\//.test(runtime));
   }
 });

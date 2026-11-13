@@ -1,0 +1,71 @@
+/* Search uses Window's modal lifecycle, with its own theme-driven command surface. */
+.ds-search-dialog.ds-window {
+  width: var(--ds-window-width);
+  height: fit-content;
+  max-height: min(720px, calc(100dvh - 48px));
+  border-radius: var(--ds-radius-windows);
+  background: var(--ds-colour-panel);
+  color: var(--ds-colour-text);
+  box-shadow: var(--ds-search-shadow, var(--pattern-shadow, var(--ds-shadow-strong)));
+  font-family: var(--ds-font-family, system-ui, sans-serif);
+}
+.ds-search-dialog.ds-window::backdrop {
+  background: color-mix(in srgb, var(--ds-colour-text) 22%, transparent);
+  backdrop-filter: blur(5px);
+}
+.ds-search-dialog > .ds-window-header {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.ds-search-dialog > .ds-window-body { display: flex; flex-direction: column; min-height: 0; padding: 0; overflow: hidden; }
+.ds-search-bar { display: flex; align-items: center; gap: 16px; flex: none; margin: 0 24px; padding: 24px 0; border-bottom: 1px solid var(--ds-colour-divider); }
+.ds-search-symbol { display: flex; flex: none; color: var(--ds-colour-muted); }
+.ds-search-input { width: 100%; min-width: 0; min-height: 36px; margin: 0; padding: 0; border: 0; border-radius: 0; outline: none; background: transparent; color: var(--ds-colour-text); font: inherit; font-size: clamp(20px, 2.5vw, 28px); line-height: 1.4; }
+.ds-search-input::placeholder { color: var(--ds-colour-muted); opacity: 1; }
+.ds-search-input:focus-visible { outline: none; }
+.ds-search-bar:focus-within { border-bottom-color: var(--ds-colour-accent); }
+.ds-search-shortcut { flex: none; padding: 3px 7px; border: 1px solid var(--ds-colour-divider); border-radius: var(--ds-radius-small); background: var(--ds-colour-page); color: var(--ds-colour-muted); font: inherit; font-size: 11px; }
+.ds-search-results { min-height: 0; padding: 8px 12px; overflow: auto; overscroll-behavior: contain; }
+.ds-search-category { flex: 0 1 auto; min-width: 0; max-width: 30%; overflow: hidden; color: var(--ds-colour-muted); font-size: 10px; font-weight: var(--ds-weight-medium, 600); line-height: 1.4; letter-spacing: .04em; text-align: end; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.ds-search-result { display: flex; align-items: center; gap: 14px; box-sizing: border-box; width: 100%; min-height: 64px; padding: 12px; border: 0; border-radius: var(--ds-radius-controls); background: transparent; color: inherit; font: inherit; text-align: start; text-decoration: none; cursor: pointer; }
+.ds-search-result.is-active { background: var(--ds-colour-selection); }
+.ds-search-result:focus-visible { outline: 2px solid var(--ds-colour-accent); outline-offset: -2px; }
+.ds-search-graphic { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border: 1px solid var(--ds-colour-divider); border-radius: var(--ds-radius-controls); background: var(--ds-colour-page); color: var(--ds-colour-accent); font-size: 23px; overflow: hidden; }
+.ds-search-graphic img { width: 100%; height: 100%; object-fit: contain; }
+.ds-search-graphic svg { width: 24px; height: 24px; }
+.ds-search-text { display: flex; flex: 1; flex-direction: column; gap: 3px; min-width: 0; }
+.ds-search-title { font-size: 15px; font-weight: var(--ds-weight-medium, 600); line-height: 1.4; overflow-wrap: anywhere; }
+.ds-search-description, .ds-search-address { display: block; overflow: hidden; color: var(--ds-colour-muted); font-size: 12px; line-height: 1.5; text-overflow: ellipsis; white-space: nowrap; }
+.ds-search-address { font-size: 10px; }
+.ds-search-status { margin: 0; padding: 8px 24px; color: var(--ds-colour-muted); font-size: 11px; }
+.ds-search-help { flex: none; margin: 0; padding: 12px 24px; border-top: 1px solid var(--ds-colour-divider); color: var(--ds-colour-muted); font-size: 11px; }
+/* Compact changes presentation only; sources, metadata and keyboard behavior stay shared. */
+.ds-search-dialog.is-compact .ds-search-bar { gap: 12px; margin-inline: 16px; padding-block: 16px; }
+.ds-search-dialog.is-compact .ds-search-input { min-height: 28px; font-size: 20px; }
+.ds-search-dialog.is-compact .ds-search-results { padding: 6px 8px; }
+.ds-search-dialog.is-compact .ds-search-result { gap: 10px; min-height: 48px; padding: 8px; }
+.ds-search-dialog.is-compact .ds-search-graphic { width: 32px; height: 32px; font-size: 19px; }
+.ds-search-dialog.is-compact .ds-search-graphic svg { width: 20px; height: 20px; }
+.ds-search-dialog.is-compact .ds-search-text { gap: 2px; }
+.ds-search-dialog.is-compact .ds-search-title { font-size: 14px; }
+.ds-search-dialog.is-compact .ds-search-description { font-size: 11px; }
+.ds-search-dialog.is-compact .ds-search-status { padding: 6px 16px; }
+.ds-search-dialog.is-compact .ds-search-help { padding: 8px 16px; }
+/* A connected Search owns this trigger; there is no inline field or rail popover. */
+#menu-live .menu-search-section[data-search-owned] { flex: none; width: 100%; min-width: 0; padding: 0; }
+#menu-live .menu-search-toggle { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 36px; padding: 8px 11px; border: 0; background: transparent; color: var(--ds-colour-muted); font: inherit; cursor: pointer; }
+#menu-live .menu-search-toggle:hover, #menu-live .menu-search-toggle:focus-visible, #menu-live .menu-search-toggle[aria-expanded=true] { background: var(--ds-colour-selection); color: var(--ds-colour-accent); }
+#menu-live .menu-search-toggle .ui-icon { flex: none; width: 20px; height: 20px; }
+@media (max-width: 620px), (max-height: 480px) and (pointer: coarse) {
+  .ds-search-dialog.ds-window { inset: 10px; margin: auto; width: calc(100vw - 20px); height: fit-content; max-height: calc(100dvh - 20px); }
+  .ds-search-dialog > .ds-window-body { flex: 0 1 auto; padding: 0; }
+  .ds-search-bar { gap: 10px; margin-inline: 16px; padding-block: 18px; }
+  .ds-search-input { font-size: 20px; }
+  .ds-search-results { padding-inline: 8px; }
+  .ds-search-shortcut { display: none; }
+}

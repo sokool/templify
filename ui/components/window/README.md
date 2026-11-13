@@ -4,7 +4,12 @@ One independent component for popups and side panels. By default, native `<dialo
 
 ## API
 
-`DesignSystemWindow.mount(host, options)` returns `element` (dialog), `body`, `open()`, `close(reason='api', {immediate:false})`, `isOpen()`, `update(patch)`, `getSize()`, `subscribeResize(listener)` (returns an unsubscribe function) and `destroy()`.
+`DesignSystemWindow.mount(host, options)` returns `element` (dialog), `body`, `open()`, `close(reason='api', {immediate:false, restoreFocus:true})`, `isOpen()`, `update(patch)`, `getSize()`, `subscribeResize(listener)` (returns an unsubscribe function) and `destroy()`.
+
+`close(reason, {immediate: true, restoreFocus: false})` supports command palettes:
+release modal inertness immediately before launching another component, without a
+delayed close event moving focus away from that component. Ordinary dismissal
+still restores the opener by default.
 
 Options:
 
@@ -23,12 +28,19 @@ Options:
 
 Creation does not open the window. Header, scrollable body and optional footer are separate. Content updates happen only when supplied in a patch; changing appearance preserves embedded controls and their values. Callers mount/destroy any embedded components themselves. Explicit close remains available even when dismissal by Escape/backdrop is disabled. Focus returns to the opener; scroll locking is reference counted across overlapping windows. Destroy closes immediately and releases locks/listeners/timers.
 
+On mobile (viewport width up to 620 px, or touch landscape with a height up to
+480 px), both popups and side panels fill the screen with a 10 px gap on every
+edge. All corners use the theme's window radius. The body fills the remaining
+space and scrolls independently, keeping the header and footer visible. The resize
+handle is hidden. This is a CSS-only layout: presets and saved manual dimensions
+are not changed, and returning to desktop restores the preferred size.
+
 For HTML-first export use `window.html` and [UI](../../README.md). The client adopts
 the existing dialog and preserves its body/controls. Behaviour attributes are
 documented in the HTML comment and map to the same options used by `update()`.
 Classic usage loads foundations, `window.css` and `window.js`.
 
-Open `../../../index.html#topschrank.components.window`. The Window uses the real browser viewport, including when examples emulate a narrower device. Test real device widths for full-screen side panels.
+Open `../../../index.html#topschrank.components.window`. The Window uses the real browser viewport, including when examples emulate a narrower device. Test real device widths for the mobile near-full-screen layout.
 
 The workspace page includes an authoring-only playground (`workspace/window-demo.js`
 and `.css`): layout, size and behaviour controls with a single open action.

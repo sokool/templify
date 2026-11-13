@@ -1,0 +1,10 @@
+<!--
+Component: URL input
+Purpose: A website address field with native URL validation.
+Elements: Label, URL input and inline validation message.
+JavaScript behavior: Displays native validation errors and clears them on form reset.
+-->
+<div class="ds-component ds-field" data-ui="field-url" data-type="url">
+  <div class="ds-field-caption"><label class="ds-field-label" for="field-url-input">Website</label><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></div>
+  <div class="ds-field-body"><input class="ds-field-control" id="field-url-input" type="url" name="website" autocomplete="url" placeholder="https://example.com"></div>
+</div>

@@ -4,10 +4,10 @@
     typeof module === 'object' && module.exports
       ? require('../shortcuts/shortcuts.js')
       : global.DesignSystemShortcuts;
-  const Field =
+  const Search =
     typeof module === 'object' && module.exports
-      ? require('../form/field.js')
-      : global.DesignSystemFormField;
+      ? require('../search/search.js')
+      : global.DesignSystemSearch;
   function scrollState(height, content, top) {
     return { overflow: content > height + 2, up: top > 2, down: top + height < content - 2 };
   }
@@ -113,6 +113,10 @@
     } else node.type = 'button';
     node.className = nested ? 'menu-sub-action' : 'menu-nav-action';
     node.dataset.menuPage = item.id;
+    for (const [name, value] of Object.entries({
+      searchDescription: item.description, searchKeywords: item.keywords,
+      searchIcon: item.icon, searchImage: item.image,
+    })) if (value) node.dataset[name] = Array.isArray(value) ? value.join(' ') : String(value);
     node.setAttribute('aria-label', item.label);
     const icon = document.createElement('span');
     icon.className = nested ? 'menu-sub-icon' : 'menu-nav-icon';
@@ -213,7 +217,7 @@
     });
   }
 
-  const defaultSearchShortcut = 'Mod+F';
+  const defaultSearchShortcut = 'Mod+K';
   const searchShortcutId = 'navigation.search';
   const defaultSidebarShortcut = 'Mod+B';
   const sidebarShortcutId = 'navigation.toggleSidebar';
@@ -221,281 +225,21 @@
   const normaliseSearchShortcut = Shortcuts.normalise;
   const searchShortcutFromEvent = Shortcuts.fromEvent;
 
-  function createMenuSearch(
-    root,
-    { enabled, shortcut, shortcuts: sharedShortcuts, isCompact, renderIcon, onNavigate, onReveal },
-  ) {
-    const document = root.ownerDocument;
-    const window = document.defaultView;
-    const listeners = [];
-    let opened = false;
-    let compact;
-    let matches = [];
-    const shortcuts = sharedShortcuts || Shortcuts.create({ document });
-
-    function element(tag, className, text) {
-      const node = document.createElement(tag);
-      if (className) node.className = className;
-      if (text !== undefined) node.textContent = text;
-      return node;
-    }
-    function listen(target, event, handler) {
-      target.addEventListener(event, handler);
-      listeners.push(() => target.removeEventListener(event, handler));
-    }
-
-    const section = element('section', 'menu-search-section');
-    section.setAttribute('aria-label', 'Menu search');
-    const trigger = element('button', 'menu-search-toggle');
-    trigger.type = 'button';
-    trigger.innerHTML = renderIcon('search') || '⌕';
-    trigger.setAttribute('aria-label', 'Search menu');
-    trigger.setAttribute('aria-haspopup', 'dialog');
-    trigger.setAttribute('aria-expanded', 'false');
-    trigger.setAttribute('aria-controls', 'menu-search-panel');
-    const panel = element('div', 'menu-search-panel');
-    panel.id = 'menu-search-panel';
-    panel.setAttribute('aria-label', 'Search menu');
-    const searchField = Field.mount(panel, {
-      type: 'search',
-      accessibleLabel: 'Search menu',
-      attrs: {
-        value: '',
-        placeholder: 'Search menu…',
-        autocomplete: 'off',
-        'aria-controls': 'menu-search-results',
-      },
+  function createMenuSearch(root, { enabled, shortcut, shortcuts, renderIcon, onNavigate }) {
+    // Compatibility facade only: Search owns the dialog, index and menu trigger.
+    const host = root.ownerDocument.createElement('section');
+    root.append(host);
+    const view = Search.mount(host, {
+      navigation: root, enabled, shortcuts, renderIcon, onNavigate,
+      shortcutId: searchShortcutId, group: 'Navigation', label: 'Menu search',
+      shortcut: shortcut === undefined ? defaultSearchShortcut : shortcut,
     });
-    const input = searchField.control;
-    const results = element('div', 'menu-search-results');
-    results.id = 'menu-search-results';
-    results.setAttribute('role', 'group');
-    results.setAttribute('aria-label', 'Matching menu items');
-    const status = element('p', 'menu-search-status');
-    status.setAttribute('role', 'status');
-    panel.append(results, status);
-    section.append(trigger, panel);
-    root.querySelector('.menu-live-nav').prepend(section);
-
-    function entries() {
-      const unique = new Map();
-      for (const button of root
-        .querySelector('.menu-live-nav')
-        .querySelectorAll('[data-menu-page]')) {
-        if (button.hidden || button.disabled || button.getAttribute('aria-disabled') === 'true') continue;
-        const parent = button.closest('.menu-section')?.querySelector('[data-menu-group]');
-        const page = button.dataset.menuPage;
-        if (!unique.has(page))
-          unique.set(page, {
-            page,
-            label: button.getAttribute('aria-label') || button.textContent.trim(),
-            group: parent?.getAttribute('aria-label') || parent?.textContent.trim() || '',
-          });
-      }
-      return [...unique.values()];
-    }
-
-    function position() {
-      if (!compact || !opened) return;
-      const anchor = trigger.getBoundingClientRect();
-      const rail = section.parentNode.getBoundingClientRect();
-      const viewportWidth = window.innerWidth || 320;
-      const width = Math.min(320, Math.max(0, viewportWidth - rail.right - 8));
-      panel.style.width = width + 'px';
-      panel.style.maxHeight = Math.max(80, window.innerHeight - 16) + 'px';
-      const height = panel.getBoundingClientRect().height;
-      panel.style.left = rail.right + 'px';
-      panel.style.top = Math.max(8, Math.min(anchor.top, window.innerHeight - height - 8)) + 'px';
-    }
-
-    function setQuery(value) {
-      input.value = enabled ? String(value) : '';
-      matches = enabled ? findMenuItems(entries(), input.value) : [];
-      results.replaceChildren();
-      for (const entry of matches) {
-        const source = Array.from(root.querySelectorAll('[data-menu-page]')).find(node => node.dataset.menuPage === entry.page);
-        const button = element(source?.tagName === 'A' ? 'a' : 'button', 'menu-search-result');
-        if (button.tagName === 'BUTTON') button.type = 'button';
-        else for (const name of ['href', 'target', 'rel']) {
-          const value = source.getAttribute(name);
-          if (value !== null) button.setAttribute(name, value);
-        }
-        button.setAttribute(
-          'aria-label',
-          entry.group ? `${entry.group} → ${entry.label}` : entry.label,
-        );
-        button.append(element('span', '', entry.label));
-        if (entry.group) button.append(element('small', '', entry.group));
-        button.addEventListener('click', event => {
-          if (event.button > 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-          event.preventDefault?.();
-          activate(entry);
-        });
-        results.append(button);
-      }
-      const searching = Boolean(normaliseMenuQuery(input.value));
-      results.hidden = !searching || matches.length === 0;
-      status.hidden = !searching;
-      status.textContent = searching
-        ? matches.length
-          ? `${matches.length} menu item${matches.length === 1 ? '' : 's'}`
-          : 'No matching menu items'
-        : '';
-      position();
-      return matches.slice();
-    }
-
-    function close(restoreFocus = false) {
-      opened = false;
-      if (panel.matches(':popover-open')) panel.hidePopover();
-      panel.hidden = compact || !enabled;
-      trigger.setAttribute('aria-expanded', 'false');
-      setQuery('');
-      if (restoreFocus) (compact ? trigger : input).focus();
-    }
-
-    function activate(entry) {
-      close(true);
-      const node = Array.from(root.querySelectorAll('[data-menu-page]')).find(node => node.dataset.menuPage === entry.page);
-      if (node?.click) node.click();
-      else onNavigate(entry.page);
-    }
-
-    function syncLayout() {
-      const nextCompact = isCompact();
-      if (compact !== undefined && nextCompact !== compact) close();
-      compact = nextCompact;
-      section.dataset.compact = String(compact);
-      section.hidden = !enabled;
-      trigger.hidden = !compact;
-      panel.setAttribute('role', compact ? 'dialog' : 'search');
-      if (compact) panel.setAttribute('popover', 'manual');
-      else {
-        if (panel.matches(':popover-open')) panel.hidePopover();
-        panel.removeAttribute('popover');
-        for (const name of ['width', 'max-height', 'left', 'top']) panel.style.removeProperty(name);
-      }
-      panel.hidden = !enabled || (compact && !opened);
-      position();
-    }
-
-    function setEnabled(value) {
-      if (typeof value !== 'boolean') return false;
-      if (!value) close();
-      enabled = value;
-      input.disabled = !enabled;
-      syncLayout();
-      return true;
-    }
-
-    function setShortcut(value) {
-      return shortcuts.set(searchShortcutId, value);
-    }
-
-    function syncShortcut() {
-      const value = Shortcuts.aria(shortcuts.get(searchShortcutId)?.shortcut);
-      for (const control of [input, trigger]) {
-        if (value) control.setAttribute('aria-keyshortcuts', value);
-        else control.removeAttribute('aria-keyshortcuts');
-      }
-    }
-
-    function focus() {
-      if (!enabled) return false;
-      onReveal?.();
-      syncLayout();
-      if (compact && !opened) {
-        opened = true;
-        panel.hidden = false;
-        if (panel.showPopover) panel.showPopover();
-        trigger.setAttribute('aria-expanded', 'true');
-        position();
-      }
-      input.focus();
-      if (document.activeElement !== input) return false;
-      input.select?.();
-      return true;
-    }
-
-    listen(trigger, 'click', () => {
-      if (!enabled) return;
-      if (opened) {
-        close(true);
-        return;
-      }
-      focus();
-    });
-    listen(input, 'input', () => setQuery(input.value));
-    listen(input, 'search', () => setQuery(input.value));
-    listen(panel, 'keydown', (event) => {
-      if (event.key === 'Escape' && (input.value || opened)) {
-        event.preventDefault();
-        event.stopPropagation?.();
-        close(true);
-      } else if (event.key === 'Enter' && event.target === input && matches.length) {
-        event.preventDefault();
-        activate(matches[0]);
-      } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-        const buttons = [...results.querySelectorAll('.menu-search-result')];
-        if (!buttons.length) return;
-        event.preventDefault();
-        const current = buttons.indexOf(document.activeElement);
-        const next =
-          current < 0
-            ? event.key === 'ArrowDown'
-              ? 0
-              : buttons.length - 1
-            : (current + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length;
-        buttons[next].focus();
-      }
-    });
-    listen(document, 'pointerdown', (event) => {
-      if (!section.contains(event.target)) close();
-    });
-    listen(document, 'focusin', (event) => {
-      if (!section.contains(event.target)) close();
-    });
-    const unregisterShortcut = shortcuts.register({
-      id: searchShortcutId,
-      group: 'Navigation',
-      label: 'Menu search',
-      defaultShortcut: shortcut === undefined ? defaultSearchShortcut : shortcut,
-      enabled: () => enabled,
-      handler: focus,
-    });
-    const unsubscribeShortcut = shortcuts.subscribe(syncShortcut);
-    syncShortcut();
-    listen(window, 'resize', position);
-    listen(window, 'scroll', position);
-    setQuery('');
-    setEnabled(enabled);
-
-    return {
-      element: section,
-      input,
-      results,
-      syncLayout,
-      setEnabled,
-      setQuery,
-      setShortcut,
-      focus,
-      shortcuts,
-      shortcutId: searchShortcutId,
-      get shortcut() {
-        return shortcuts.get(searchShortcutId)?.shortcut ?? null;
-      },
-      get enabled() {
-        return enabled;
-      },
-      destroy() {
-        close();
-        unsubscribeShortcut();
-        unregisterShortcut();
-        listeners.forEach((remove) => remove());
-        searchField.destroy();
-        section.remove();
-      },
-    };
+    // Retain the public Navigation search target while replacing its presentation.
+    view.dialog.id = 'menu-search-panel';
+    view.trigger?.setAttribute('aria-controls', view.dialog.id);
+    const destroy = view.destroy;
+    view.destroy = () => { destroy(); host.remove(); };
+    return view;
   }
 
   function mount(root, options = {}) {
@@ -898,6 +642,7 @@
         syncFoldControls();
         if (api.mobile) {
           api.mobile.toggle.hidden = !value;
+          api.mobile.close.hidden = !value;
           api.mobile.setOpen(!value || root.dataset.mobileMenuOpen === 'true');
         }
         return true;
@@ -970,12 +715,24 @@
         mobileWorkspaceToggle.setAttribute('aria-controls', 'menu-live-nav');
         mobileWorkspaceToggle.innerHTML = uiIcon('menu');
         mobileWorkspace.querySelector('.menu-live-header').prepend(mobileWorkspaceToggle);
+        const mobileClose = document.createElement('button');
+        mobileClose.type = 'button';
+        mobileClose.className = 'menu-mobile-close';
+        mobileClose.setAttribute('aria-label', 'Close navigation');
+        mobileClose.setAttribute('aria-controls', mobileWorkspaceNav.id);
+        mobileClose.innerHTML = uiIcon('x');
+        mobileWorkspaceNav.prepend(mobileClose);
         function isMobileWorkspace() {
           return viewport.clientWidth <= 620;
         }
+        function syncMobilePosition() {
+          if (!isMobileWorkspace()) return;
+          mobileWorkspace.style.setProperty('--mobile-nav-left', viewport.getBoundingClientRect().left + 'px');
+        }
         function setMobileWorkspaceMenu(open, restoreFocus = false) {
           const mobile = isMobileWorkspace(),
-            value = mobile && (!collapseEnabled || Boolean(open));
+            value = mobile && (!collapseEnabled || Boolean(open)),
+            wasOpen = mobileWorkspace.dataset.mobileMenuOpen === 'true';
           mobileWorkspace.dataset.mobileMenuOpen = String(value);
           mobileWorkspaceToggle.setAttribute('aria-expanded', String(value));
           mobileWorkspaceToggle.setAttribute(
@@ -984,19 +741,20 @@
           );
           mobileWorkspaceToggle.innerHTML = uiIcon(value ? 'x' : 'menu');
           mobileWorkspaceNav.inert = mobile && !value;
-          mobileWorkspace.style.setProperty(
-            '--mobile-nav-top',
-            mobileWorkspace.querySelector('.menu-live-header').offsetHeight + 'px',
-          );
+          syncMobilePosition();
           if (mobile)
             status.textContent = value
               ? 'Mobile navigation · choose a page or expand a group'
               : 'Mobile navigation · open the menu in the top-left corner';
-          if (restoreFocus && mobile) mobileWorkspaceToggle.focus({ preventScroll: true });
+          if (mobile && value && collapseEnabled && (!wasOpen || restoreFocus))
+            mobileClose.focus({ preventScroll: true });
+          else if (restoreFocus && mobile) mobileWorkspaceToggle.focus({ preventScroll: true });
         }
         listen(mobileWorkspaceToggle, 'click', () =>
           setMobileWorkspaceMenu(mobileWorkspace.dataset.mobileMenuOpen !== 'true'),
         );
+        listen(mobileClose, 'click', () => setMobileWorkspaceMenu(false, true));
+        listen(window, 'resize', syncMobilePosition);
         listen(mobileWorkspaceNav, 'click', (event) => {
           if (isMobileWorkspace() && event.target.closest('[data-menu-page]'))
             setMobileWorkspaceMenu(false, true);
@@ -1037,11 +795,7 @@
                     mobileWorkspace.dataset.sidebarCollapsed === 'true'
                       ? 'Icon rail · collapsed · click an icon to open its submenu'
                       : 'Workspace sidebar · expanded · groups contain nested pages';
-              } else if (mobile)
-                mobileWorkspace.style.setProperty(
-                  '--mobile-nav-top',
-                  mobileWorkspace.querySelector('.menu-live-header').offsetHeight + 'px',
-                );
+              } else if (mobile) syncMobilePosition();
             }),
           );
           mobileWorkspaceObserver.observe(viewport);
@@ -1053,6 +807,7 @@
           root: mobileWorkspace,
           nav: mobileWorkspaceNav,
           toggle: mobileWorkspaceToggle,
+          close: mobileClose,
           isMobile: isMobileWorkspace,
           setOpen: setMobileWorkspaceMenu,
         };
@@ -1213,6 +968,8 @@
         });
         root.dataset.motionReady = 'false';
         api.mobile?.toggle.remove();
+        api.mobile?.close.remove();
+        root.style.removeProperty('--mobile-nav-left');
         api.slots.navigation.inert = false;
         edgeToggle.remove();
         api.overflow?.regions.forEach(({ region, content }) => { region.before(content); region.remove(); });
@@ -1222,14 +979,10 @@
       enabled: root.dataset.search !== 'false',
       shortcut: shortcutDefault('data-search-shortcut', options.searchShortcut === undefined ? defaultSearchShortcut : options.searchShortcut),
       shortcuts: options.shortcuts,
-      isCompact: () => viewport.clientWidth > 620 && root.dataset.sidebarCollapsed === 'true',
       renderIcon: uiIcon,
       onNavigate(page) {
         options.onNavigate?.(page);
         if (api.mobile?.isMobile()) api.mobile.setOpen(false, true);
-      },
-      onReveal() {
-        if (api.mobile?.isMobile()) api.mobile.setOpen(true);
       },
     });
     api.search = searchController;
@@ -1247,6 +1000,10 @@
       id: sidebarShortcutId,
       group: 'Navigation',
       label: 'Toggle sidebar',
+      description: 'Expand or collapse the navigation sidebar',
+      keywords: 'menu navigation panel',
+      icon: 'panel-left-close',
+      searchable: true,
       defaultShortcut: shortcutDefault('data-collapse-shortcut', options.sidebarShortcut === undefined ? defaultSidebarShortcut : options.sidebarShortcut),
       enabled: () => collapseEnabled && (viewport.clientWidth > 620 || Boolean(api.mobile)),
       handler(event) {
@@ -1256,7 +1013,7 @@
     });
     function syncSidebarShortcut() {
       const value = Shortcuts.aria(shortcuts.get(sidebarShortcutId)?.shortcut);
-      for (const control of [sidebarToggle, edgeToggle, api.mobile?.toggle].filter(Boolean)) {
+      for (const control of [sidebarToggle, edgeToggle, api.mobile?.toggle, api.mobile?.close].filter(Boolean)) {
         if (value) control.setAttribute('aria-keyshortcuts', value);
         else control.removeAttribute('aria-keyshortcuts');
       }
@@ -1267,7 +1024,7 @@
     disposeSidebarShortcut = () => {
       unsubscribeSidebarShortcut();
       unregisterSidebarShortcut();
-      for (const control of [sidebarToggle, edgeToggle, api.mobile?.toggle].filter(Boolean)) {
+      for (const control of [sidebarToggle, edgeToggle, api.mobile?.toggle, api.mobile?.close].filter(Boolean)) {
         control.removeAttribute('aria-keyshortcuts');
       }
     };

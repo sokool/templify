@@ -29,5 +29,32 @@
 @keyframes ds-window-slide-in{from{transform:translate(var(--ds-window-offset),var(--ds-window-offset-y))}to{transform:translate(0,0)}}
 @keyframes ds-window-slide-out{from{transform:translate(0,0)}to{transform:translate(var(--ds-window-offset),var(--ds-window-offset-y))}}
 @keyframes ds-window-backdrop{from{opacity:0}to{opacity:1}}@keyframes ds-window-backdrop-out{to{opacity:0}}
-@media(max-width:480px){.ds-window{max-width:calc(100vw - 20px);max-height:calc(100dvh - 20px)}.ds-window-header,.ds-window-body{padding:16px}}
+/* Mobile windows fill the available screen without replacing desktop size preferences. */
+@media (max-width:620px), (max-height:480px) and (pointer:coarse) {
+  .ds-window,
+  .ds-window[data-mode=side],
+  .ds-window[data-mode=side][data-side] {
+    inset: 10px;
+    margin: 0;
+    width: calc(100vw - 20px);
+    min-width: 0;
+    max-width: calc(100vw - 20px);
+    height: calc(100dvh - 20px);
+    max-height: calc(100dvh - 20px);
+    border-radius: var(--ds-window-radius, var(--ds-radius-windows, 16px));
+  }
+  .ds-window-body {
+    flex: 1;
+  }
+  .ds-window-header,
+  .ds-window-body {
+    padding: 16px;
+  }
+  .ds-window-footer {
+    padding-inline: 16px;
+  }
+  .ds-window-resize {
+    display: none;
+  }
+}
 @media(prefers-reduced-motion:reduce){.ds-window[open],.ds-window::backdrop,.ds-window.is-closing,.ds-window.is-closing::backdrop{animation:none}}

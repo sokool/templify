@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="../../defaults.css"><link rel="stylesheet" href="../../primitives.css">
 <link rel="stylesheet" href="../form/form.css"><link rel="stylesheet" href="navigation.css">
 <link rel="stylesheet" href="../shortcuts/shortcuts.css">
+<link rel="stylesheet" href="../window/window.css"><link rel="stylesheet" href="../search/search.css">
 <style>
 body{margin:0;font-family:var(--ds-font-family)}
 .navigation-viewport,#menu-live{min-height:100dvh}
@@ -14,7 +15,9 @@ body{margin:0;font-family:var(--ds-font-family)}
   <section id="menu-live" data-collapse="true" data-search="true" data-search-shortcut="Mod+K" data-collapse-shortcut="Mod+B"></section>
 </div>
 <script src="../shortcuts/shortcuts.js"></script><script src="../form/validation.js"></script>
-<script src="../form/field.js"></script><script src="navigation.js"></script>
+<script src="../form/pickers.js"></script><script src="../form/controls.js"></script>
+<script src="../form/field.js"></script><script src="../window/window.js"></script>
+<script src="../search/search.js"></script><script src="navigation.js"></script>
 <script>
 const root = document.getElementById('menu-live');
 DesignSystemNavigation.renderStructure(root);

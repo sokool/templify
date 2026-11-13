@@ -1,13 +1,10 @@
 <!--
 Component: Form
-Purpose: Form with native controls and validation.
-Elements: form, ds-field fields, labels, error messages and submit button.
-JavaScript behavior: validate(), field validation messages and cleanup on reset.
-JS does not intercept submission; the server sets action/method or hx-post/hx-target.
-Configure the endpoint in the application; without action, the form submits to the current URL.
+Purpose: Optional native form container for independently exported field-* components.
+Elements: A form with an empty responsive field grid; insert the selected field templates and application-owned submit/reset buttons.
+JavaScript behavior: validate() validates contained fields and native controls. Native submission, action/method and hx-post remain application-owned. Field components own their local enhancement and reset lifecycle.
+Configure an endpoint before submitting; without action, a native form submits to the current URL.
 -->
-<form class="ds-component ds-form" data-ui="form" aria-label="Project form">
-  <div class="ds-field"><div class="ds-field-caption"><label class="ds-field-label" for="form-reference">Project reference</label><span class="ds-field-error" id="form-reference-error" data-field-error role="status" hidden></span></div><div class="ds-field-body"><input class="ds-field-control" id="form-reference" name="reference" required aria-describedby="form-reference-error"></div></div>
-  <div class="ds-field"><div class="ds-field-caption"><label class="ds-field-label" for="form-notes">Notes</label></div><div class="ds-field-body"><textarea class="ds-field-control" id="form-notes" name="notes" rows="3"></textarea></div></div>
-  <button type="submit" class="ds-component ds-button ds-focusable" data-ui="buttons" data-variant="primary"><span data-button-label>Save project</span></button>
+<form class="ds-component ds-form" data-ui="form" aria-label="Form">
+  <div class="ds-form-grid"><!-- Insert independently exported field-* templates here. --></div>
 </form>

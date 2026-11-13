@@ -54,8 +54,8 @@ routing, URLs, page content and Breadcrumbs.
 
 The [standalone example](example.html) runs directly from `file://`, without a
 build, server, icon library or workspace code. Load shared `defaults.css` and
-`primitives.css`, Form `form.css`/`validation.js`/`field.js`, `shortcuts.js`, and
-Navigation CSS/JS. Breadcrumbs and a custom `renderIcon(name)` adapter are optional.
+`primitives.css`, `shortcuts.js`, Window CSS/JS, Search CSS/JS, and Navigation
+CSS/JS. Breadcrumbs and a custom `renderIcon(name)` adapter are optional.
 Built-in SVG icons cover Navigation's own controls.
 
 ```js
@@ -80,6 +80,8 @@ navigation.setCollapse(true);
 - `icon` is optional on both menu and submenu items; a label initial keeps items
   identifiable in the icon rail when no icon is supplied. `children` supplies a group.
 - `disabled` prevents activation and excludes a destination from search.
+- Optional `description`, `keywords`, `icon` and `image` metadata is passed to
+  Search through the rendered menu's `data-search-*` attributes.
 - Labels are rendered as text, never HTML; script/data URL schemes are neutralized.
 - `setItems(items)` replaces menu data without duplicate handlers, preserving
   selection and expanded state for surviving IDs. Invalid IDs leave the current
@@ -98,12 +100,27 @@ and `.search` expose composition points. Put host utility controls before
 `.menu-utility-label` provide shared row styling. Actions such as theme selection
 and device previews remain host-owned. Moving supplied DOM retains its listeners.
 
+## Mobile drawer
+
+At preview widths up to 620 px, the hamburger opens a drawer sliding in from the
+left edge of the preview. It fills the viewport height and occupies at least half
+the preview width, growing to fit menu labels up to the preview width minus 16 px.
+Long labels wrap at that limit. Destinations scroll independently above the pinned
+footer, where Search and utility icons share one row; the page content does not move.
+The drawer remains aligned in the centered
+mobile preview as well as on an actual phone.
+
+Opening focuses the drawer's close button. The close button, Escape, selecting a
+destination or clicking outside dismisses it; keyboard/close-button dismissal
+restores focus to the hamburger. Closing makes the drawer inert immediately.
+Reduced-motion preferences disable the slide animation.
+
 ## Theme shadows
 
 Navigation consumes shared foundation shadow profiles rather than keeping its own
 shadow colours or geometry. Submenu and search popovers use `--ds-shadow-medium`;
 the `data-popup-pattern="soft"` preset uses `--ds-shadow-soft` for both. The mobile
-navigation dropdown uses `--ds-shadow-medium`, while its inline submenus remain
+navigation drawer uses `--ds-shadow-medium`, while its inline submenus remain
 shadowless.
 
 Changes made through Themes, or by applying exported theme CSS, update already
@@ -115,10 +132,13 @@ runtime or its editor. A profile with zero opacity removes its shadows.
 
 | Attribute | Shortcuts action ID | Default when omitted |
 | --- | --- | --- |
-| `data-search-shortcut` | `navigation.search` | `Mod+F` |
+| `data-search-shortcut` | `navigation.search` | `Mod+K` |
 | `data-collapse-shortcut` | `navigation.toggleSidebar` | `Mod+B` |
 
-`Mod` means Cmd or Ctrl; Alt/Shift combinations with letters/digits are supported.
+`Mod` means Cmd or Ctrl, interchangeably. Any combination of Mod, Alt and Shift
+with a letter/digit is supported, including `Shift+K`. Combinations of at least
+two modifiers without a character, such as `Mod+Shift` or `Alt+Shift`, trigger
+on the first release only when no other key was pressed.
 An empty attribute declares no default binding. Invalid values fall back to the
 built-in default (or a supplied JavaScript default). Changing an attribute updates
 the registration default through Shortcuts, without overriding user preferences.
@@ -131,7 +151,7 @@ dispatch, binding changes, disabling and reset. Saved user preferences take
 precedence over HTML defaults. Disabling a feature disables its action, not its
 binding; unmounting unregisters actions without losing document preferences.
 
-Search focuses globally, opening the rail popup or mobile menu when necessary.
+Search opens a central Window globally, not a rail popover or the mobile menu.
 The collapse action folds/unfolds desktop navigation or toggles mobile navigation.
 Repeated held collapse keys are ignored. Browser defaults remain available when an
 action cannot handle an event, including disabled search. Handled events, IME and
@@ -144,14 +164,27 @@ disables a binding. `setSearchEnabled` is a compatibility alias for `setSearch`.
 
 ## Search, state and lifecycle
 
-Search matches every destination, including closed submenus, using group names
-and case/accent-insensitive multiword matching. Results activate the original
-link/button, including callbacks and HTMX behavior, without changing group state.
-Arrow Up/Down moves through results, Enter activates, and Escape clears/closes.
-Outside focus/click dismisses results; mobile activation closes the menu when
-folding is allowed. Queries are transient and never stored.
+Navigation delegates search to the independent [Search](../search/README.md)
+component, which owns the central Window, optional menu magnifier, document index,
+graphics, descriptions and commands. There is no inline input or rail popover.
+The magnifier lives in the footer. Use
+`navigation.search.update({showNavigationTrigger: false})` to hide only the
+button while keeping Search and its shortcut enabled.
+The compatibility integration keeps `navigation.search`, `data-search-shortcut`
+and saved user bindings.
 
-`search.setQuery(text)` returns `{page,label,group}` matches. `search.input`,
+Search finds document links, named anchors and menu destinations, including
+collapsed submenus. Results activate the original link/button, retaining callbacks
+and HTMX. Arrow keys select, Enter activates, Escape/backdrop closes and restores
+focus. Queries are transient. For a separate Search, set Navigation's
+`data-search="false"` and Search's `data-navigation="#menu-live"`.
+
+`navigation.toggleSidebar` is a searchable Shortcuts command. Other components
+may expose actions through [the same contract](../shortcuts/README.md#searchable-component-actions),
+with descriptions, icons and keywords, even without a key binding.
+
+`search.setQuery(text)` returns rich results; menu results retain `page`, `label`
+and `group`. `search.dialog`, `search.input`,
 `.results`, `.enabled` and `.shortcuts` expose the live controls/catalogue.
 `focusSearch()` reports whether focus succeeded. `select(id)`, `setCollapsed(bool)`,
 `toggleSidebar()` and `toggleGroup(id)` remain available for local interactions.

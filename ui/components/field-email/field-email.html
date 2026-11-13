@@ -1,0 +1,10 @@
+<!--
+Component: Email input
+Purpose: An email address field using native email validation.
+Elements: Label, email input and inline validation message.
+JavaScript behavior: Displays native validation errors and clears them on form reset. Add multiple to accept comma-separated addresses.
+-->
+<div class="ds-component ds-field" data-ui="field-email" data-type="email">
+  <div class="ds-field-caption"><label class="ds-field-label" for="field-email-input">Email</label><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></div>
+  <div class="ds-field-body"><input class="ds-field-control" id="field-email-input" type="email" name="email" autocomplete="email" placeholder="anna@example.com"></div>
+</div>

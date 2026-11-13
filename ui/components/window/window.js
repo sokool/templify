@@ -28,7 +28,7 @@
     const stack = stacks.get(doc) || [];
     stacks.set(doc, stack);
     let destroyed = false, closing = false, timer = null, opener = null, locked = false,
-      backdropPress = false, gesture = null, ignoredCloses = 0;
+      backdropPress = false, gesture = null, ignoredCloses = 0, restoreFocus = true;
     const make = (tag, cls, text) => {
       const node = doc.createElement(tag);
       if (cls) node.className = cls;
@@ -107,10 +107,11 @@
       removeFromStack();
       dialog.close(reason);
     }
-    function close(reason = 'api', { immediate = false } = {}) {
+    function close(reason = 'api', { immediate = false, restoreFocus: restore = true } = {}) {
       if (!dialog.open || closing) return;
       endResize(false);
       closing = true;
+      restoreFocus = restore;
       dialog.classList.add('is-closing');
       const reduced = win.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
       const duration = immediate || reduced ? 0 : Math.max(0, Math.min(2000, Number(state.duration) || 0));
@@ -130,6 +131,7 @@
       dialog.classList.remove('is-closing');
       dialog.classList.remove('has-resized');
       closing = false;
+      restoreFocus = true;
       show();
       stack.push(dialog);
       const focus = typeof state.initialFocus === 'string' ? body.querySelector(state.initialFocus) : state.initialFocus;
@@ -147,7 +149,7 @@
       removeFromStack();
       closing = false;
       dialog.classList.remove('is-closing');
-      if (opener?.isConnected) opener.focus?.({ preventScroll: true });
+      if (restoreFocus && opener?.isConnected) opener.focus?.({ preventScroll: true });
       if (!destroyed) state.onClose?.(dialog.returnValue);
     }
     function outside(event) {

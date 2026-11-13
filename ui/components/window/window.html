@@ -12,6 +12,9 @@ data-width/data-height (optional explicit px overrides). Size presets: 320, 400,
 for top/bottom panels. The same settings in JS: mode, side, size, closeOnEscape,
 showClose, lockScroll, closeOnBackdrop, resizable, width, height through update().
 Panels slide from their edge and resize along their opening axis.
+On mobile (up to 620 px wide, or short touch-screen landscape viewports), both
+layouts fill the viewport with a 10 px gap on every edge and rounded corners.
+Only the body scrolls; the resize handle is hidden. Preferred desktop sizes are retained.
 data-ui-open targets the unique dialog ID; data-ui-close closes it from inside the window.
 -->
 <button type="button" class="ds-component ds-button ds-focusable" data-ui="buttons" data-ui-open="window-preview"><span data-button-label>Open window</span></button>

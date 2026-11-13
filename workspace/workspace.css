@@ -34,6 +34,14 @@ body{margin:0;background:var(--ds-colour-page,var(--ds-colour-soft));color:var(-
 /* Data-driven component demonstrations, not component internals. */
 .example-component-section{padding-block:22px;border-top:1px solid var(--ds-colour-divider);margin-top:20px;min-width:0}
 .example-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-block:18px}
+/* Search authoring options reuse compact shared controls, never palette styles. */
+.example-search-options{max-width:800px;min-width:0;margin-block:16px 24px;padding-block:12px;border-block:1px solid var(--ds-colour-divider)}
+.example-page .example-search-options h2{font-size:14px;margin-bottom:10px}
+.example-search-controls{display:grid;grid-template-columns:minmax(140px,180px) 140px minmax(0,1fr);align-items:start;gap:12px 24px}
+@container ds-shell-content (max-width:620px){
+ .example-search-controls{grid-template-columns:minmax(0,1fr) 140px;gap:12px 16px}
+ .example-search-controls>.ds-field:last-child{grid-column:1/-1}
+}
 .example-button-colours{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}
 .example-button-colour{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;border-top:1px solid var(--ds-colour-divider);padding:16px 0;font-size:12px}
 .example-state-button{border:1px solid var(--ds-colour-border);padding:7px 13px;border-radius:8px;background:transparent;color:var(--ds-colour-muted);font:600 12px var(--ds-font-family);cursor:pointer}
@@ -48,3 +56,23 @@ body{margin:0;background:var(--ds-colour-page,var(--ds-colour-soft));color:var(-
 
 /* The host header shows the release version rather than account initials. */
 #menu-live .menu-avatar{display:flex;width:auto;min-width:30px;padding-inline:8px;white-space:nowrap}
+
+/* Host utilities reuse the shared themed Select surface, not an OS-native menu. */
+#menu-live .menu-utility[aria-current=page]{background:var(--ds-colour-selection);color:var(--ds-colour-accent)}
+#menu-live .workspace-device-picker{position:relative;min-width:0}
+#menu-live .workspace-device-chevron{display:flex;align-items:center;margin-left:auto}
+#menu-live .workspace-device-chevron .ui-icon{width:14px;height:14px}
+#menu-live .workspace-device-picker .ds-select-trigger{position:absolute;inset:0;width:100%;height:100%;min-height:0;padding:0;border:0;border-radius:0;background:transparent;color:inherit;box-shadow:none}
+#menu-live .workspace-device-picker .ds-select-trigger>:is(.ds-select-value,.ds-field-chevron){display:none}
+#menu-live .workspace-device-picker:has(.ds-select-trigger:focus-visible){outline:1px solid var(--ds-colour-accent);outline-offset:-1px}
+#menu-live .workspace-device-picker .ds-select-trigger:focus-visible{outline:none}
+#menu-live .workspace-device-picker[data-open=true]{background:var(--ds-colour-selection);color:var(--ds-colour-accent)}
+#menu-live .workspace-device-picker .ds-select-list{min-width:176px;--ds-form-surface:var(--ds-colour-panel);--ds-form-control-font-size:14px}
+@container ui-preview (min-width:621px){
+ #menu-live .workspace-device-chevron{position:absolute;right:12px;top:50%;transform:translateY(-50%)}
+ #menu-live[data-sidebar-collapsed=true] .workspace-device-chevron{display:none}
+}
+@container ui-preview (max-width:620px){
+ #menu-live .menu-utilities{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
+ #menu-live .workspace-device-chevron{display:none}
+}

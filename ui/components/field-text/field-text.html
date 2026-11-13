@@ -1,0 +1,10 @@
+<!--
+Component: Text input
+Purpose: A labelled single-line text field.
+Elements: Label, native text input and inline validation message.
+JavaScript behavior: Displays native validation errors and clears them on form reset. Submission remains application-owned.
+-->
+<div class="ds-component ds-field" data-ui="field-text" data-type="text">
+  <div class="ds-field-caption"><label class="ds-field-label" for="field-text-input">Text input</label><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></div>
+  <div class="ds-field-body"><input class="ds-field-control" id="field-text-input" type="text" name="text" placeholder="Enter text…" required></div>
+</div>

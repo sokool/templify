@@ -4,12 +4,13 @@ const path = require('node:path');
 const os = require('node:os');
 const http = require('node:http');
 const { unzipSync, strFromU8 } = require('fflate');
-const { compileProject } = require('../export/project.cjs');
+const { compileProject, available } = require('../export/project.cjs');
 const { loadProject } = require('../scripts/export-sources.cjs');
 const { defaultThemeConfiguration } = require('../scripts/export.cjs');
 const Themes = require('../themes/themes.js');
 const root = path.resolve(__dirname, '../..');
 let directory, server, url;
+const componentCount = available(loadProject()).length;
 
 test.beforeAll(async () => {
   directory = fs.mkdtempSync(path.join(os.tmpdir(), 'templify-tool-browser-'));
@@ -37,8 +38,8 @@ test('Tools Export downloads a working ZIP built by the shared compiler', async 
   page.on('pageerror', error => errors.push(error.message));
   page.on('request', request => requests.push(request.url()));
   await page.goto(url + '/index.html#topschrank.tools.export');
-  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(23);
-  await expect(page.locator('.export-tool-summary')).toContainText('23 selected');
+  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(componentCount);
+  await expect(page.locator('.export-tool-summary')).toContainText(componentCount + ' selected');
   await page.getByRole('button', { name: 'Clear selection', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Download ZIP', exact: true })).toBeDisabled();
   await page.locator('[data-export-component="window"]').check();
@@ -148,21 +149,21 @@ test('default selection exports all components, without authoring or compiler fi
   await submit.click();
   const download = await downloadEvent;
   const files = unzipSync(fs.readFileSync(await download.path()));
-  expect(Object.keys(files).filter(file => file.startsWith('components/'))).toHaveLength(23);
+  expect(Object.keys(files).filter(file => file.startsWith('components/'))).toHaveLength(componentCount);
   for (const name of Object.keys(files).filter(file => file.startsWith('components/'))) {
     const comment = strFromU8(files[name]).match(/^<!--([\s\S]*?)-->/);
     expect(comment, name + ' documentation').not.toBeNull();
     expect(comment[1]).toMatch(/Component: [\s\S]+Purpose: [\s\S]+Elements: [\s\S]+JavaScript behavior: /);
   }
   expect(Object.keys(files).some(file => /configurator|wasm|sources\.json|workspace|tools\//.test(file))).toBe(false);
-  expect(strFromU8(files['index.html']).match(/class="export-example"/g)).toHaveLength(23);
+  expect(strFromU8(files['index.html']).match(/class="export-example"/g)).toHaveLength(componentCount);
   expect(strFromU8(files['ui.css'])).toContain('Configured Templify themes');
   expect(strFromU8(files['ui.css'])).toContain('[data-ds-theme="dark"]');
   expect(strFromU8(files['ui.css'])).toContain('--ds-icon-stroke: 1.75');
   expect(strFromU8(files['ui.css'])).toContain('--ds-shadow-soft:');
   expect(strFromU8(files['ui.css'])).toContain('fonts.googleapis.com/css2?family=Manrope');
   expect(files['licenses/icons.txt']).toBeTruthy();
-  await expect(page.locator('.export-tool-progress')).toContainText('ZIP ready · 23 components');
+  await expect(page.locator('.export-tool-progress')).toContainText('ZIP ready · ' + componentCount + ' components');
 });
 
 test('failed compiler download can be retried without reloading the application', async ({ page }) => {
@@ -184,13 +185,13 @@ test('source download failure offers retry and tool navigation disposes the old 
   await expect(page.getByRole('button', { name: 'Download ZIP', exact: true })).toBeDisabled();
   await page.unroute('**/export/dist/sources.json');
   await page.getByRole('button', { name: 'Retry', exact: true }).click();
-  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(23);
+  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(componentCount);
   await expect(page.locator('.export-tool-error')).toBeHidden();
   await page.evaluate(() => { location.hash = '#topschrank.tools'; });
   await expect(page.locator('.export-tool')).toHaveCount(0);
   await page.getByRole('link', { name: 'Export →', exact: true }).click();
   await expect(page.locator('.export-tool')).toHaveCount(1);
-  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(23);
+  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(componentCount);
 });
 
 test('Export can be reached through the Tools submenu', async ({ page }) => {
@@ -199,12 +200,12 @@ test('Export can be reached through the Tools submenu', async ({ page }) => {
   await tools.click();
   await page.locator('[data-menu-page="export"]').click();
   await expect(page.locator('main.example-page')).toHaveAttribute('id', 'topschrank.tools.export');
-  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(23);
+  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(componentCount);
 });
 
 test('package contents background and text follow Light, Dark and Matrix themes', async ({ page }) => {
   await page.goto(url + '/index.html#topschrank.tools.export');
-  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(23);
+  await expect(page.locator('.export-tool input[type="checkbox"]')).toHaveCount(componentCount);
   for (const theme of ['light', 'dark', 'matrix']) {
     await expect(page.locator('html')).toHaveAttribute('data-ds-theme', theme);
     const colours = await page.locator('.export-tool-contents').evaluate(element => {

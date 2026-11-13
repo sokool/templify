@@ -12,6 +12,8 @@
   const persistence = ExampleSettings.create({ storage: browserStorage });
   const settings = persistence.settings,
     storage = persistence.storage;
+  const themeSwitcherSettings = settings.scope('components.theme-switcher');
+  const searchSettings = settings.scope('components.search');
   const windows = ExampleWindows.create({ settings });
   const saved = (key, fallback) => {
     try {
@@ -48,6 +50,8 @@
     settings.scope('components.window').defaults({ lockScroll: true, resizable: true });
     settings.scope('components.list').defaults(DesignSystemList.defaults);
     settings.scope('components.autocomplete').defaults({ size: 'small', multiple: true });
+    themeSwitcherSettings.defaults({ menuFooter: true });
+    searchSettings.defaults({ showNavigationTrigger: true, compact: false, maxResults: DesignSystemSearch.defaults.maxResults });
   });
   const iconAliases = {
     dashboard: 'layout-dashboard',
@@ -231,6 +235,70 @@
       path: ['components', 'navigation'],
       render: renderNavigationPage,
     },
+    search: {
+      label: 'Search',
+      anchor: 'topschrank.components.search',
+      path: ['components', 'search'],
+      render(page) {
+        const lead = document.createElement('p');
+        lead.className = 'example-lead';
+        lead.textContent = 'A theme-aware Spotlight for document links, page sections, menu destinations and component actions.';
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'ds-component ds-button ds-focusable';
+        button.textContent = 'Open Search';
+        button.addEventListener('click', () => shell.search.open());
+        const options = document.createElement('section');
+        options.className = 'example-search-options ds-tool';
+        const heading = document.createElement('h2');
+        heading.textContent = 'Options';
+        const controls = document.createElement('div');
+        controls.className = 'example-search-controls';
+        options.append(heading, controls);
+        const compactField = DesignSystemFormField.mount(controls, {
+          id: 'search-compact',
+          type: 'checkbox',
+          switch: true,
+          label: 'Compact',
+          hint: 'Smaller rows, icons and spacing.',
+          attrs: { checked: searchSettings.get('compact', false) },
+          onChange({ value, eventType }) {
+            if (eventType === 'change') searchSettings.set('compact', value);
+          },
+        });
+        const maxResultsField = DesignSystemFormField.mount(controls, {
+          id: 'search-max-results',
+          type: 'number',
+          label: 'Maximum results',
+          hint: '1–100, across all groups.',
+          attrs: { value: searchSettings.get('maxResults', DesignSystemSearch.defaults.maxResults), min: 1, max: 100, step: 1, required: true },
+          onChange({ value, eventType }) {
+            if (eventType === 'change' && maxResultsField.validate()) searchSettings.set('maxResults', Number(value));
+          },
+        });
+        const field = DesignSystemFormField.mount(controls, {
+          id: 'search-navigation-trigger',
+          type: 'checkbox',
+          switch: true,
+          label: 'Show search in navigation footer',
+          hint: 'Hides only the magnifier, not Search.',
+          attrs: { checked: searchSettings.get('showNavigationTrigger', true) },
+          onChange({ value, eventType }) {
+            if (eventType === 'change') searchSettings.set('showNavigationTrigger', value);
+          },
+        });
+        const unsubscribe = searchSettings.subscribe(({ showNavigationTrigger, compact, maxResults }) => {
+          field.control.checked = showNavigationTrigger;
+          field.sync();
+          compactField.control.checked = compact;
+          compactField.sync();
+          maxResultsField.control.value = String(maxResults);
+          maxResultsField.sync();
+        });
+        contentComponents.push(field, compactField, maxResultsField, { destroy: unsubscribe });
+        page.append(lead, button, options);
+      },
+    },
     shortcuts: {
       label: 'Shortcuts',
       anchor: 'topschrank.components.shortcuts',
@@ -249,13 +317,7 @@
       label: 'Theme switcher',
       anchor: 'topschrank.components.themeswitcher',
       path: ['components', 'theme-switcher'],
-      render(page) {
-        const lead = document.createElement('p');
-        lead.className = 'example-lead';
-        lead.textContent = 'Switch the complete Theme profile: colours, typography, icons, shadows and corners. Configure each profile in the Theme section.';
-        page.append(lead);
-        mountThemeSwitcher(page);
-      },
+      render: renderThemeSwitcherPage,
     },
     breadcrumbs: {
       label: 'Breadcrumbs',
@@ -285,6 +347,7 @@
       children: [
         { id: 'navigation', label: 'Navigation' },
         { id: 'shortcuts', label: 'Shortcuts' },
+        { id: 'search', label: 'Search' },
         { id: 'theme-switcher', label: 'Theme switcher' },
         { id: 'breadcrumbs', label: 'Breadcrumbs' },
         { id: 'kanban-board', label: 'Kanban board' },
@@ -321,7 +384,7 @@
   navigation
     .find((entry) => entry.id === 'components')
     .children.sort((a, b) => a.label.localeCompare(b.label, 'en', { sensitivity: 'base' }));
-  const releaseVersion = 'v0.1.7';
+  const releaseVersion = 'v0.1.8';
   DesignSystemNavigation.renderStructure(root, {
     user: { initials: releaseVersion, label: 'Templify ' + releaseVersion },
   });
@@ -341,6 +404,7 @@
     list: 'table-2',
     navigation: 'layout-panel-left',
     shortcuts: 'keyboard',
+    search: 'search',
     'theme-switcher': 'sun-moon',
     notifications: 'bell',
     'process-steps': 'workflow',
@@ -356,6 +420,12 @@
     export: 'download',
   };
   DesignSystemNavigation.renderNavigation(root, navigation, { renderIcon: icon, submenuIcons });
+  for (const node of root.querySelectorAll('[data-menu-page]')) {
+    const route = routes[node.dataset.menuPage];
+    if (!route) continue;
+    node.dataset.searchHref = '#' + route.anchor;
+    node.dataset.searchKeywords = [node.dataset.searchKeywords || '', ...route.path].join(' ');
+  }
   const shortcuts = DesignSystemShortcuts.create({ document });
   const shell = DesignSystemNavigation.mount(root, {
     shortcuts,
@@ -367,18 +437,66 @@
     onNavigate: navigate,
   });
   ExampleShortcuts.connect({ themes, shortcuts });
+  // Theme commands remain available when the optional footer control is absent.
+  DesignSystemThemeSwitcher.create({ document, themes, shortcuts });
+  function syncSearchSettings({ showNavigationTrigger = true, compact = false, maxResults = DesignSystemSearch.defaults.maxResults }) {
+    shell.search.update({ showNavigationTrigger, compact, maxResults });
+  }
+  syncSearchSettings(searchSettings.snapshot());
+  searchSettings.subscribe(syncSearchSettings);
   root.dataset.popupPattern = 'soft';
   const utilities = document.createElement('div');
   utilities.className = 'menu-utilities';
   shell.sidebarToggle.before(utilities);
-  const deviceButtons = ['desktop', 'tablet', 'mobile'].map((device) =>
-    utility(device, device[0].toUpperCase() + device.slice(1), () => setDevice(device)),
-  );
+  // Move the existing destination, retaining Navigation's search and click handling.
+  const settingsButton = root.querySelector('[data-menu-page="settings"]');
+  settingsButton.className = 'menu-utility';
+  const settingsIcon = settingsButton.querySelector('.menu-nav-icon');
+  settingsIcon.replaceWith(...settingsIcon.childNodes);
+  settingsButton.querySelector('.menu-nav-label').className = 'menu-utility-label';
+  utilities.append(settingsButton);
+  const devicePicker = document.createElement('div');
+  devicePicker.className = 'menu-utility workspace-device-picker ds-field';
+  devicePicker.innerHTML = icon('desktop');
+  const deviceLabel = document.createElement('span');
+  deviceLabel.className = 'menu-utility-label';
+  const deviceChevron = document.createElement('span');
+  deviceChevron.className = 'workspace-device-chevron';
+  deviceChevron.setAttribute('aria-hidden', 'true');
+  deviceChevron.innerHTML = icon('chevron-down');
+  const deviceSelect = document.createElement('select');
+  deviceSelect.className = 'ds-field-control';
+  deviceSelect.dataset.previewDevice = '';
+  deviceSelect.setAttribute('aria-label', 'Preview device');
+  for (const device of ['desktop', 'tablet', 'mobile']) {
+    const option = document.createElement('option');
+    option.value = device;
+    option.textContent = device[0].toUpperCase() + device.slice(1);
+    deviceSelect.append(option);
+  }
+  deviceSelect.addEventListener('change', () => setDevice(deviceSelect.value));
+  devicePicker.append(deviceLabel, deviceChevron, deviceSelect);
+  utilities.append(devicePicker);
+  const deviceField = DesignSystemFormField.enhance(devicePicker, { controls: [deviceSelect] });
   const themeButton = utility('theme', 'Change theme', () => {});
   themeButton.dataset.ui = 'theme-switcher';
   themeButton.dataset.themeNext = '';
   themeButton.querySelector('.menu-utility-label').dataset.themeLabel = '';
-  DesignSystemThemeSwitcher.mount(themeButton, { themes });
+  let footerThemeSwitcher = null;
+  function syncFooterThemeSwitcher({ menuFooter = true }) {
+    if (menuFooter) {
+      if (!footerThemeSwitcher) {
+        utilities.append(themeButton);
+        footerThemeSwitcher = DesignSystemThemeSwitcher.mount(themeButton, { themes });
+      }
+    } else {
+      footerThemeSwitcher?.destroy();
+      footerThemeSwitcher = null;
+      themeButton.remove();
+    }
+  }
+  syncFooterThemeSwitcher(themeSwitcherSettings.snapshot());
+  themeSwitcherSettings.subscribe(syncFooterThemeSwitcher);
   function utility(glyph, label, action) {
     const button = document.createElement('button');
     button.type = 'button';
@@ -395,10 +513,12 @@
   }
   function setDevice(device) {
     viewport.dataset.device = device;
+    deviceSelect.value = device;
+    deviceLabel.textContent = deviceSelect.selectedOptions[0].textContent;
+    deviceSelect.title = 'Preview device: ' + deviceLabel.textContent;
+    devicePicker.querySelector('.ui-icon').outerHTML = icon(device);
+    deviceField.sync();
     deviceListeners.forEach((listener) => listener(device));
-    deviceButtons.forEach((button, i) =>
-      button.setAttribute('aria-pressed', String(['desktop', 'tablet', 'mobile'][i] === device)),
-    );
     try {
       storage.setItem(prefix + '-device', device);
     } catch {}
@@ -458,6 +578,47 @@
     shell.slots.content.replaceChildren(page);
     if (push && location.hash !== '#' + routes[id].anchor)
       history.pushState(null, '', '#' + routes[id].anchor);
+  }
+  function renderThemeSwitcherPage(page) {
+    const lead = document.createElement('p');
+    lead.className = 'example-lead';
+    lead.textContent = 'Switch the complete Theme profile: colours, typography, icons, shadows and corners. Configure each profile in the Theme section.';
+    page.append(lead);
+    mountThemeSwitcher(page);
+    const options = document.createElement('section');
+    options.className = 'example-component-section';
+    const heading = document.createElement('h2');
+    heading.textContent = 'Navigation';
+    options.append(heading);
+    page.append(options);
+    const field = DesignSystemFormField.mount(options, {
+      id: 'theme-switcher-menu-footer',
+      type: 'checkbox',
+      switch: true,
+      label: 'Show in menu footer',
+      hint: 'Add a theme cycle button to the bottom of the menu. The selector above stays available.',
+      attrs: { checked: themeSwitcherSettings.get('menuFooter', true) },
+      onChange({ value, eventType }) {
+        if (eventType === 'change') themeSwitcherSettings.set('menuFooter', value);
+      },
+    });
+    const unsubscribe = themeSwitcherSettings.subscribe(({ menuFooter }) => {
+      field.control.checked = menuFooter;
+      field.sync();
+    });
+    contentComponents.push(field, { destroy: unsubscribe });
+    const keyboard = document.createElement('section');
+    keyboard.className = 'example-component-section';
+    const keyboardHeading = document.createElement('h2');
+    keyboardHeading.textContent = 'Keyboard shortcut';
+    const hint = document.createElement('p');
+    hint.textContent = 'Record a shortcut to cycle through themes. Backspace or Delete removes the binding. Search lets you choose a specific theme, even when the menu footer button is hidden.';
+    const editor = document.createElement('div');
+    keyboard.append(keyboardHeading, hint, editor);
+    page.append(keyboard);
+    contentComponents.push(DesignSystemShortcuts.mount(editor, {
+      shortcuts, actionIds: [DesignSystemThemeSwitcher.shortcutId],
+    }));
   }
   function mountThemeSwitcher(host) {
     const label = document.createElement('label');

@@ -1,5 +1,6 @@
 import Navigation from './navigation.js';
-import '../form/form.css';
+import '../search/search.css';
+import '../window/window.css';
 import { emit } from '../../runtime/dom.js';
 export function init(element) {
   const view = Navigation.mount(element, {

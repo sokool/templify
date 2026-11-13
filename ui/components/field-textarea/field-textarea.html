@@ -1,0 +1,11 @@
+<!--
+Component: Textarea
+Purpose: A multiline text field with a character count.
+Elements: Label, textarea, character output and inline validation message.
+JavaScript behavior: Updates the character count on input and restores it after native form reset.
+-->
+<div class="ds-component ds-field" data-ui="field-textarea" data-kind="textarea" data-type="text">
+  <div class="ds-field-caption"><label class="ds-field-label" for="field-textarea-input">Notes</label><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></div>
+  <div class="ds-field-body"><textarea class="ds-field-control" id="field-textarea-input" name="notes" rows="3" maxlength="240" placeholder="Enter notes…"></textarea></div>
+  <output class="ds-field-output" for="field-textarea-input">0 / 240</output>
+</div>

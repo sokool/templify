@@ -1,0 +1,14 @@
+<!--
+Component: Checkbox
+Purpose: Independent boolean choices, optionally grouped under a legend.
+Elements: Fieldset, legend, labelled native checkboxes and inline validation message.
+JavaScript behavior: data-required="true" requires at least one enabled choice. Individual required checkboxes use native required. Checked values repeat the field name in FormData; disabled choices are omitted.
+-->
+<fieldset class="ds-component ds-field ds-field-choice-group" data-ui="field-checkbox" data-kind="checkbox-group" data-type="checkbox" data-required="true">
+  <legend class="ds-field-caption"><span class="ds-field-label">Service scope</span><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></legend>
+  <div class="ds-field-body">
+    <label class="ds-field-choice"><input class="ds-field-control" id="field-checkbox-measurement" type="checkbox" name="services" value="measurement"><span>Measurement</span></label>
+    <label class="ds-field-choice"><input class="ds-field-control" type="checkbox" name="services" value="transport" checked><span>Transport</span></label>
+    <label class="ds-field-choice"><input class="ds-field-control" type="checkbox" name="services" value="unavailable" disabled><span>Option unavailable</span></label>
+  </div>
+</fieldset>

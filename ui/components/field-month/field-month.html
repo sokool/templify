@@ -1,0 +1,10 @@
+<!--
+Component: Month input
+Purpose: A year/month field with a theme-aware month grid.
+Elements: Label, native month input and validation message; JavaScript adds month/year selection.
+JavaScript behavior: Selects a YYYY-MM value using the shared themed picker and respects native limits. Text entry remains available. FormData and native reset retain the original input.
+-->
+<div class="ds-component ds-field" data-ui="field-month" data-type="month">
+  <div class="ds-field-caption"><label class="ds-field-label" for="field-month-input">Month</label><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></div>
+  <div class="ds-field-body"><input class="ds-field-control" id="field-month-input" type="month" name="month" min="2026-01" max="2030-12"></div>
+</div>

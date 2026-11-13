@@ -1,0 +1,10 @@
+<!--
+Component: Date input
+Purpose: A date field with a theme-aware calendar.
+Elements: Label, native date input and inline validation message; JavaScript adds a calendar dialog.
+JavaScript behavior: Replaces the platform popup with a keyboard-accessible calendar, month/year navigation and ISO text entry. Honours native min/max/step/required and retains the native input for FormData and reset.
+-->
+<div class="ds-component ds-field" data-ui="field-date" data-type="date">
+  <div class="ds-field-caption"><label class="ds-field-label" for="field-date-input">Date</label><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></div>
+  <div class="ds-field-body"><input class="ds-field-control" id="field-date-input" type="date" name="date" value="2026-11-04" min="2026-01-01" max="2030-12-31"></div>
+</div>

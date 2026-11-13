@@ -1,0 +1,10 @@
+<!--
+Component: Colour input
+Purpose: An arbitrary hexadecimal colour with theme-aware palette shortcuts.
+Elements: Label, native colour input and validation message; JavaScript adds a swatch and dialog.
+JavaScript behavior: Uses the current theme's accent colours as shortcuts and accepts any six-digit hex colour. The native colour input retains value, FormData, disabled/readonly enhancement and reset.
+-->
+<div class="ds-component ds-field" data-ui="field-color" data-type="color">
+  <div class="ds-field-caption"><label class="ds-field-label" for="field-color-input">Colour</label><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></div>
+  <div class="ds-field-body"><input class="ds-field-control" id="field-color-input" type="color" name="colour" value="#22447f"></div>
+</div>

@@ -9,6 +9,7 @@ const { Document } = require('./dom-fixture.cjs');
 const Field = require('../components/form/field.js');
 const Buttons = require('../components/buttons/buttons.js');
 const tick = () => new Promise(resolve => setImmediate(resolve));
+const componentCount = available(loadProject()).length;
 
 function setup(options = {}) {
   const document = new Document();
@@ -26,7 +27,7 @@ function setup(options = {}) {
 
 test('browser source payload is generated from current sources without tooling or manifests', () => {
   const project = loadProject();
-  assert.equal(available(project).length, 23);
+  assert.equal(available(project).length, componentCount);
   assert(!Object.keys(project.files).some(file => /configurator|tools\/|tests\/|manifest|workspace|storage|example\.html/.test(file)));
   assert.deepEqual(JSON.parse(fs.readFileSync(path.join(__dirname, '../tools/export/dist/sources.json'), 'utf8')), JSON.parse(JSON.stringify(project)));
   assert.equal(resolveImport('/ui/components/card/client.js', '../../runtime/dom.js'), 'ui/runtime/dom.js');
@@ -37,8 +38,8 @@ test('browser source payload is generated from current sources without tooling o
 test('selection includes required dependencies and disables empty downloads', async () => {
   const { host, view, button, control, downloads } = setup();
   await view.ready;
-  assert.equal(host.querySelectorAll('input').length, 23);
-  assert.match(host.querySelector('.export-tool-summary').textContent, /23 selected/);
+  assert.equal(host.querySelectorAll('input').length, componentCount);
+  assert.match(host.querySelector('.export-tool-summary').textContent, new RegExp(componentCount + ' selected'));
   button('Clear selection').emit('click');
   assert.equal(button('Download ZIP').disabled, true);
   control('window').checked = true;
@@ -53,7 +54,7 @@ test('selection includes required dependencies and disables empty downloads', as
   assert.equal(downloads.length, 1);
   assert.equal(downloads[0].name, 'templify-components.zip');
   button('Select all').emit('click');
-  assert.equal(host.querySelectorAll('input').filter(input => input.checked).length, 23);
+  assert.equal(host.querySelectorAll('input').filter(input => input.checked).length, componentCount);
   view.destroy();
   assert.equal(host.children.length, 0);
 });
@@ -70,7 +71,7 @@ test('loading failures can be retried and successful retry restores controls', a
   button('Retry').emit('click');
   await tick();
   assert.equal(host.querySelector('.export-tool-error').hidden, true);
-  assert.equal(host.querySelectorAll('input').length, 23);
+  assert.equal(host.querySelectorAll('input').length, componentCount);
   assert.equal(button('Download ZIP').disabled, false);
   view.destroy();
 });

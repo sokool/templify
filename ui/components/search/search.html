@@ -1,0 +1,38 @@
+<!--
+Component: Search
+Purpose: Search document links, named page sections, navigation destinations and component actions in a central command palette.
+Elements: Optional opener, modal Window surface, search combobox, result rows with right-aligned category labels, optional graphics, titles, descriptions, addresses and shortcuts.
+JavaScript behavior: open(), close(), setQuery(text), refresh(), update(options), setEnabled(boolean), setShortcut(binding) and destroy().
+data-navigation optionally connects a Navigation root and adds a magnifier to its menu-sidebar-footer; without it Search is independent.
+data-show-navigation-trigger (true) controls only the magnifier. Hiding it keeps navigation indexing, Search and its shortcut available.
+data-scope selects the indexed container (the document by default). data-links, data-anchors and data-actions enable sources.
+data-open-shortcut declares the search.open default (Mod+K); Cmd and Ctrl are interchangeable. Saved Shortcuts preferences take precedence.
+data-shortcut-id may supply a different stable action ID for another instance. Shortcuts owns keyboard binding and dispatch.
+data-show-icons, data-show-descriptions and data-show-shortcuts control result content.
+data-group-results (true) keeps categories together and shows each result's category on its right instead of separate section headings.
+data-compact (false) uses smaller result rows, graphics, typography and spacing without hiding metadata or changing search behavior.
+data-max-results (5), data-min-length (0), data-width (680), data-duration (180) and data-close-on-backdrop configure the palette.
+Links provide href, text, aria-label/aria-labelledby, title, aria-describedby, images and inert SVG geometry.
+data-search-title, data-search-description, data-search-keywords, data-search-group, data-search-icon and data-search-image override source metadata.
+data-search-href supplies a URL hint for a button whose original handler owns routing.
+Headings with id and explicitly named elements with id are anchor destinations. data-search-ignore excludes an element and its subtree.
+data-exclude supplies an additional exclusion selector. Hidden non-navigation UI, disabled destinations and unsafe URLs are excluded.
+Search matches titles, descriptions, URLs, fragments, keywords and graphic labels without accent/case sensitivity. It does not crawl destination pages.
+Opt-in searchable actions come from the shared Shortcuts catalogue, even without a key binding; disabled actions cannot execute.
+Arrow keys select, Enter activates, Escape/backdrop dismiss. Native link modifiers and original callbacks/HTMX behavior are retained.
+Window owns modal focus, inertness, scroll locking and fade/scale animation; reduced-motion preferences are respected.
+DOM and HTMX changes refresh results. destroy() removes observers, trigger, action and Window without destroying the catalogue.
+ui:search-select reports an activated result. The host owns routing and persistence.
+-->
+<section class="ds-search" data-ui="search" data-open-shortcut="Mod+K" data-max-results="5">
+  <button type="button" class="ds-component ds-button ds-focusable" data-search-open>Search pages and actions</button>
+  <dialog class="ds-component ds-window ds-search-dialog" aria-label="Search">
+    <header class="ds-window-header"><h2 class="ds-window-title">Search</h2><button type="button" class="ds-window-close" hidden aria-label="Close window">×</button></header>
+    <div class="ds-window-body">
+      <div class="ds-search-bar"><span class="ds-search-symbol" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="7.5"/><path d="m16 16 5 5"/></svg></span><input class="ds-search-input" type="search" placeholder="Search pages, links and actions…" aria-label="Search pages and actions"></div>
+      <div class="ds-search-results" role="listbox" aria-label="Search results"></div>
+      <p class="ds-search-status" role="status"></p><p class="ds-search-help">↑ ↓ Navigate · Enter Open · Esc Close</p>
+    </div>
+    <footer class="ds-window-footer" hidden></footer><button type="button" class="ds-window-resize" hidden aria-label="Resize window"></button>
+  </dialog>
+</section>

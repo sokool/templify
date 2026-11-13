@@ -2,7 +2,10 @@
 Component: Shortcuts
 Purpose: Register and edit keyboard shortcuts.
 Elements: Rows with an identifier, label, recorder input and reset button.
-JavaScript behavior: set(id, shortcut), reset(id), list(), recording Cmd/Ctrl/Alt + character;
+JavaScript behavior: set(id, shortcut), reset(id), list(), recording Cmd/Ctrl, Alt and/or
+Shift with a letter or digit, or at least two modifiers without a character.
+Cmd and Ctrl are interchangeable (Mod). Modifier-only combinations are recorded
+and dispatched on the first release, unless another key was pressed.
 Backspace/Delete disables a shortcut. ui:change reports changes; the application saves data.
 All components register actions in one shared catalogue per document. This editor
 adopts existing rows and displays newly registered actions, including Navigation.

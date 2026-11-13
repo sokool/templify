@@ -1,0 +1,10 @@
+<!--
+Component: Number input
+Purpose: A numeric field with an optional unit and compact themed up/down buttons.
+Elements: Label, native number input, unit and inline validation message.
+JavaScript behavior: Adds up/down buttons using native stepUp/stepDown, honours min/max/step and disables buttons for disabled/readonly fields. The native input owns the submitted value.
+-->
+<div class="ds-component ds-field ds-field-unit" data-ui="field-number" data-type="number" data-unit="PLN">
+  <div class="ds-field-caption"><label class="ds-field-label" for="field-number-input">Budget</label><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></div>
+  <div class="ds-field-body"><input class="ds-field-control" id="field-number-input" type="number" name="budget" value="14200" min="0" max="1000000" step="100"><span class="ds-field-unit-text">PLN</span></div>
+</div>

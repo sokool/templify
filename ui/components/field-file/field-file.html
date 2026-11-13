@@ -1,0 +1,11 @@
+<!--
+Component: File input
+Purpose: One or more file attachments using the system file chooser.
+Elements: Label, native file input, filenames output and inline validation message.
+JavaScript behavior: Updates the filenames output on change/reset. Remove multiple for one file. The file chooser remains system-owned; accept is a picker hint, not server validation. FormData retains File objects.
+-->
+<div class="ds-component ds-field" data-ui="field-file" data-type="file">
+  <div class="ds-field-caption"><label class="ds-field-label" for="field-file-input">Attachments</label><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></div>
+  <div class="ds-field-body"><input class="ds-field-control" id="field-file-input" type="file" name="attachments" accept=".pdf,image/*" multiple></div>
+  <output class="ds-field-output" for="field-file-input">No files selected.</output>
+</div>

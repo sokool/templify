@@ -1467,6 +1467,9 @@
 .workspace-hamburger {
   display: none;
 }
+.menu-mobile-close {
+  display: none;
+}
 
 @container ui-preview (max-width:620px) {
   #menu-live[data-menu-design='sidebar'] {
@@ -1478,7 +1481,7 @@
     justify-content: space-between;
     padding-inline: 14px;
   }
-  #menu-live .workspace-hamburger {
+  #menu-live :is(.workspace-hamburger, .menu-mobile-close) {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1491,43 +1494,62 @@
     color: var(--text, var(--ds-colour-text));
     cursor: pointer;
   }
-  #menu-live .workspace-hamburger .ui-icon {
+  #menu-live :is(.workspace-hamburger, .menu-mobile-close) .ui-icon {
     width: 22px;
     height: 22px;
   }
   #menu-live .workspace-hamburger:hover,
-  #menu-live .workspace-hamburger[aria-expanded='true'] {
+  #menu-live .workspace-hamburger[aria-expanded='true'],
+  #menu-live .menu-mobile-close:hover {
     background: var(--ui-soft, var(--ds-colour-soft));
     color: var(--link, var(--ds-colour-accent));
   }
-  #menu-live .workspace-hamburger:focus-visible {
+  #menu-live :is(.workspace-hamburger, .menu-mobile-close):focus-visible {
     border-color: var(--link, var(--ds-colour-accent));
     outline: none;
   }
   #menu-live[data-menu-design='sidebar'] .menu-live-nav {
-    display: none;
-    position: absolute;
-    top: var(--mobile-nav-top, 56px);
-    right: 0;
-    left: auto;
-    bottom: auto;
-    width: min(280px, 100%);
-    max-width: 100%;
-    max-height: min(560px, 70dvh);
+    display: flex;
+    position: fixed;
+    /* A viewport-height drawer stays independent of the shell's grid and content. */
+    grid-area: auto;
+    top: 0;
+    right: auto;
+    left: var(--mobile-nav-left, 0px);
+    bottom: 0;
+    width: max-content;
+    min-width: 50cqw;
+    max-width: calc(100cqw - 16px);
+    height: 100dvh;
+    max-height: 100dvh;
     overflow-y: auto;
     overscroll-behavior: contain;
-    z-index: 50;
-    padding: 6px 0;
-    gap: 3px;
+    z-index: 65;
+    padding: 0;
+    gap: 0;
     background: var(--panel, var(--ds-colour-panel));
     border: 1px solid var(--ice, var(--ds-colour-border));
     border-top: 0;
-    border-right: 0;
     border-radius: 0;
     box-shadow: var(--ds-shadow-medium, none);
+    transform: translateX(-100%);
+    visibility: hidden;
+    pointer-events: none;
+    transition: transform 260ms cubic-bezier(.22, 1, .36, 1), visibility 0s linear 260ms;
   }
   #menu-live[data-menu-design='sidebar'][data-mobile-menu-open='true'] .menu-live-nav {
-    display: flex;
+    transform: translateX(0);
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
+  }
+  #menu-live[data-mobile-menu-open='true'] .workspace-hamburger {
+    visibility: hidden;
+  }
+  #menu-live .menu-mobile-close {
+    flex: none;
+    align-self: flex-start;
+    margin: 9px 3px;
   }
   #menu-live[data-menu-design='sidebar'] .menu-section {
     position: relative;
@@ -1606,18 +1628,8 @@
   }
 }
 
-/* Mobile dropdown uses one consistent labelled list, never the old icon-grid rules. */
+/* Mobile navigation uses one consistent labelled list, never the old icon-grid rules. */
 @container ui-preview (max-width:620px) {
-  #menu-live[data-menu-design='sidebar'][data-mobile-menu-open='true'] .menu-live-nav {
-    width: 100%;
-    max-width: 100%;
-    left: 0;
-    right: 0;
-    padding: 6px 0;
-    gap: 2px;
-    border-left: 0;
-    box-shadow: var(--ds-shadow-medium, none);
-  }
   #menu-live[data-menu-design='sidebar'] .menu-live-nav > .menu-nav-action,
   #menu-live[data-menu-design='sidebar'] .menu-section > .menu-nav-action,
   #menu-live[data-menu-design='sidebar'] .menu-sidebar-footer > .menu-nav-action {
@@ -2944,140 +2956,6 @@ html[data-workspace-restoring='true'] #menu-live * {
   }
 }
 
-/* Search is independent of group expansion and the scrolling menu items. */
-#menu-live .menu-search-section {
-  flex: 0 0 auto;
-  width: 100%;
-  min-width: 0;
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--ds-colour-divider);
-}
-
-#menu-live .menu-search-panel {
-  min-width: 0;
-  width: 100%;
-}
-
-/* Compact Form sizing only; border, colours and focus remain owned by Form. */
-#menu-live .menu-search-panel > .ds-field {
-  --ds-form-field-height: 32px;
-  --ds-form-field-radius: 8px;
-  --ds-form-control-font-size: 12px;
-  padding-top: 0;
-}
-
-#menu-live .menu-search-panel .ds-field-control {
-  padding: 5px 9px;
-  line-height: 20px;
-}
-
-#menu-live .menu-search-results {
-  display: grid;
-  gap: 2px;
-  max-height: min(240px, 30dvh);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  margin-top: 6px;
-}
-
-#menu-live .menu-search-result {
-  display: grid;
-  gap: 1px;
-  width: 100%;
-  min-height: 34px;
-  padding: 6px 8px;
-  border: 0;
-  border-radius: var(--ds-radius-navigation, 6px);
-  background: transparent;
-  color: var(--ds-colour-text);
-  font: 400 12px/1.4 var(--ds-font-family);
-  text-align: left;
-  overflow-wrap: anywhere;
-  cursor: pointer;
-}
-
-#menu-live .menu-search-result small {
-  color: var(--ds-colour-muted);
-  font-size: 10px;
-}
-
-#menu-live .menu-search-result:hover,
-#menu-live .menu-search-result:focus-visible {
-  background: var(--ds-colour-selection);
-  color: var(--ds-colour-accent);
-}
-
-#menu-live .menu-search-status {
-  margin: 6px 0 0;
-  color: var(--ds-colour-muted);
-  font: 400 10px/1.4 var(--ds-font-family);
-}
-
-#menu-live .menu-search-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  /* Match the expanded 32px field plus 6px padding above and below. */
-  height: 44px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--ds-colour-muted);
-  cursor: pointer;
-}
-
-#menu-live .menu-search-toggle:hover,
-#menu-live .menu-search-toggle:focus-visible,
-#menu-live .menu-search-toggle[aria-expanded='true'] {
-  background: var(--ds-colour-selection);
-  color: var(--ds-colour-accent);
-}
-
-#menu-live .menu-search-section[data-compact='true'] {
-  padding: 0;
-}
-
-#menu-live .menu-search-panel[popover] {
-  position: fixed;
-  inset: auto;
-  box-sizing: border-box;
-  width: 320px;
-  max-width: calc(100vw - 16px);
-  margin: 0;
-  padding: 0;
-  overflow-y: auto;
-  border: 1px solid var(--pattern-stroke);
-  border-radius: 0 var(--pattern-radius) var(--pattern-radius) 0;
-  background: var(--ds-colour-panel);
-  color: var(--ds-colour-text);
-  box-shadow: var(--pattern-shadow);
-}
-
-#menu-live .menu-search-panel[popover] > .ds-field {
-  padding: 10px;
-  background: var(--submenu-title-bg, var(--ds-colour-selection));
-}
-
-#menu-live .menu-search-panel[popover]:has(.menu-search-status:not([hidden])) > .ds-field {
-  border-bottom: 1px solid var(--pattern-stroke);
-}
-
-#menu-live .menu-search-panel[popover] .menu-search-results {
-  margin: 0;
-  padding: 4px 0;
-}
-
-#menu-live .menu-search-panel[popover] .menu-search-result {
-  border-radius: 0;
-  padding-inline: 16px;
-}
-
-#menu-live .menu-search-panel[popover] .menu-search-status {
-  margin: 0;
-  padding: 6px 10px;
-}
-
 /* Complete shell styling, shared by HTML-first export and the application. */
 .navigation-viewport{container:ui-preview / inline-size;width:100%;min-width:0}
 #menu-live.ds-navigation {
@@ -3190,4 +3068,56 @@ html[data-workspace-restoring='true'] #menu-live * {
   :is(.menu-nav-action, .menu-sub-action, .menu-nav-label, .menu-sub-label,
       .menu-utility, .menu-utility-label, .menu-sidebar-toggle, .menu-sidebar-toggle-label) {
   font: 400 13px/1.4 var(--ds-font-family);
+}
+
+/* Intrinsic row widths let the drawer grow beyond half the preview when needed.
+   Long labels wrap at its viewport cap; only destinations scroll above the footer. */
+@container ui-preview (max-width:620px) {
+  #menu-live[data-menu-design='sidebar'] .menu-live-nav .menu-nav-action {
+    grid-template-columns: 20px minmax(0, 1fr) 16px;
+    height: auto;
+    min-height: 40px;
+    padding-block: 9px;
+  }
+  #menu-live[data-menu-design='sidebar'] .menu-live-nav .menu-sub-action {
+    height: auto;
+    min-height: 34px;
+    padding-block: 7px;
+  }
+  #menu-live .menu-live-nav :is(.menu-nav-label, .menu-sub-label) {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  #menu-live[data-menu-design='sidebar'] .menu-scroll-region {
+    display: block;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  #menu-live[data-menu-design='sidebar'] .menu-scroll-primary {
+    flex: 1 1 auto;
+  }
+  #menu-live[data-menu-design='sidebar'] .menu-scroll-footer {
+    flex: 0 0 auto;
+    max-height: 40%;
+    margin-top: auto;
+  }
+  #menu-live[data-menu-design='sidebar'] .menu-sidebar-footer {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    margin-top: 0;
+  }
+  #menu-live .menu-sidebar-footer > .menu-utilities {
+    display: contents;
+  }
+}
+#menu-live:not([data-motion-ready='true']) .menu-live-nav {
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  #menu-live .menu-live-nav {
+    transition: none !important;
+  }
 }

@@ -1,0 +1,13 @@
+<!--
+Component: Radio group
+Purpose: One mutually exclusive choice from a labelled group.
+Elements: Fieldset, legend, labelled native radio inputs sharing a name and validation message.
+JavaScript behavior: Preserves native radio keyboard navigation, required validation, FormData and reset. Disabled options cannot be selected.
+-->
+<fieldset class="ds-component ds-field ds-field-choice-group" data-ui="field-radio" data-kind="radio-group" data-type="radio">
+  <legend class="ds-field-caption"><span class="ds-field-label">Preferred contact</span><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></legend>
+  <div class="ds-field-body">
+    <label class="ds-field-choice"><input class="ds-field-control" id="field-radio-email" type="radio" name="contact" value="email" checked required><span>Email</span></label>
+    <label class="ds-field-choice"><input class="ds-field-control" type="radio" name="contact" value="phone" required><span>Phone</span></label>
+  </div>
+</fieldset>

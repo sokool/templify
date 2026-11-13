@@ -1,0 +1,11 @@
+<!--
+Component: Slider
+Purpose: A themed continuous or stepped numeric slider with a visible value.
+Elements: Label, native range input, filled track, thumb, value output and validation message.
+JavaScript behavior: Updates the track fill and value output on input/change and form reset. Native keyboard, min/max/step and disabled semantics are preserved. data-unit adds a unit to the output.
+-->
+<div class="ds-component ds-field" data-ui="field-range" data-type="range" data-unit="cm">
+  <div class="ds-field-caption"><label class="ds-field-label" for="field-range-input">Width</label><span class="ds-field-error" data-field-error aria-live="polite" hidden></span></div>
+  <div class="ds-field-body"><input class="ds-field-control" id="field-range-input" type="range" name="width" value="120" min="0" max="300" step="10"></div>
+  <output class="ds-field-output" for="field-range-input">120 cm</output>
+</div>
