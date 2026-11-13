@@ -313,3 +313,87 @@ for (const [name, pathname] of [
     expect((await typography()).every(style => style.family)).toBe(true);
   });
 }
+
+for (const [preset, profile] of [['default', 'medium'], ['soft', 'soft']]) {
+  test(`Navigation ${preset} shadows follow live Themes profiles without remounting`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(url);
+    await page.evaluate(preset => {
+      const root = document.querySelector('#menu-live');
+      if (preset === 'soft') root.dataset.popupPattern = 'soft';
+      const view = Templify.get(root);
+      window.shadowNavigation = { root, view, submenu: root.querySelector('#submenu-projects'), search: root.querySelector('#menu-search-panel') };
+      view.setCollapsed(true);
+      view.toggleGroup('projects');
+      view.focusSearch();
+    }, preset);
+    const submenu = page.locator('#submenu-projects'), search = page.locator('#menu-search-panel');
+    const expectProfile = async (element, name) => {
+      const expected = await page.evaluate(name => {
+        const probe = document.createElement('div');
+        probe.style.boxShadow = `var(--ds-shadow-${name})`;
+        document.body.append(probe);
+        const value = getComputedStyle(probe).boxShadow;
+        probe.remove();
+        return value;
+      }, name);
+      await expect(element).toBeVisible();
+      await expect(element).toHaveCSS('box-shadow', expected);
+      return expected;
+    };
+    // Exported Navigation follows the foundation even without the optional Themes runtime.
+    await expectProfile(submenu, profile);
+    await expectProfile(search, profile);
+
+    for (const file of ['themes/tokens/tokens.js', 'themes/tokens/defaults.js', 'colours/colour-system.js', 'colours/colour-roles.js', 'shadows/shadows.js', 'themes/themes.js']) {
+      await page.addScriptTag({ url: url + '/source/ui/' + file });
+    }
+    await page.evaluate(profile => {
+      const themes = DesignSystemThemes.create({ target: document.documentElement });
+      const custom = themes.add('Navigation shadow test', 'dark');
+      themes.setShadow('light', profile, { x: 2, y: 5, blur: 11, spread: 1, opacity: 22 });
+      themes.setShadow(custom, profile, { x: 7, y: 17, blur: 41, spread: 2, opacity: 65 });
+      window.navigationShadowThemes = { themes, custom };
+    }, profile);
+    for (const id of ['light', 'dark', 'matrix', 'custom']) {
+      await page.evaluate(id => {
+        const { themes, custom } = window.navigationShadowThemes;
+        themes.select(id === 'custom' ? custom : id);
+      }, id);
+      await expectProfile(submenu, profile);
+      await expectProfile(search, profile);
+    }
+    const before = await expectProfile(search, profile);
+    await page.evaluate(profile => {
+      const { themes, custom } = window.navigationShadowThemes;
+      themes.setShadow(custom, profile, { blur: 63 });
+    }, profile);
+    const after = await expectProfile(search, profile);
+    expect(after).not.toBe(before);
+    await expectProfile(submenu, profile);
+    await page.evaluate(profile => {
+      const { themes, custom } = window.navigationShadowThemes;
+      themes.setShadow(custom, profile, { opacity: 0 });
+    }, profile);
+    await expect(submenu).toHaveCSS('box-shadow', 'none');
+    await expect(search).toHaveCSS('box-shadow', 'none');
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.locator('#menu-live-nav')).toHaveJSProperty('inert', true);
+    await page.evaluate(() => {
+      const { themes } = window.navigationShadowThemes;
+      themes.select('dark');
+      themes.setShadow('dark', 'medium', { y: 13, blur: 74, opacity: 42 });
+      window.shadowNavigation.view.mobile.setOpen(true);
+      window.shadowNavigation.view.toggleGroup('projects');
+    });
+    await expectProfile(page.locator('#menu-live-nav'), 'medium');
+    await expect(submenu).toBeVisible();
+    await expect(submenu).toHaveCSS('box-shadow', 'none');
+    expect(await page.evaluate(() => {
+      const { root, view, submenu, search } = window.shadowNavigation;
+      return root === document.querySelector('#menu-live') && view === Templify.get(root)
+        && submenu === root.querySelector('#submenu-projects') && search === root.querySelector('#menu-search-panel');
+    })).toBe(true);
+  });
+}

@@ -98,6 +98,19 @@ and `.search` expose composition points. Put host utility controls before
 `.menu-utility-label` provide shared row styling. Actions such as theme selection
 and device previews remain host-owned. Moving supplied DOM retains its listeners.
 
+## Theme shadows
+
+Navigation consumes shared foundation shadow profiles rather than keeping its own
+shadow colours or geometry. Submenu and search popovers use `--ds-shadow-medium`;
+the `data-popup-pattern="soft"` preset uses `--ds-shadow-soft` for both. The mobile
+navigation dropdown uses `--ds-shadow-medium`, while its inline submenus remain
+shadowless.
+
+Changes made through Themes, or by applying exported theme CSS, update already
+mounted Navigation surfaces without remounting or replacing DOM. Shared profiles
+are supplied by `defaults.css`, so Navigation does not require the optional Themes
+runtime or its editor. A profile with zero opacity removes its shadows.
+
 ## Shared keyboard shortcuts
 
 | Attribute | Shortcuts action ID | Default when omitted |

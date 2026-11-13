@@ -7,7 +7,7 @@
   --pattern-rule: 0px;
   --pattern-width: 220px;
   --pattern-gap: 0px;
-  --pattern-shadow: 0 16px 34px #00000026;
+  --pattern-shadow: var(--ds-shadow-medium, none);
   --pattern-stroke: var(--ice, var(--ds-colour-border));
 }
 .ds-navigation,
@@ -1115,7 +1115,7 @@
     margin: 0;
     border-color: var(--ice, var(--ds-colour-border));
     border-radius: 8px;
-    box-shadow: 0 5px 16px #1b2d501a;
+    box-shadow: var(--pattern-shadow);
   }
   #menu-live[data-menu-design='sidebar'][data-sidebar-collapsed='true'] .menu-submenu:before {
     content: '';
@@ -1144,7 +1144,7 @@
     top: 0;
     border-color: var(--ice, var(--ds-colour-border));
     border-radius: 8px;
-    box-shadow: 0 5px 16px #1b2d501a;
+    box-shadow: var(--pattern-shadow);
   }
   #menu-live[data-menu-design='sidebar'] .menu-submenu:before {
     content: '';
@@ -1174,7 +1174,7 @@
     margin: 0;
     border-color: var(--ice, var(--ds-colour-border));
     border-radius: 8px;
-    box-shadow: 0 5px 16px #1b2d501a;
+    box-shadow: var(--pattern-shadow);
   }
   #menu-live[data-menu-design='sidebar'][data-sidebar-collapsed='true'] .menu-submenu:before {
     content: '';
@@ -1294,7 +1294,7 @@
   --submenu-title-line: var(--border, var(--ds-colour-border));
 }
 :root:is([data-theme='dark'], [data-theme='matrix']) #menu-live .menu-submenu {
-  box-shadow: 0 8px 24px #00000055;
+  box-shadow: var(--pattern-shadow);
 }
 :root:is([data-theme='dark'], [data-theme='matrix'])
   #menu-live
@@ -1524,7 +1524,7 @@
     border-top: 0;
     border-right: 0;
     border-radius: 0;
-    box-shadow: -5px 10px 24px #00000024;
+    box-shadow: var(--ds-shadow-medium, none);
   }
   #menu-live[data-menu-design='sidebar'][data-mobile-menu-open='true'] .menu-live-nav {
     display: flex;
@@ -1616,7 +1616,7 @@
     padding: 6px 0;
     gap: 2px;
     border-left: 0;
-    box-shadow: 0 10px 20px #00000024;
+    box-shadow: var(--ds-shadow-medium, none);
   }
   #menu-live[data-menu-design='sidebar'] .menu-live-nav > .menu-nav-action,
   #menu-live[data-menu-design='sidebar'] .menu-section > .menu-nav-action,
@@ -2255,7 +2255,7 @@ html[data-workspace-restoring='true'] #menu-live * {
   --submenu-title-bg: var(--menu-selection, var(--ds-colour-soft));
   --pattern-radius: 10px;
   --pattern-rule: 1px;
-  --pattern-shadow: 0 8px 22px #00000014;
+  --pattern-shadow: var(--ds-shadow-medium, none);
   --pattern-width: 210px;
   --pattern-gap: 8px;
   --pattern-stroke: var(--ice, var(--ds-colour-border));
@@ -2267,7 +2267,7 @@ html[data-workspace-restoring='true'] #menu-live * {
   --pattern-rule: 0px;
   --pattern-width: 220px;
   --pattern-gap: 0px;
-  --pattern-shadow: 0 12px 30px #00000020;
+  --pattern-shadow: var(--ds-shadow-soft, none);
 }
 #menu-live[data-menu-design='sidebar'][data-sidebar-collapsed='true'] .menu-submenu {
   width: var(--pattern-width);

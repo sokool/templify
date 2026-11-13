@@ -15,6 +15,9 @@ declare defaults in the shared Shortcuts catalogue. An empty value disables the
 default binding; saved user bindings take precedence. Shortcuts owns dispatch and
 editing, even when its editor is absent. Disabling a feature disables its action
 without clearing its binding. destroy() unregisters actions and removes helpers.
+Popover shadows follow --ds-shadow-medium, or --ds-shadow-soft with
+data-popup-pattern="soft". The mobile dropdown uses --ds-shadow-medium; inline
+mobile submenus remain shadowless. Theme CSS changes apply without remounting.
 One Navigation instance per document; retain the menu-live and menu-live-nav IDs.
 -->
 <div class="navigation-viewport">

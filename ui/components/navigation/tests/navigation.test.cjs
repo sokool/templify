@@ -747,3 +747,14 @@ test('setItems renders text, native links and callbacks, validates IDs and detac
   assert.equal(f.root.querySelectorAll('[data-menu-page]').length, 2);
   f.control.destroy();
 });
+
+test('Navigation shadow declarations use shared profiles instead of fixed shadow values', () => {
+  const css = readFileSync(path.resolve(__dirname, '../navigation.css'), 'utf8');
+  const declarations = [...css.matchAll(/(?:box-shadow|--pattern-shadow)\s*:\s*([^;}\n]+)/g)];
+  assert(declarations.length > 0);
+  for (const [, value] of declarations) {
+    assert.match(value.trim(), /^(?:none|var\(--[a-z0-9-]+(?:,\s*none)?\))$/, value);
+  }
+  assert.match(css, /--pattern-shadow:\s*var\(--ds-shadow-medium,\s*none\)/);
+  assert.match(css, /--pattern-shadow:\s*var\(--ds-shadow-soft,\s*none\)/);
+});
