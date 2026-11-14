@@ -3135,9 +3135,13 @@ html[data-workspace-restoring='true'] #menu-live * {
   }
 }
 
-/* The shell reserves bottom surfaces in normal flow. Fixed surfaces use measured
-   preview/content bounds rather than assuming the document fills the screen. */
-#menu-live.ds-navigation {
+/* Only content reserves bottom surfaces. Padding the shell would shorten the
+   sidebar's sticky bounds and create an empty scroll area below the whole grid.
+   Fixed surfaces use measured preview/content bounds, not the document width. */
+#menu-live[data-menu-design='sidebar'] .menu-live-content {
+  padding-bottom: calc(16px + var(--navigation-dock-space, 0px) + var(--navigation-bottom-size, 0px));
+}
+#menu-live[data-menu-design='sidebar'] .menu-live-content[data-workspace-view='kanban'] {
   padding-bottom: calc(var(--navigation-dock-space, 0px) + var(--navigation-bottom-size, 0px));
 }
 #menu-live .menu-dock {
@@ -3372,10 +3376,24 @@ html[data-workspace-restoring='true'] #menu-live * {
 }
 
 @container ui-preview (max-width:620px) {
+  /* Mobile surfaces meet the preview edges; the drawer overlays the dock. */
+  #menu-live .menu-dock {
+    padding: 0;
+  }
+  #menu-live .menu-dock-items {
+    width: 100%;
+    justify-content: safe center;
+    padding: 6px max(6px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
+    border: 0;
+    border-top: 1px solid var(--ds-colour-border);
+    border-radius: 0;
+    box-shadow: none;
+  }
   #menu-live[data-menu-design='sidebar'] .menu-live-nav {
-    bottom: var(--navigation-dock-space, 0px);
-    height: calc(100dvh - var(--navigation-dock-space, 0px));
-    max-height: calc(100dvh - var(--navigation-dock-space, 0px));
+    bottom: 0;
+    height: 100dvh;
+    max-height: 100dvh;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   #menu-live[data-menu-design='sidebar'][data-mobile-side='right'] .menu-live-nav {
     left: auto;

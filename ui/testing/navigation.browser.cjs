@@ -25,6 +25,24 @@ async function configureDock(page, position = 'left') {
   await expect(page.locator('.menu-dock')).toBeVisible();
 }
 
+async function expectMobileDockGeometry(page) {
+  const root = page.locator('#menu-live');
+  const preview = await root.locator('.menu-live-header').boundingBox();
+  const dock = root.locator('.menu-dock');
+  const items = root.locator('.menu-dock-items');
+  for (const surface of [dock, items]) {
+    const box = await surface.boundingBox();
+    expect(Math.abs(box.x - preview.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(box.width - preview.width)).toBeLessThanOrEqual(1);
+    expect(Math.abs(box.y + box.height - page.viewportSize().height)).toBeLessThanOrEqual(1);
+  }
+  await expect(dock).toHaveCSS('padding', '0px');
+  await expect(items).toHaveCSS('border-top-width', '1px');
+  for (const side of ['left', 'right', 'bottom']) await expect(items).toHaveCSS(`border-${side}-width`, '0px');
+  await expect(items).toHaveCSS('border-radius', '0px');
+  await expect(items).toHaveCSS('box-shadow', 'none');
+}
+
 for (const position of ['left', 'right', 'top', 'bottom']) {
   test(`dock and ${position} navigation reserve space, open inward and retain actions when folded`, async ({ page }) => {
     const errors = [];
@@ -173,9 +191,12 @@ for (const side of ['left', 'right']) {
     const navBox = await nav.boundingBox(), dock = await root.locator('.menu-dock').boundingBox();
     if (side === 'left') expect(Math.abs(navBox.x - viewportBox.x)).toBeLessThanOrEqual(1);
     else expect(Math.abs(navBox.x + navBox.width - viewportBox.x - viewportBox.width)).toBeLessThanOrEqual(1);
-    expect(navBox.y + navBox.height).toBeLessThanOrEqual(dock.y + 1);
+    expect(navBox.y).toBe(0);
+    expect(navBox.height).toBe(844);
+    expect(navBox.y + navBox.height).toBeGreaterThan(dock.y);
     expect(Math.abs(dock.x - viewportBox.x)).toBeLessThanOrEqual(1);
     expect(dock.width).toBeLessThanOrEqual(390);
+    await expectMobileDockGeometry(page);
     await page.keyboard.press('Escape');
     await expect(nav).toHaveJSProperty('inert', true);
     await expect(root.locator('.workspace-hamburger')).toBeFocused();
@@ -289,7 +310,11 @@ test('WebKit keeps all dock/menu layouts and the right mobile drawer within thei
       bodyWidth: document.body.scrollWidth,
     }));
     expect(nav.x + nav.width, JSON.stringify(geometry)).toBeCloseTo(geometry.viewportRight, 0);
-    expect(nav.y + nav.height).toBeLessThanOrEqual(dock.y + 1);
+    expect(nav.y).toBe(0);
+    expect(nav.height).toBeCloseTo(844, 0);
+    expect(nav.y + nav.height).toBeGreaterThan(dock.y);
+    await expectMobileDockGeometry(page);
+    await page.locator('.menu-mobile-close').click();
     await page.locator('[data-dock-action="editor.save"]').click();
     expect(await page.evaluate(() => window.dockCalls)).toBe(1);
   } finally {
@@ -668,12 +693,52 @@ test('mobile drawer grows for labels, wraps at its width cap and scrolls above t
 });
 
 for (const browserName of ['chromium', 'webkit']) {
-  test.describe(`${browserName} touch navigation controls`, () => {
+  test.describe(`${browserName} navigation controls`, () => {
     let browser;
     test.beforeAll(async () => {
       browser = await ({ chromium, webkit })[browserName].launch({ channel: browserName === 'chromium' ? 'chromium' : undefined });
     });
     test.afterAll(async () => { await browser?.close(); });
+    test('desktop dock reserves content space without scrolling a short page or displacing either sidebar', async () => {
+      const page = await browser.newPage({ viewport: { width: 1440, height: 800 } });
+      try {
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        for (const position of ['left', 'right']) {
+          await page.goto(url + '/source/index.html');
+          const root = page.locator('#menu-live');
+          await expect(root.locator('.menu-sidebar-footer')).toBeVisible();
+          const heading = await page.locator('h1').boundingBox();
+          await configureDock(page, position);
+          for (const collapsed of [false, true]) {
+            await page.evaluate(collapsed => window.dockView.setCollapsed(collapsed), collapsed);
+            await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+            const header = await root.locator('.menu-live-header').boundingBox();
+            const nav = await root.locator('.menu-live-nav').boundingBox();
+            expect(nav.y).toBe(header.y + header.height);
+            expect(nav.y + nav.height).toBe(800);
+            expect(await page.locator('h1').boundingBox()).toMatchObject({ y: heading.y, height: heading.height });
+            expect(await page.evaluate(() => window.scrollY)).toBe(0);
+            await expect(root).toHaveCSS('padding-bottom', '0px');
+          }
+          await page.evaluate(() => {
+            document.querySelector('.menu-live-content').insertAdjacentHTML('beforeend',
+              '<div style="height:1800px"></div><button id="desktop-last-content">Last content</button>');
+          });
+          await page.locator('#desktop-last-content').scrollIntoViewIfNeeded();
+          const last = await page.locator('#desktop-last-content').boundingBox();
+          const dock = await root.locator('.menu-dock').boundingBox();
+          expect(last.y + last.height).toBeLessThanOrEqual(dock.y + 1);
+          await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+          const header = await root.locator('.menu-live-header').boundingBox();
+          const nav = await root.locator('.menu-live-nav').boundingBox();
+          expect(nav.y).toBe(header.y + header.height);
+          expect(nav.y + nav.height).toBe(800);
+          await expect(root.locator('.menu-sidebar-footer')).toBeInViewport({ ratio: 1 });
+        }
+      } finally {
+        await page.close();
+      }
+    });
     const touch = test.extend({
       page: async ({}, use) => {
         const context = await browser.newContext({
@@ -711,6 +776,48 @@ for (const browserName of ['chromium', 'webkit']) {
     });
 
     for (const side of ['left', 'right']) {
+      touch(`${side} drawer fills the phone height over a flush dock after viewport resizing`, async ({ page }) => {
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await page.goto(url);
+        await configureDock(page);
+        await page.evaluate(side => {
+          window.dockView.setMobilePosition(side);
+          window.dockView.setItems(Array.from({ length: 40 }, (_, i) => ({
+            id: 'phone-' + i, label: 'Destination ' + i, href: '#phone-' + i,
+          })));
+          document.querySelector('.menu-live-content').insertAdjacentHTML('beforeend',
+            '<div style="height:1800px"></div><button id="phone-last-content">Last content</button>');
+        }, side);
+        for (const height of [812, 700]) {
+          await page.setViewportSize({ width: 375, height });
+          await expectMobileDockGeometry(page);
+          await page.locator('#phone-last-content').scrollIntoViewIfNeeded();
+          const last = await page.locator('#phone-last-content').boundingBox();
+          const dock = await page.locator('.menu-dock').boundingBox();
+          expect(last.y + last.height).toBeLessThanOrEqual(dock.y + 1);
+          await page.evaluate(() => window.dockView.mobile.setOpen(true));
+          const nav = page.locator('#menu-live-nav');
+          await expect(nav).toBeInViewport({ ratio: 1 });
+          const box = await nav.boundingBox();
+          expect(box.y).toBe(0);
+          expect(box.height).toBeCloseTo(height, 0);
+          const preview = await page.locator('#menu-live').evaluate(root => root.parentElement.getBoundingClientRect().toJSON());
+          expect(side === 'left' ? box.x : box.x + box.width).toBeCloseTo(preview[side], 0);
+          expect(await page.evaluate(({ x, y }) =>
+            !!document.elementFromPoint(x, y)?.closest('#menu-live-nav'),
+          { x: box.x + box.width / 2, y: height - 2 })).toBe(true);
+          await nav.locator('.menu-sidebar-footer').scrollIntoViewIfNeeded();
+          await expect(nav.locator('.menu-sidebar-footer')).toBeInViewport({ ratio: 0.99 });
+          const footer = await nav.locator('.menu-sidebar-footer').boundingBox();
+          expect(footer.y + footer.height).toBeLessThanOrEqual(height + 1);
+          await nav.locator('[data-menu-page="phone-39"]').click({ trial: true });
+          await nav.locator('.menu-mobile-close').tap();
+          await expect(nav).toBeHidden();
+        }
+        await page.locator('[data-dock-action="editor.save"]').tap();
+        expect(await page.evaluate(() => window.dockCalls)).toBe(1);
+      });
+
       touch(`${side} drawer selection markers stay on selected rows, not the whole submenu`, async ({ page }) => {
         await page.emulateMedia({ reducedMotion: 'reduce' });
         await page.goto(url);
@@ -772,6 +879,22 @@ for (const browserName of ['chromium', 'webkit']) {
         }
       });
     }
+
+    touch('workspace hides the device switcher on phones but keeps it on desktop', async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.goto(url + '/source/index.html');
+      const picker = page.locator('.workspace-device-picker');
+      await expect(picker).toHaveCount(1);
+      await page.locator('.workspace-hamburger').tap();
+      await expect(picker).toBeHidden();
+      await expect(page.getByRole('combobox', { name: 'Preview device', exact: true })).toHaveCount(0);
+      await expect(page.locator('.menu-sidebar-footer .menu-search-toggle')).toBeVisible();
+      await expect(page.locator('.menu-sidebar-footer [data-menu-page="settings"]')).toBeVisible();
+      await expect(page.locator('.menu-sidebar-footer [data-theme-next]')).toBeVisible();
+      await page.setViewportSize({ width: 1000, height: 812 });
+      await expect(picker).toBeVisible();
+      await expect(page.getByRole('combobox', { name: 'Preview device', exact: true })).toBeVisible();
+    });
   });
 }
 
@@ -847,7 +970,10 @@ test('standalone example runs without workspace and exposes the same menu action
   const nav = await page.locator('#menu-live-nav').boundingBox();
   const dock = await page.locator('.menu-dock').boundingBox();
   expect(nav.x + nav.width).toBe(390);
-  expect(nav.y + nav.height).toBeLessThanOrEqual(dock.y + 1);
+  expect(nav.y).toBe(0);
+  expect(nav.height).toBe(844);
+  expect(nav.y + nav.height).toBeGreaterThan(dock.y);
+  await expectMobileDockGeometry(page);
   expect(errors).toEqual([]);
 });
 

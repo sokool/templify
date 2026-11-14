@@ -740,6 +740,65 @@ test('mobile Search stays top-aligned without the Visual Viewport API', async ({
 test.describe('touch Search results', () => {
   test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
 
+  for (const kind of ['link', 'action']) {
+    test(`tapping ${kind === 'action' ? 'an action' : 'a link'} keeps the keyboard viewport stable until activation`, async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.addInitScript(() => {
+        const viewport = new EventTarget();
+        Object.assign(viewport, { height: 350, offsetTop: 0 });
+        Object.defineProperty(window, 'visualViewport', { configurable: true, value: viewport });
+      });
+      await page.goto(url);
+      await page.evaluate(kind => {
+        const scope = document.createElement('section');
+        scope.id = 'keyboard-tap-results';
+        document.querySelector('main').append(scope);
+        const host = document.querySelector('[data-ui="search"]'), view = Templify.get(host);
+        host.dataset.scope = '#keyboard-tap-results';
+        host.dataset.maxResults = '20';
+        host.dataset.actions = String(kind === 'action');
+        window.keyboardTapCalls = [];
+        window.keyboardTapBlurs = 0;
+        for (let i = 0; i < 20; i++) {
+          const handler = () => {
+            window.keyboardTapCalls.push({ index: i, blurs: window.keyboardTapBlurs });
+            return true;
+          };
+          if (kind === 'action') view.shortcuts.register({
+            id: 'test.keyboard-tap-' + i, label: 'Keyboard tap destination ' + i,
+            searchable: true, handler,
+          });
+          else {
+            const link = document.createElement('a');
+            link.href = '#keyboard-tap-' + i;
+            link.textContent = 'Keyboard tap destination ' + i;
+            link.addEventListener('click', event => { event.preventDefault(); handler(); });
+            scope.append(link);
+          }
+        }
+        view.input.addEventListener('blur', () => {
+          // Dismissing the OS keyboard expands the result list and can move
+          // a scrolled destination before Safari synthesises its click.
+          if (!view.isOpen()) return;
+          window.keyboardTapBlurs++;
+          window.visualViewport.height = 844;
+          window.visualViewport.dispatchEvent(new Event('resize'));
+        });
+      }, kind);
+      await page.locator('#example-search [data-search-open]').tap();
+      await input(page).fill('Keyboard tap destination');
+      await page.keyboard.press('ArrowUp');
+      const rows = dialog(page).locator('.ds-search-result');
+      await expect(rows).toHaveCount(20);
+      await expect(rows.last()).toHaveCSS('touch-action', 'manipulation');
+      await expect(rows.last()).toHaveAttribute('aria-selected', 'true');
+      await expect(input(page)).toBeFocused();
+      await rows.last().locator('.ds-search-title').tap();
+      await expect(dialog(page)).not.toBeVisible();
+      expect(await page.evaluate(() => window.keyboardTapCalls)).toEqual([{ index: 19, blurs: 0 }]);
+    });
+  }
+
   for (const [title, hash] of [['Typography', '#topschrank.fonts'], ['Templify', '#topschrank.dashboard']]) {
     test(`a single tap opens workspace ${title} while the search input has focus`, async ({ page }) => {
       await page.emulateMedia({ reducedMotion: 'reduce' });

@@ -13,12 +13,15 @@ dock: true or dock: {order: number}. Dock, Search and keyboard activation share 
 registered handler and availability check. shortcuts.refresh(id) notifies consumers
 after availability changes. Unregistering removes the action; hiding the dock does
 not remove actions or saved bindings. Empty docks reserve no space.
-The dock fits the content width, respects safe areas and reserves bottom space.
+The dock fits the content width, respects safe areas and reserves bottom space
+inside the content area without shortening the sidebar or adding shell padding.
+On mobile it fills the preview width, meets the side and bottom edges and shows
+only a top border, without rounded corners or a floating shadow.
 A bottom main menu sits above the dock. Dock buttons expose labels on hover/focus.
 setSearch(boolean) and data-search enable the independent Search palette (default true).
 Attribute changes are observed. Navigation owns the current folded state, edge and
 footer controls, animations, scrolling, keyboard access and mobile menu. On mobile,
-a viewport-height drawer slides in from the selected side above any dock, with a minimum width of half
+a full viewport-height drawer slides in from the selected side, overlaying any dock, with a minimum width of half
 the preview and intrinsic sizing for wider labels. Destinations scroll above the
 footer; the close control, Escape and outside clicks dismiss the drawer. Disabling
 collapse expands the sidebar and keeps mobile navigation open. setItems(items)

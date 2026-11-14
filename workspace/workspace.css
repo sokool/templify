@@ -76,3 +76,7 @@ body{margin:0;background:var(--ds-colour-page,var(--ds-colour-soft));color:var(-
  #menu-live .menu-utilities{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
  #menu-live .workspace-device-chevron{display:none}
 }
+/* Keep the preview selector on computers, including their mobile preview. */
+@media(max-width:620px){
+ #menu-live .workspace-device-picker{display:none}
+}

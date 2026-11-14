@@ -296,6 +296,51 @@ test('native submission focuses enhanced invalid controls and respects cancelled
   await expect(field(page, 'checkbox').locator('[data-field-error]')).toBeVisible();
 });
 
+test.describe('touch choice fields', () => {
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
+
+  for (const javaScriptEnabled of [true, false]) {
+    test(`checkboxes toggle once per tap without double-tap delay (JavaScript ${javaScriptEnabled ? 'on' : 'off'})`, async ({ browser }) => {
+      const context = await browser.newContext({
+        javaScriptEnabled, hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 },
+      });
+      try {
+        const page = await context.newPage();
+        await page.route('https://fonts.googleapis.com/**', route => route.abort());
+        await open(page);
+        for (const type of ['checkbox', 'switch', 'radio']) {
+          const choice = field(page, type).locator('.ds-field-choice').first();
+          await expect(choice).toHaveCSS('touch-action', 'manipulation');
+          await expect(choice.locator('input')).toHaveCSS('touch-action', 'manipulation');
+        }
+        const checkbox = field(page, 'checkbox').getByRole('checkbox', { name: 'Measurement', exact: true });
+        const label = field(page, 'checkbox').locator('.ds-field-choice').filter({
+          has: page.getByRole('checkbox', { name: 'Measurement', exact: true }),
+        });
+        await expect(checkbox).not.toBeChecked();
+        await checkbox.tap();
+        await expect(checkbox).toBeChecked();
+        await label.locator('span').tap();
+        await expect(checkbox).not.toBeChecked();
+        await label.tap();
+        await expect(checkbox).toBeChecked();
+        await checkbox.tap();
+        await expect(checkbox).not.toBeChecked();
+        const disabled = field(page, 'checkbox').getByRole('checkbox', { name: 'Option unavailable', exact: true });
+        await field(page, 'checkbox').locator('.ds-field-choice').filter({
+          has: page.getByRole('checkbox', { name: 'Option unavailable', exact: true }),
+        }).locator('span').tap({ force: true });
+        await expect(disabled).not.toBeChecked();
+        await expect(disabled).toBeDisabled();
+        // Keyboard activation must remain native; no touch-specific toggler.
+        await checkbox.focus();
+        await page.keyboard.press('Space');
+        await expect(checkbox).toBeChecked();
+      } finally { await context.close(); }
+    });
+  }
+});
+
 test('popups fit narrow touch viewports and all inline controls retain their native fallback without JS', async ({ browser }) => {
   const context = await browser.newContext({ hasTouch: true, isMobile: true, viewport: { width: 320, height: 640 } });
   try {

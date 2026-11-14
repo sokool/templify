@@ -598,6 +598,15 @@
                 close('escape');
             }
         });
+        // Keep combobox focus until click activates a result. On touch devices,
+        // the compatibility mousedown can otherwise dismiss the keyboard and
+        // move scrolled rows before click. Do not cancel pointer/touch events:
+        // native scrolling and pinch zoom must remain available.
+        listen(results, 'mousedown', event => {
+            if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            const row = event.target.closest('[data-search-result]');
+            if (row && results.contains(row)) event.preventDefault();
+        });
         listen(results, 'click', event => {
             const row = event.target.closest('[data-search-result]');
             if (!row || !results.contains(row)) return;

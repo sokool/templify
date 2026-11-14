@@ -145,8 +145,9 @@ for (const [name, width] of [['phone', 390], ['centered mobile preview', 1280]])
       await setting.setChecked(showTheme);
       await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
       const boxes = await footer.locator('.menu-search-toggle, .menu-utilities > .menu-utility')
-        .evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().toJSON()));
-      expect(boxes).toHaveLength(showTheme ? 4 : 3);
+        .evaluateAll(nodes => nodes.filter(node => node.getClientRects().length)
+          .map(node => node.getBoundingClientRect().toJSON()));
+      expect(boxes).toHaveLength((showTheme ? 4 : 3) - (width <= 620 ? 1 : 0));
       const footerBox = await footer.boundingBox();
       for (const [i, box] of boxes.entries()) {
         expect(Math.abs(box.y - boxes[0].y)).toBeLessThanOrEqual(1);

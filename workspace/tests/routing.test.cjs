@@ -6,7 +6,7 @@ const vm = require('node:vm');
 
 test('host header displays the release version instead of the placeholder initial', () => {
   const source = fs.readFileSync(path.join(__dirname, '../workspace.js'), 'utf8');
-  assert.match(source, /const releaseVersion = 'v0\.1\.10';/);
+  assert.match(source, /const releaseVersion = 'v0\.1\.11';/);
   assert.match(source, /user: \{ initials: releaseVersion, label: 'Templify ' \+ releaseVersion \}/);
   assert(!source.includes("initials: 'T'"));
 });
