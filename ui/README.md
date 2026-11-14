@@ -36,6 +36,13 @@ Przypisanie skrótu nie jest wymagane. Szczegóły:
 [Search](components/search/README.md) i
 [Shortcuts](components/shortcuts/README.md#searchable-component-actions).
 
+## PWA
+
+PWA udostępnia przycisk instalacji, nieblokujący baner i instrukcje dla iOS/Safari.
+Nie zapewnia automatycznie działania offline ani push. Manifest, ikony i trwały
+zapis odrzucenia dostarcza host:
+[PWA](components/pwa/README.md).
+
 ## Eksport
 
 ### Z przeglądarki

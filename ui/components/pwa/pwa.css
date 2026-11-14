@@ -1,0 +1,12 @@
+.ds-pwa{font:400 14px/1.5 var(--ds-font-family,system-ui);color:var(--ds-colour-text)}
+.ds-pwa [hidden]{display:none!important}
+.ds-pwa__banner{display:flex;align-items:center;gap:24px;max-width:760px;padding:20px;margin-top:16px;border:1px solid var(--ds-colour-border);border-radius:var(--ds-radius-large,16px);background:var(--ds-colour-panel);box-shadow:var(--ds-shadow-soft,0 8px 24px #0002);overflow-wrap:anywhere}
+.ds-pwa__content{flex:1;min-width:0}
+.ds-pwa__title{font-size:16px}
+.ds-pwa__content p{margin:6px 0 0}
+.ds-pwa__help{margin-top:12px;color:var(--ds-colour-muted)}
+.ds-pwa__status:empty{display:none}
+.ds-pwa__actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.ds-pwa[data-pwa-placement=fixed]>.ds-pwa__banner{position:fixed;z-index:900;bottom:max(20px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-height:calc(100dvh - 40px);overflow:auto;margin:0}
+@media(max-width:600px){.ds-pwa__banner{align-items:flex-start;flex-direction:column;gap:16px;padding:16px}.ds-pwa__actions{width:100%}.ds-pwa__actions .ds-button{min-height:44px}}
+@container ui-preview (max-width:600px){.ds-pwa__banner{align-items:flex-start;flex-direction:column;gap:16px}}

@@ -31,6 +31,19 @@ Podgląd fontów Google wymaga połączenia z siecią.
 Główna aplikacja ma jedno wejście w katalogu głównym. Kod hosta jest w `workspace/` i `storage/`,
 a samodzielne przykłady komponentów w `ui/examples/` nie zależą od aplikacji.
 
+### Instalacja PWA
+
+Templify ma manifest i ikony aplikacji. Po uruchomieniu przez HTTPS (lub lokalnie
+przez localhost) wspierana przeglądarka może zaproponować instalację. Nieblokujący
+baner pojawia się po 5 sekundach od zamontowania, jeżeli dostępny jest instalator
+lub rozpoznano platformę z ręczną instalacją. „Not now” zapamiętuje odrzucenie na
+7 dni. Strona **Components → PWA** udostępnia również przycisk i instrukcje.
+
+Ta wersja nie zapewnia działania offline ani push i nie rejestruje service workera.
+Własne aplikacje używające eksportu dostarczają własny manifest oraz zapis
+preferencji; szczegóły: [PWA](ui/components/pwa/README.md).
+Ikony hosta można odtworzyć przez `node ui/scripts/build-pwa-icons.cjs`.
+
 ### Kompozycja aplikacji
 
 - `workspace/workspace.js` składa Navigation, Breadcrumbs, routing, podglądy,

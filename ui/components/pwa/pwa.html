@@ -1,0 +1,24 @@
+<!--
+Component: PWA
+Purpose: Offer app installation through a native browser prompt or platform-specific instructions without claiming that an unknown installation state means the app is installed.
+Elements: An optional persistent install button, a non-modal installation banner, editable explanatory text and instructions, and native Buttons for installation and dismissal.
+JavaScript behavior: mount(element, { controller, settings }) enhances existing HTML. data-pwa-prompt="auto|manual" controls automatic banner suggestions, data-pwa-delay sets their delay in milliseconds (5000 by default), data-pwa-dismiss-days sets the dismissal cooldown (7 by default), and data-pwa-placement="inline|fixed" positions the banner. Automatic suggestions require a native beforeinstallprompt event or a recognised manual-install platform. Native installation is only requested after a user action; accepted prompts are not reported as completed installations. Standalone display mode, iOS navigator.standalone and appinstalled hide installation controls. Other browser tabs retain an unknown installation state. An injected controller shares browser events and dismissal preferences across views; settings.get/set/subscribe can persist dismissedUntil without direct browser-storage access. Without a settings adapter, preferences last only for the shared controller's lifetime. show(), install(), dismiss(), update(), getState() and destroy() are public. Emits bubbling ui:pwa-show, ui:pwa-dismiss, ui:pwa-choice, ui:pwa-installed and ui:pwa-error events. destroy() releases listeners, observers, timers and owned controllers. The host supplies HTTPS, a manifest and app icons; this component does not register a service worker, provide offline caching or send push notifications.
+-->
+<section class="ds-component ds-pwa" data-ui="pwa" data-pwa-prompt="auto" data-pwa-delay="5000" data-pwa-dismiss-days="7" data-pwa-placement="inline">
+  <button type="button" class="ds-component ds-button ds-focusable" data-ui="buttons" data-variant="secondary" data-pwa-install data-pwa-trigger hidden><span data-button-label>Install app</span></button>
+  <aside class="ds-pwa__banner" data-pwa-banner role="region" aria-label="App installation" tabindex="-1" hidden>
+    <div class="ds-pwa__content">
+      <strong class="ds-pwa__title">Keep this app close</strong>
+      <p>Add it to your phone or computer and open it in its own window.</p>
+      <div class="ds-pwa__help" data-pwa-help="ios" hidden>Open the browser’s Share menu, choose “Add to Home Screen”, then confirm “Add”. If this option is missing, open this page in Safari.</div>
+      <div class="ds-pwa__help" data-pwa-help="safari" hidden>In Safari on macOS Sonoma or later, choose File → Add to Dock, then confirm “Add”.</div>
+      <div class="ds-pwa__help" data-pwa-help="browser" hidden>If your browser offers installation, use “Install app” or “Add to Home Screen” in its menu or the install icon in the address bar. Otherwise, try Chrome, Edge or Safari. Not seeing an installer does not tell us whether the app is already installed.</div>
+      <div class="ds-pwa__help" data-pwa-help="unavailable" hidden>Open this application over HTTPS, or use localhost for development. Installation is not available from a local file or an insecure connection.</div>
+      <p class="ds-pwa__status" data-pwa-status role="status" aria-live="polite" hidden>The installer could not be opened. Try installing from your browser’s menu.</p>
+    </div>
+    <div class="ds-pwa__actions">
+      <button type="button" class="ds-component ds-button ds-focusable" data-ui="buttons" data-variant="primary" data-pwa-install><span data-button-label>Install app</span></button>
+      <button type="button" class="ds-component ds-button ds-focusable" data-ui="buttons" data-variant="ghost" data-pwa-dismiss><span data-button-label>Not now</span></button>
+    </div>
+  </aside>
+</section>

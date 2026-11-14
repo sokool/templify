@@ -12,6 +12,8 @@
   const persistence = ExampleSettings.create({ storage: browserStorage });
   const settings = persistence.settings,
     storage = persistence.storage;
+  const pwa = DesignSystemPWA.create({ document, settings: settings.scope('preferences.pwa') });
+  ExamplePWA.mount(document.body, { controller: pwa, global: true });
   const themeSwitcherSettings = settings.scope('components.theme-switcher');
   const searchSettings = settings.scope('components.search');
   const windows = ExampleWindows.create({ settings });
@@ -192,6 +194,12 @@
         },
       ]),
     ),
+    pwa: {
+      label: 'PWA',
+      anchor: 'topschrank.components.pwa',
+      path: ['components', 'pwa'],
+      render: page => contentComponents.push(ExamplePWA.mount(page, { controller: pwa, windows })),
+    },
     autocomplete: {
       label: 'Autocomplete',
       anchor: 'topschrank.components.autocomplete',
@@ -363,6 +371,7 @@
         { id: 'list', label: 'List' },
         { id: 'autocomplete', label: 'Autocomplete' },
         { id: 'progress', label: 'Progress' },
+        { id: 'pwa', label: 'PWA' },
         { id: 'timeline', label: 'Timeline' },
         { id: 'process-steps', label: 'Process steps' },
         { id: 'counts-and-summaries', label: 'Counts and summaries' },
@@ -384,7 +393,7 @@
   navigation
     .find((entry) => entry.id === 'components')
     .children.sort((a, b) => a.label.localeCompare(b.label, 'en', { sensitivity: 'base' }));
-  const releaseVersion = 'v0.1.8';
+  const releaseVersion = 'v0.1.9';
   DesignSystemNavigation.renderStructure(root, {
     user: { initials: releaseVersion, label: 'Templify ' + releaseVersion },
   });
@@ -409,6 +418,7 @@
     notifications: 'bell',
     'process-steps': 'workflow',
     progress: 'loader-circle',
+    pwa: 'download',
     surface: 'layers',
     timeline: 'list-ordered',
     tooltip: 'info',
