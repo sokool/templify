@@ -57,6 +57,37 @@ test('catalogue shows each exported template once, without duplicated forms or p
   expect(errors).toEqual([]);
 });
 
+test('focused fields have one inset highlight without changing size in every theme', async ({ page }) => {
+  await open(page);
+  await page.keyboard.press('Tab');
+  const controls = [
+    field(page, 'text').locator('input'),
+    field(page, 'textarea').locator('textarea'),
+    field(page, 'select').getByRole('combobox'),
+    field(page, 'date').locator('.ds-picker-trigger'),
+    field(page, 'multiselect').getByRole('listbox'),
+  ];
+  for (const theme of ['light', 'dark', 'matrix']) {
+    await page.evaluate(theme => Templify.themes.select(theme), theme);
+    const accent = await page.evaluate(() => {
+      const probe = document.createElement('span');
+      probe.style.color = 'var(--ds-colour-accent)'; document.body.append(probe);
+      const colour = getComputedStyle(probe).color; probe.remove(); return colour;
+    });
+    for (const control of controls) {
+      await control.evaluate(element => element.blur());
+      const size = await control.evaluate(element => ({ width: element.offsetWidth, height: element.offsetHeight }));
+      await control.focus();
+      expect(await control.evaluate(element => element.matches(':focus-visible'))).toBe(true);
+      await expect(control).toHaveCSS('outline-style', 'solid');
+      await expect(control).toHaveCSS('outline-width', '2px');
+      await expect(control).toHaveCSS('outline-offset', '-2px');
+      await expect(control).toHaveCSS('outline-color', accent);
+      expect(await control.evaluate(element => ({ width: element.offsetWidth, height: element.offsetHeight }))).toEqual(size);
+    }
+  }
+});
+
 test('compact arrows and minus/plus share native stepping, boundary and readonly behaviour', async ({ page }) => {
   await open(page);
   const number = field(page, 'number'), quantity = field(page, 'quantity');

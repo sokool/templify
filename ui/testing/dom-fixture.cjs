@@ -13,6 +13,12 @@ class Node {
   remove(){if(this.parentNode){this.parentNode.children=this.parentNode.children.filter(node=>node!==this);this.parentNode=null}}
   prepend(...children){for(const child of children)child.parentNode=this;this.children.unshift(...children)}
   replaceChildren(...children){this.children.forEach(child=>child.parentNode=null);this.children=[];this._text='';this.append(...children)}
+  isEqualNode(other) {
+    const properties = node => JSON.stringify([node.tagName, node.className, node._text, node.id, node.type, node.tabIndex,
+      node.innerHTML, Object.entries(node.attributes).sort(), Object.entries(node.dataset).sort(), [...node.style]]);
+    return !!other && properties(this) === properties(other) && this.children.length === other.children.length &&
+      this.children.every((child, index) => child.isEqualNode(other.children[index]));
+  }
   setAttribute(name,value){this.attributes[name]=String(value)}
   getAttribute(name){return this.attributes[name]??null}
   removeAttribute(name){delete this.attributes[name];if(name==='data-hover')delete this.dataset.hover}

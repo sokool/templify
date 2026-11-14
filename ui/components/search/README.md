@@ -1,7 +1,7 @@
 # Search
 
 A theme-aware Spotlight/command palette for the current document. Search owns its
-content, index and optional Navigation magnifier. Window supplies modal focus,
+content, index and optional Navigation footer/dock magnifiers. Window supplies modal focus,
 background inertness, scroll locking and reduced-motion-aware fade/scale animation.
 Shortcuts owns all bindings and keyboard dispatch. No router, storage, workspace
 or remote search service is required.
@@ -25,6 +25,20 @@ to the top of the menu. `data-show-navigation-trigger="false"` or
 keyboard binding and the connected menu's index remain available.
 The workspace Search page includes a persisted switch for this option.
 Without a menu connection Search is independent.
+Use `data-show-dock-trigger="true"` or `update({showDockTrigger: true})` to add a
+Search magnifier to Navigation's bottom dock. Navigation must have its dock enabled
+(`data-dock="true"` or `setDock(true)`); Search does not change that setting.
+The workspace enables this otherwise-empty dock and offers a persisted **Show search
+in dock** switch on the Search page.
+
+The dock does not require `data-navigation`: both components use the shared document
+Shortcuts catalogue. A custom `shortcuts` catalogue must be shared with Navigation.
+The footer and dock switches are independent. Dock and keyboard activation use the
+same `search.open` action (or Navigation's `navigation.search` compatibility action),
+handler, availability check and saved binding. Hiding either trigger leaves Search
+and the other entry points available. Disabling Search hides its dock action;
+destroying Search unregisters it. Removing a keyboard binding leaves the dock usable.
+
 Navigation's existing `data-search="true"` already delegates to Search, retaining
 `navigation.search` and saved bindings. When composing a separate Search with the
 same menu, set Navigation's `data-search="false"` to disable its compatibility
@@ -39,6 +53,10 @@ Shortcuts preferences override declared defaults.
 typography and spacing without hiding metadata or changing search behavior.
 The workspace Search page has a persisted **Compact** switch; the default is off.
 
+On mobile, the palette opens at the top rather than in the centre. It follows the
+visual viewport as the on-screen keyboard opens or closes, keeping the input and
+scrollable results above the keyboard. Desktop palettes remain centred.
+
 **Maximum results** on the same page sets a persisted limit of 1–100 results
 (default 5), shared across all groups. Matching still searches every source.
 Standalone integrations use `data-max-results="20"` or `update({maxResults: 20})`.
@@ -51,6 +69,7 @@ const search = DesignSystemSearch.mount(host, {
   navigation: menuRoot, // Optional element or selector.
   shortcuts,           // Optional shared catalogue.
   renderIcon,          // Optional trusted symbolic icon renderer.
+  showDockTrigger: true, // Optional; Navigation's dock must be enabled separately.
 });
 search.open();
 ```
@@ -100,7 +119,11 @@ Descriptions are not guessed; destination pages and image pixels are not scanned
 Hidden non-navigation content, disabled sources, templates, dialog internals,
 Search's own results and unsafe URL protocols are excluded. Text remains text.
 SVG previews exclude scripts, handlers, styles, foreign objects and references.
-DOM/HTMX changes refresh results while open. Activation rechecks availability,
+DOM/HTMX changes refresh results while open, retaining unchanged rows and the
+active result for the same query so background UI updates cannot interrupt taps.
+Touch scrolling does not change the active result; activation uses the native
+click, not touch start, so scrolling and cancelled gestures do not open entries.
+Activation rechecks availability,
 then uses the original source so callbacks and HTMX remain authoritative.
 Modified link clicks retain native browser behavior.
 
@@ -113,6 +136,7 @@ Attribute changes are observed; booleans use `"true"`/`"false"`.
 | --- | --- |
 | `navigation` | No menu connection |
 | `showNavigationTrigger` / `data-show-navigation-trigger` | `true`; magnifier in the connected menu footer |
+| `showDockTrigger` / `data-show-dock-trigger` | `false`; expose Search in Navigation's enabled bottom dock |
 | `scope` | Current document; accepts a container or selector |
 | `exclude` | No additional exclusion selector |
 | `links`, `anchors`, `actions`, `enabled` | `true` |

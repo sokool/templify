@@ -4,8 +4,10 @@
 .ds-window.is-closing{animation:var(--ds-window-exit-animation) var(--ds-window-duration) ease both}.ds-window.is-closing::backdrop{animation:ds-window-backdrop-out var(--ds-window-duration) ease both}
 .ds-window-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid var(--ds-colour-divider);flex:none}
 .ds-window-title{margin:0;font-size:20px;font-weight:600;overflow-wrap:anywhere}
-.ds-window-close{display:grid;place-items:center;flex:none;width:32px;height:32px;padding:0;border:0;border-radius:var(--ds-radius-buttons,8px);background:transparent;color:var(--ds-colour-muted);font-family:inherit;line-height:1;cursor:pointer;font-size:26px}
-.ds-window-close:hover{background:var(--ds-colour-hover);color:var(--ds-colour-accent)}.ds-window-close:focus-visible{outline:2px solid var(--ds-colour-accent);outline-offset:2px}
+.ds-window-close{display:grid;place-items:center;flex:none;width:32px;height:32px;padding:0;border:0;border-radius:var(--ds-radius-buttons,8px);background:transparent;color:var(--ds-colour-muted);font-family:inherit;line-height:1;cursor:pointer;font-size:26px;-webkit-tap-highlight-color:transparent}
+@media(hover:hover) and (pointer:fine){.ds-window-close:hover{background:var(--ds-colour-hover);color:var(--ds-colour-accent)}}
+.ds-window-close:focus{outline:none}
+.ds-window:not([data-input-modality=pointer]) .ds-window-close:focus-visible{outline:2px solid var(--ds-colour-accent);outline-offset:2px}
 .ds-window-body{padding:20px;overflow:auto;min-height:0;overflow-wrap:anywhere}.ds-window-footer{padding:14px 20px;border-top:1px solid var(--ds-colour-divider);flex:none}.ds-window [hidden]{display:none!important}
 .ds-window[data-mode=side]{position:fixed;inset:0 0 0 auto;margin:0;width:var(--ds-window-width);max-width:100vw;height:100dvh;max-height:100dvh;border-radius:var(--ds-window-radius,var(--ds-radius-windows,16px)) 0 0 var(--ds-window-radius,var(--ds-radius-windows,16px));--ds-window-offset:100%;--ds-window-enter-animation:ds-window-slide-in;--ds-window-exit-animation:ds-window-slide-out}
 .ds-window[data-mode=side][data-side=left]{inset:0 auto 0 0;border-radius:0 var(--ds-window-radius,var(--ds-radius-windows,16px)) var(--ds-window-radius,var(--ds-radius-windows,16px)) 0;--ds-window-offset:-100%}

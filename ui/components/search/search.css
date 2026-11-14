@@ -62,7 +62,7 @@
 #menu-live .menu-search-toggle:hover, #menu-live .menu-search-toggle:focus-visible, #menu-live .menu-search-toggle[aria-expanded=true] { background: var(--ds-colour-selection); color: var(--ds-colour-accent); }
 #menu-live .menu-search-toggle .ui-icon { flex: none; width: 20px; height: 20px; }
 @media (max-width: 620px), (max-height: 480px) and (pointer: coarse) {
-  .ds-search-dialog.ds-window { inset: 10px; margin: auto; width: calc(100vw - 20px); height: fit-content; max-height: calc(100dvh - 20px); }
+  .ds-search-dialog.ds-window { inset: calc(var(--ds-search-viewport-top, 0px) + 10px) 10px auto; margin: 0 auto; width: calc(100vw - 20px); height: fit-content; max-height: calc(var(--ds-search-viewport-height, 100dvh) - 20px); }
   .ds-search-dialog > .ds-window-body { flex: 0 1 auto; padding: 0; }
   .ds-search-bar { gap: 10px; margin-inline: 16px; padding-block: 18px; }
   .ds-search-input { font-size: 20px; }

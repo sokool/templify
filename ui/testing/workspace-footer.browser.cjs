@@ -255,6 +255,51 @@ test('Search compact preference persists across reloads and navigation without c
   expect(errors).toEqual([]);
 });
 
+test('Search dock preference persists independently of the footer and opens the same palette on desktop and mobile', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.route('https://fonts.googleapis.com/**', route => route.abort());
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(url + '/index.html#topschrank.components.search');
+  const setting = page.getByRole('switch', { name: 'Show search in dock', exact: true });
+  const footer = page.getByRole('switch', { name: 'Show search in navigation footer', exact: true });
+  const button = page.locator('[data-dock-action="navigation.search"]');
+  const input = page.getByRole('combobox', { name: 'Search pages and actions', exact: true });
+  await expect(setting).not.toBeChecked();
+  await expect(page.locator('.menu-dock')).toBeHidden();
+  await setting.check();
+  await expect(button).toBeVisible();
+  await footer.uncheck();
+  await expect(page.locator('.menu-search-toggle')).toHaveCount(0);
+  await expect(button).toBeVisible();
+  await button.click();
+  await expect(input).toBeFocused();
+  await page.keyboard.press('Escape');
+  await page.reload();
+  await expect(setting).toBeChecked();
+  await expect(footer).not.toBeChecked();
+  await expect(button).toBeVisible();
+  await page.locator('[data-menu-page="dashboard"]').click();
+  await button.click();
+  await expect(input).toBeFocused();
+  await page.keyboard.press('Escape');
+  await page.goto(url + '/index.html#topschrank.components.search');
+  await chooseDevice(page, 'mobile');
+  await button.click();
+  await expect(input).toBeFocused();
+  await page.keyboard.press('Escape');
+  await setting.uncheck();
+  await expect(button).toHaveCount(0);
+  await expect(page.locator('.menu-dock')).toBeHidden();
+  await page.keyboard.press('Control+k');
+  await expect(input).toBeFocused();
+  await page.keyboard.press('Escape');
+  await page.reload();
+  await expect(setting).not.toBeChecked();
+  await expect(button).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
 test('Search options use one compact row and wrap to the content width without changing the palette', async ({ page }) => {
   await page.route('https://fonts.googleapis.com/**', route => route.abort());
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -264,7 +309,7 @@ test('Search options use one compact row and wrap to the content width without c
   const limit = page.getByRole('spinbutton', { name: 'Maximum results', exact: true });
   await expect(page.locator('#search-link-metadata, a[href="#search-link-metadata"]')).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Searchable links and anchors', exact: true })).toHaveCount(0);
-  await expect(fields).toHaveCount(3);
+  await expect(fields).toHaveCount(4);
   await expect(options.getByRole('heading', { name: 'Options', exact: true })).toHaveCSS('font-size', '14px');
   await expect(limit).toHaveCSS('height', '34px');
   await expect(limit).toHaveCSS('width', '140px');

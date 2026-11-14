@@ -38,13 +38,28 @@ shell.slots.content.innerHTML = `
   <div class="example-controls">
     <label><input type="checkbox" id="allow-collapse" checked> Allow folding</label>
     <label><input type="checkbox" id="allow-search" checked> Menu search</label>
+    <label><input type="checkbox" id="allow-dock"> Bottom action dock</label>
+    <label>Main menu <select id="menu-position"><option>left</option><option>right</option><option>top</option><option>bottom</option></select></label>
+    <label>Mobile drawer <select id="mobile-position"><option value="">Follow menu side</option><option>left</option><option>right</option></select></label>
   </div>
   <p id="action-status" role="status">Choose a menu item or search with Cmd/Ctrl+K.</p>
   <h2>Shared keyboard shortcuts</h2><div id="shortcut-editor"></div>`;
 document.getElementById('allow-collapse').addEventListener('change', event => shell.setCollapse(event.target.checked));
 document.getElementById('allow-search').addEventListener('change', event => { root.dataset.search = String(event.target.checked); });
+document.getElementById('allow-dock').addEventListener('change', event => shell.setDock(event.target.checked));
+document.getElementById('menu-position').addEventListener('change', event => shell.setPosition(event.target.value));
+document.getElementById('mobile-position').addEventListener('change', event => {
+  if (event.target.value) shell.setMobilePosition(event.target.value);
+  else delete root.dataset.mobilePosition;
+});
+const unregisterNote = shell.shortcuts.register({
+  id: 'notes.create', label: 'Quick note', icon: 'plus', group: 'Notes',
+  description: 'Create a note from the bottom dock or Search',
+  dock: { order: 10 }, searchable: true, defaultShortcut: null,
+  handler() { document.getElementById('action-status').textContent = 'Quick note action executed.'; return true; },
+});
 const editor = DesignSystemShortcuts.mount(document.getElementById('shortcut-editor'));
 shell.select('dashboard');
-window.addEventListener('pagehide', event => { if (!event.persisted) { editor.destroy(); shell.destroy(); } });
+window.addEventListener('pagehide', event => { if (!event.persisted) { unregisterNote(); editor.destroy(); shell.destroy(); } });
 </script>
 </html>

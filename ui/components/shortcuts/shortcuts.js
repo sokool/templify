@@ -86,6 +86,12 @@
   }
 
   const catalogues = new WeakMap();
+  function dockMetadata(dock) {
+    if (dock !== false && dock !== true && (!dock || typeof dock !== 'object' || Array.isArray(dock) || !Number.isFinite(dock.order ?? 0))) {
+      throw new TypeError('Action dock must be a boolean or an object with a finite order');
+    }
+    return dock ? { order: dock === true ? 0 : dock.order ?? 0 } : null;
+  }
   function create({ document } = {}) {
     if (document && catalogues.has(document)) return catalogues.get(document);
     const entries = new Map();
@@ -106,6 +112,7 @@
       icon: entry.icon,
       image: entry.image,
       searchable: entry.searchable,
+      dock: entry.dock ? { ...entry.dock } : null,
       enabled: entry.enabled?.() !== false,
     });
     function notify(type, id) {
@@ -155,11 +162,12 @@
     }
     const catalogue = {
       register({ id, label, group = '', defaultShortcut = null, handler, enabled,
-        description = '', keywords = '', icon = '', image = '', searchable = false }) {
+        description = '', keywords = '', icon = '', image = '', searchable = false, dock = false }) {
         if (!id || entries.has(id)) throw new TypeError('Shortcut ID must be unique: ' + id);
         const shortcut = normalise(defaultShortcut);
         if (defaultShortcut !== null && !shortcut) throw new TypeError('Invalid default shortcut');
         if (typeof handler !== 'function') throw new TypeError('Shortcut requires a handler');
+        const dockEntry = dockMetadata(dock);
         const entry = {
           id,
           label: label || id,
@@ -173,6 +181,7 @@
           icon: String(icon),
           image: String(image),
           searchable: Boolean(searchable),
+          dock: dockEntry,
         };
         entries.set(id, entry);
         if (document && !listening) {
@@ -194,6 +203,23 @@
       get: (id) => (entries.has(id) ? snapshot(entries.get(id)) : null),
       list: () => [...entries.values()].map(snapshot),
       execute,
+      setDock(id, value) {
+        const entry = entries.get(id);
+        if (!entry) return false;
+        let dock;
+        try { dock = dockMetadata(value); } catch { return false; }
+        if (Boolean(entry.dock) === Boolean(dock) && entry.dock?.order === dock?.order) return true;
+        entry.dock = dock;
+        notify('metadata', id);
+        return true;
+      },
+      // Availability predicates are live. Owners notify visual consumers after
+      // changing their state; activation always rechecks, even without a refresh.
+      refresh(id) {
+        if (id !== undefined && !entries.has(id)) return false;
+        notify('availability', id);
+        return true;
+      },
       bindings: () => ({ ...preferences }),
       set,
       reset(id) {

@@ -1,10 +1,14 @@
 <!--
 Component: Search
 Purpose: Search document links, named page sections, navigation destinations and component actions in a central command palette.
-Elements: Optional opener, modal Window surface, search combobox, result rows with right-aligned category labels, optional graphics, titles, descriptions, addresses and shortcuts.
+Elements: Optional opener, Navigation footer/dock magnifiers, modal Window surface, search combobox, result rows with right-aligned category labels, optional graphics, titles, descriptions, addresses and shortcuts.
 JavaScript behavior: open(), close(), setQuery(text), refresh(), update(options), setEnabled(boolean), setShortcut(binding) and destroy().
 data-navigation optionally connects a Navigation root and adds a magnifier to its menu-sidebar-footer; without it Search is independent.
 data-show-navigation-trigger (true) controls only the magnifier. Hiding it keeps navigation indexing, Search and its shortcut available.
+data-show-dock-trigger (false) or update({showDockTrigger: true}) exposes the same Search action in Navigation's enabled bottom dock.
+The dock and footer options are independent. No Navigation connection is needed for the shared document dock.
+Shortcuts owns the single action, handler and binding; hiding the dock trigger does not disable Search or reset user bindings.
+Disabling Search removes its dock entry until re-enabled; destroy() unregisters the action and its dock entry.
 data-scope selects the indexed container (the document by default). data-links, data-anchors and data-actions enable sources.
 data-open-shortcut declares the search.open default (Mod+K); Cmd and Ctrl are interchangeable. Saved Shortcuts preferences take precedence.
 data-shortcut-id may supply a different stable action ID for another instance. Shortcuts owns keyboard binding and dispatch.
@@ -21,7 +25,9 @@ Search matches titles, descriptions, URLs, fragments, keywords and graphic label
 Opt-in searchable actions come from the shared Shortcuts catalogue, even without a key binding; disabled actions cannot execute.
 Arrow keys select, Enter activates, Escape/backdrop dismiss. Native link modifiers and original callbacks/HTMX behavior are retained.
 Window owns modal focus, inertness, scroll locking and fade/scale animation; reduced-motion preferences are respected.
-DOM and HTMX changes refresh results. destroy() removes observers, trigger, action and Window without destroying the catalogue.
+On mobile, the palette stays at the top of the visible viewport and scrolls results above the on-screen keyboard.
+DOM and HTMX changes refresh results without replacing unchanged rows or resetting selection for the same query, preserving single-tap activation.
+Touch scrolling does not change the active result. destroy() removes observers, trigger, action and Window without destroying the catalogue.
 ui:search-select reports an activated result. The host owns routing and persistence.
 -->
 <section class="ds-search" data-ui="search" data-open-shortcut="Mod+K" data-max-results="5">

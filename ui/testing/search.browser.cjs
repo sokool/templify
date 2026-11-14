@@ -21,8 +21,10 @@ test.beforeAll(async () => {
       res.end('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2 22 12 2l10 20Z" fill="green"/></svg>');
       return;
     }
-    const file = path.resolve(directory, pathname.slice(1) || 'index.html');
-    if (!file.startsWith(directory + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404); res.end(); return; }
+    const source = pathname.startsWith('/source/');
+    const base = source ? path.resolve(__dirname, '../..') : directory;
+    const file = path.resolve(base, (source ? pathname.slice(8) : pathname.slice(1)) || 'index.html');
+    if (!file.startsWith(base + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404); res.end(); return; }
     res.setHeader('Content-Type', file.endsWith('.js') ? 'text/javascript' : file.endsWith('.css') ? 'text/css' : 'text/html');
     res.end(fs.readFileSync(file));
   });
@@ -37,12 +39,58 @@ const input = page => page.locator('#example-search .ds-search-input');
 const dialog = page => page.locator('#example-search .ds-search-dialog');
 async function open(page) { await page.locator('#example-search [data-search-open]').click(); }
 
+test('Search declares and updates its dock entry in HTML without Navigation or a second action', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto(url);
+  await page.evaluate(() => {
+    const host = document.createElement('section');
+    host.dataset.ui = 'search';
+    host.dataset.shortcutId = 'search.dock-example';
+    host.dataset.showDockTrigger = 'true';
+    host.dataset.openShortcut = '';
+    document.querySelector('main').append(host);
+    Templify.init(host);
+    window.dockSearch = Templify.get(host);
+  });
+  expect(await page.evaluate(() => {
+    const { shortcuts, shortcutId } = window.dockSearch;
+    const action = shortcuts.get(shortcutId);
+    return { dock: action.dock, icon: action.icon, binding: action.shortcut, count: shortcuts.list().filter(entry => entry.id === shortcutId).length };
+  })).toEqual({ dock: { order: 0 }, icon: 'search', binding: null, count: 1 });
+  expect(await page.evaluate(() => window.dockSearch.shortcuts.execute(window.dockSearch.shortcutId))).toBe(true);
+  await expect(page.locator('[data-shortcut-id="search.dock-example"] .ds-search-input')).toBeFocused();
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => {
+    const view = window.dockSearch;
+    view.setShortcut('Mod+J');
+    view.element.dataset.showDockTrigger = 'false';
+  });
+  await expect.poll(() => page.evaluate(() => window.dockSearch.shortcuts.get(window.dockSearch.shortcutId).dock)).toBeNull();
+  expect(await page.evaluate(() => window.dockSearch.shortcut)).toBe('Mod+J');
+  await page.evaluate(() => {
+    const view = window.dockSearch;
+    delete view.element.dataset.showDockTrigger;
+    view.update({ showDockTrigger: true });
+    view.setEnabled(false);
+  });
+  expect(await page.evaluate(() => window.dockSearch.shortcuts.get(window.dockSearch.shortcutId).enabled)).toBe(false);
+  expect(await page.evaluate(() => window.dockSearch.shortcuts.execute(window.dockSearch.shortcutId))).toBe(false);
+  await page.evaluate(() => { window.dockSearch.setEnabled(true); window.dockSearch.update({ showDockTrigger: false }); });
+  expect(await page.evaluate(() => window.dockSearch.shortcuts.get(window.dockSearch.shortcutId).dock)).toBeNull();
+  await page.evaluate(() => Templify.destroy(window.dockSearch.element));
+  expect(await page.evaluate(() => window.dockSearch.shortcuts.get(window.dockSearch.shortcutId))).toBeNull();
+  expect(errors).toEqual([]);
+});
+
 test('standalone Search uses a central animated Window, keyboard shortcuts, modal focus and reduced motion', async ({ page }) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(url);
   await expect(page.locator('.menu-search-toggle')).toHaveCount(0);
-  await open(page);
+  // Open from the keyboard: Safari does not retain button focus on click.
+  await page.locator('#example-search [data-search-open]').focus();
+  await page.keyboard.press('Enter');
   await expect(input(page)).toBeFocused();
   await expect(dialog(page).locator('[data-search-close], .ds-search-dismiss')).toHaveCount(0);
   await expect(dialog(page).locator('.ds-search-bar button')).toHaveCount(0);
@@ -417,6 +465,45 @@ test('keyboard and pointer navigation share a single visible active result', asy
   expect(await page.evaluate(() => window.selectedDestination)).toBe(1);
 });
 
+test('background refreshes retain unchanged rows, selection and result scroll position', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 350 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(url);
+  await page.evaluate(() => {
+    const scope = document.createElement('section');
+    scope.id = 'stable-results';
+    for (let i = 0; i < 20; i++) {
+      const link = document.createElement('a');
+      link.href = '#stable-' + i;
+      link.textContent = 'Stable destination ' + i;
+      scope.append(link);
+    }
+    document.querySelector('main').append(scope);
+    const host = document.querySelector('[data-ui="search"]');
+    host.dataset.scope = '#stable-results';
+    host.dataset.maxResults = '20';
+  });
+  await open(page);
+  await page.keyboard.press('ArrowUp');
+  const results = dialog(page).locator('.ds-search-results');
+  const rows = results.locator('.ds-search-result');
+  await expect(rows.last()).toHaveAttribute('aria-selected', 'true');
+  await page.evaluate(() => {
+    const results = document.querySelector('.ds-search-results');
+    window.stableRows = Array.from(results.children);
+    window.stableScroll = results.scrollTop;
+    document.querySelector('#stable-results a').dataset.searchTitle = 'Updated destination 0';
+    document.body.classList.add('is-pointer-input');
+  });
+  await expect(rows.first().locator('.ds-search-title')).toHaveText('Updated destination 0');
+  await expect(rows.last()).toHaveAttribute('aria-selected', 'true');
+  expect(await results.evaluate(node => Array.from(node.children).slice(1).every((row, i) => row === window.stableRows[i + 1]))).toBe(true);
+  expect(await results.evaluate(node => node.scrollTop === window.stableScroll && node.scrollTop > 0)).toBe(true);
+  await input(page).fill('Stable destination 1');
+  await expect(rows.first()).toHaveAttribute('aria-selected', 'true');
+  await expect(rows.first().locator('.ds-search-title')).toHaveText('Stable destination 1');
+});
+
 test('compact presentation supports live options and declarative attributes without losing metadata or keyboard behavior', async ({ page }) => {
   await page.goto(url);
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -529,11 +616,15 @@ test('result graphics and keycaps follow theme surfaces across live theme change
 
 test('mobile sizing and live Theme tokens control the palette without remounting', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 700 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(url);
   await open(page);
   const box = await dialog(page).boundingBox();
+  expect(box.y).toBe(10);
   expect(box.x).toBeGreaterThanOrEqual(9);
   expect(box.width).toBeLessThanOrEqual(370);
+  await input(page).fill('no matching destination');
+  expect((await dialog(page).boundingBox()).y).toBe(10);
   await expect(input(page)).toHaveCSS('font-size', '20px');
   await page.evaluate(() => {
     const root = document.documentElement;
@@ -545,4 +636,181 @@ test('mobile sizing and live Theme tokens control the palette without remounting
   await expect(dialog(page)).toHaveCSS('background-color', 'rgb(31, 42, 53)');
   await expect(dialog(page)).toHaveCSS('border-radius', '24px');
   await expect(dialog(page)).toHaveCSS('box-shadow', 'rgb(1, 2, 3) 0px 5px 17px 0px');
+});
+
+test('mobile Search follows keyboard viewport resizing and panning with scrollable results', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.addInitScript(() => {
+    // Headless browsers do not show an OS keyboard. Keep the layout viewport
+    // unchanged and simulate the separate visual viewport used by iOS.
+    const viewport = new EventTarget();
+    Object.assign(viewport, { height: 844, offsetTop: 0 });
+    Object.defineProperty(window, 'visualViewport', { configurable: true, value: viewport });
+  });
+  await page.goto(url);
+  await page.evaluate(() => {
+    const scope = document.createElement('section');
+    scope.id = 'keyboard-results';
+    for (let i = 0; i < 20; i++) {
+      const link = document.createElement('a');
+      link.href = '#keyboard-' + i;
+      link.textContent = 'Keyboard destination ' + i;
+      scope.append(link);
+    }
+    document.querySelector('main').append(scope);
+    const host = document.querySelector('[data-ui="search"]');
+    host.dataset.scope = '#keyboard-results';
+    host.dataset.maxResults = '20';
+  });
+  await open(page);
+  const results = dialog(page).locator('.ds-search-results');
+  await expect(results.locator('.ds-search-result')).toHaveCount(20);
+  expect((await dialog(page).boundingBox()).y).toBe(10);
+
+  await page.evaluate(() => {
+    window.visualViewport.height = 350;
+    window.visualViewport.dispatchEvent(new Event('resize'));
+  });
+  await expect(dialog(page)).toHaveCSS('max-height', '330px');
+  const keyboardBox = await dialog(page).boundingBox();
+  expect(keyboardBox.y).toBe(10);
+  expect(keyboardBox.y + keyboardBox.height).toBeLessThanOrEqual(340);
+  expect(await page.evaluate(() => window.innerHeight)).toBe(844);
+  expect(await results.evaluate(node => node.scrollHeight > node.clientHeight && node.clientHeight > 0)).toBe(true);
+  await page.keyboard.press('ArrowUp');
+  const last = results.locator('.ds-search-result').last();
+  await expect(last).toHaveAttribute('aria-selected', 'true');
+  const lastBox = await last.boundingBox(), resultsBox = await results.boundingBox();
+  expect(lastBox.y).toBeGreaterThanOrEqual(resultsBox.y);
+  expect(lastBox.y + lastBox.height).toBeLessThanOrEqual(resultsBox.y + resultsBox.height);
+  await expect(input(page)).toBeFocused();
+
+  await page.evaluate(() => {
+    window.visualViewport.offsetTop = 75;
+    window.visualViewport.dispatchEvent(new Event('scroll'));
+  });
+  expect((await dialog(page).boundingBox()).y).toBe(85);
+  await input(page).fill('no matching destination');
+  expect((await dialog(page).boundingBox()).y).toBe(85);
+  await input(page).fill('');
+  await page.evaluate(() => {
+    window.visualViewport.height = 844;
+    window.visualViewport.offsetTop = 0;
+    window.visualViewport.dispatchEvent(new Event('resize'));
+  });
+  await expect(dialog(page)).toHaveCSS('max-height', '824px');
+  expect((await dialog(page).boundingBox()).y).toBe(10);
+  expect((await dialog(page).boundingBox()).height).toBeGreaterThan(keyboardBox.height);
+
+  await page.keyboard.press('Escape');
+  await expect(dialog(page)).not.toBeVisible();
+  await page.evaluate(() => {
+    window.visualViewport.height = 300;
+    window.visualViewport.dispatchEvent(new Event('resize'));
+  });
+  await open(page);
+  await expect(dialog(page)).toHaveCSS('max-height', '280px');
+  await page.evaluate(() => {
+    Templify.destroy(document.querySelector('[data-ui="search"]'));
+    window.visualViewport.height = 400;
+    window.visualViewport.dispatchEvent(new Event('resize'));
+    window.visualViewport.dispatchEvent(new Event('scroll'));
+  });
+  expect(await dialog(page).evaluate(node => node.style.getPropertyValue('--ds-search-viewport-height'))).toBe('');
+  expect(await dialog(page).evaluate(node => node.style.getPropertyValue('--ds-search-viewport-top'))).toBe('');
+});
+
+test('mobile Search stays top-aligned without the Visual Viewport API', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 700 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'visualViewport', { configurable: true, value: undefined });
+  });
+  await page.goto(url);
+  await open(page);
+  expect((await dialog(page).boundingBox()).y).toBe(10);
+  await input(page).fill('no matching destination');
+  expect((await dialog(page).boundingBox()).y).toBe(10);
+  await page.setViewportSize({ width: 390, height: 350 });
+  await expect(dialog(page)).toHaveCSS('max-height', '330px');
+  expect((await dialog(page).boundingBox()).y).toBe(10);
+});
+
+test.describe('touch Search results', () => {
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
+
+  for (const [title, hash] of [['Typography', '#topschrank.fonts'], ['Templify', '#topschrank.dashboard']]) {
+    test(`a single tap opens workspace ${title} while the search input has focus`, async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.goto(url + '/source/index.html#topschrank.components.search');
+      await page.locator('.workspace-hamburger').tap();
+      await page.locator('.menu-search-toggle').tap();
+      const search = page.locator('#menu-search-panel');
+      await search.locator('.ds-search-input').fill(title);
+      const row = search.locator('.ds-search-result').filter({ has: page.getByText(title, { exact: true }) });
+      await expect(row).toHaveCount(1);
+      await row.locator('.ds-search-title').tap();
+      await expect.poll(() => page.evaluate(() => location.hash)).toBe(hash);
+      await expect(search).not.toBeVisible();
+    });
+  }
+
+  test('a tap survives background DOM updates between touch start and click', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(url);
+    await page.evaluate(() => {
+      const scope = document.createElement('section');
+      scope.id = 'touch-results';
+      for (let i = 0; i < 2; i++) {
+        const link = document.createElement('a');
+        link.href = '#touch-' + i;
+        link.textContent = 'Touch destination ' + i;
+        link.addEventListener('click', event => {
+          event.preventDefault();
+          window.touchCalls = (window.touchCalls || 0) + 1;
+          window.touchDestination = i;
+        });
+        scope.append(link);
+      }
+      document.querySelector('main').append(scope);
+      document.querySelector('[data-ui="search"]').dataset.scope = '#touch-results';
+      // Input-modality, tooltip and drawer updates may mutate background DOM
+      // while Safari is still synthesising the click for this touch.
+      document.addEventListener('pointerdown', () => document.body.classList.toggle('is-touching'));
+      document.addEventListener('focusout', event => {
+        if (event.target.matches('.ds-search-input')) document.body.classList.toggle('search-blurred');
+      });
+    });
+    await page.locator('#example-search [data-search-open]').tap();
+    await expect(input(page)).toBeFocused();
+    await page.locator('#example-search .ds-search-result').nth(1).locator('.ds-search-title').tap();
+    await expect(dialog(page)).not.toBeVisible();
+    expect(await page.evaluate(() => [window.touchCalls, window.touchDestination])).toEqual([1, 1]);
+  });
+
+  test('touch movement and cancellation do not select or execute actions; one tap executes once', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(url);
+    await page.evaluate(() => {
+      window.touchActions = [];
+      const view = Templify.get(document.querySelector('[data-ui="search"]'));
+      for (const name of ['First', 'Second']) view.shortcuts.register({
+        id: 'test.touch-' + name, label: name + ' touch action', searchable: true,
+        handler() { window.touchActions.push(name); return true; },
+      });
+    });
+    await page.locator('#example-search [data-search-open]').tap();
+    await input(page).fill('touch action');
+    const rows = dialog(page).locator('.ds-search-result');
+    await expect(rows).toHaveCount(2);
+    await rows.last().dispatchEvent('pointerdown', { pointerType: 'touch', pointerId: 7 });
+    await rows.last().dispatchEvent('pointermove', { pointerType: 'touch', pointerId: 7, clientY: 100 });
+    await rows.last().dispatchEvent('pointercancel', { pointerType: 'touch', pointerId: 7 });
+    await expect(rows.first()).toHaveAttribute('aria-selected', 'true');
+    expect(await page.evaluate(() => window.touchActions)).toEqual([]);
+    await rows.last().locator('.ds-search-title').tap();
+    await expect(dialog(page)).not.toBeVisible();
+    expect(await page.evaluate(() => window.touchActions)).toEqual(['Second']);
+  });
 });

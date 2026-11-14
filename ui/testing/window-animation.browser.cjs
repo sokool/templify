@@ -1,8 +1,8 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect, chromium, webkit } = require('@playwright/test');
 const path = require('node:path');
 
 async function mount(page, options) {
-  await page.setContent('<button id="opener">Open window</button><div id="host"></div>');
+  await page.setContent('<meta name="viewport" content="width=device-width, initial-scale=1"><button id="opener">Open window</button><div id="host"></div>');
   for (const file of ['defaults.css', 'primitives.css', 'components/window/window.css']) {
     await page.addStyleTag({ path: path.resolve(__dirname, '..', file) });
   }
@@ -140,3 +140,52 @@ test('reduced motion disables both side-panel animations and closes immediately'
     await page.evaluate(() => window.testWindow.destroy());
   }
 });
+
+for (const browserName of ['chromium', 'webkit']) {
+  test.describe(`${browserName} touch close button`, () => {
+    let browser;
+    test.beforeAll(async () => {
+      browser = await ({ chromium, webkit })[browserName].launch({ channel: browserName === 'chromium' ? 'chromium' : undefined });
+    });
+    test.afterAll(async () => { await browser?.close(); });
+    const touch = test.extend({
+      page: async ({}, use) => {
+        const context = await browser.newContext({
+          hasTouch: true, isMobile: true, viewport: { width: 375, height: 812 },
+        });
+        try { await use(await context.newPage()); } finally { await context.close(); }
+      },
+    });
+
+    for (const mode of ['modal', 'side']) {
+      touch(`${mode} keeps touch focus quiet and keyboard focus visible`, async ({ page }) => {
+        await mount(page, { mode, duration: 0 });
+        await page.evaluate(() => {
+          document.getElementById('opener').addEventListener('click', () => window.testWindow.open());
+        });
+        await page.locator('#opener').focus();
+        await page.getByRole('button', { name: 'Open window', exact: true }).tap();
+        const close = page.getByRole('button', { name: 'Close window', exact: true });
+        await expect(close).toBeFocused();
+        await expect(close).toHaveCSS('outline-style', 'none');
+        await expect(close).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+        await expect(close).toHaveCSS('-webkit-tap-highlight-color', 'rgba(0, 0, 0, 0)');
+
+        await page.keyboard.press('Tab');
+        await close.focus();
+        await expect(close).toBeFocused();
+        await expect(close).toHaveCSS('outline-style', 'solid');
+
+        // Safari may retain :focus-visible when a touch follows keyboard focus.
+        await close.dispatchEvent('pointerdown', { pointerType: 'touch', bubbles: true });
+        await expect(close).toBeFocused();
+        await expect(close).toHaveCSS('outline-style', 'none');
+        await close.tap();
+        await expect(page.locator('dialog')).toBeHidden();
+        await page.locator('#opener').tap();
+        await expect(close).toHaveCSS('outline-style', 'none');
+        await expect(close).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      });
+    }
+  });
+}

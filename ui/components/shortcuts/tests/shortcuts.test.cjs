@@ -16,6 +16,63 @@ function keyboard(target) {
   };
 }
 
+test('dock metadata is opt-in, immutable through snapshots and independent of bindings/search', () => {
+  const shortcuts = Shortcuts.create();
+  let enabled = true, calls = 0;
+  const notifications = [];
+  const unsubscribe = shortcuts.subscribe(event => notifications.push(event));
+  const off = shortcuts.register({
+    id: 'editor.save', dock: { order: 5 }, enabled: () => enabled,
+    handler: () => { calls++; return true; },
+  });
+  assert.equal(shortcuts.get('editor.save').searchable, false);
+  assert.equal(shortcuts.get('editor.save').shortcut, null);
+  assert.deepEqual(shortcuts.get('editor.save').dock, { order: 5 });
+  shortcuts.get('editor.save').dock.order = 99;
+  assert.equal(shortcuts.list()[0].dock.order, 5);
+  assert.equal(shortcuts.execute('editor.save'), true);
+  assert.equal(calls, 1);
+  enabled = false;
+  assert.equal(shortcuts.refresh('editor.save'), true);
+  assert.deepEqual(notifications.at(-1), { type: 'availability', id: 'editor.save' });
+  assert.equal(shortcuts.get('editor.save').enabled, false);
+  assert.equal(shortcuts.execute('editor.save'), false);
+  assert.equal(shortcuts.refresh('missing'), false);
+  assert.equal(shortcuts.refresh(), true);
+  for (const dock of ['true', null, { order: Infinity }, { order: '5' }]) {
+    assert.throws(() => shortcuts.register({ id: 'bad', dock, handler: () => true }), /dock/);
+  }
+  off();
+  unsubscribe();
+  shortcuts.destroy();
+});
+
+test('dock metadata can change without replacing an action or changing its binding', () => {
+  const shortcuts = Shortcuts.create();
+  let calls = 0;
+  const off = shortcuts.register({ id: 'search.open', defaultShortcut: 'Mod+K', handler: () => { calls++; return true; } });
+  shortcuts.set('search.open', 'Mod+J');
+  const events = [];
+  shortcuts.subscribe(event => events.push(event));
+  assert.equal(shortcuts.setDock('search.open', true), true);
+  assert.deepEqual(shortcuts.get('search.open').dock, { order: 0 });
+  assert.deepEqual(events, [{ type: 'metadata', id: 'search.open' }]);
+  shortcuts.setDock('search.open', true);
+  assert.equal(events.length, 1);
+  assert.equal(shortcuts.setDock('search.open', { order: 12 }), true);
+  assert.equal(shortcuts.get('search.open').dock.order, 12);
+  for (const value of [null, [], 'true', { order: NaN }]) assert.equal(shortcuts.setDock('search.open', value), false);
+  assert.equal(shortcuts.setDock('missing', true), false);
+  assert.equal(shortcuts.setDock('search.open', false), true);
+  assert.equal(shortcuts.get('search.open').dock, null);
+  assert.equal(shortcuts.get('search.open').shortcut, 'Mod+J');
+  assert.equal(shortcuts.execute('search.open'), true);
+  assert.equal(calls, 1);
+  off();
+  assert.equal(shortcuts.get('search.open'), null);
+  shortcuts.destroy();
+});
+
 test('an action-filtered recorder edits the shared catalogue without displaying unrelated actions', () => {
   const document = new Document(), host = document.createElement('section');
   const shortcuts = Shortcuts.create({ document });

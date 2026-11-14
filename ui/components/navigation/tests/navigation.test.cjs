@@ -116,6 +116,7 @@ function setup(width = 1440, saved = {}, attributes = {}) {
   };
   const viewport = el('div', 'preview', doc);
   viewport.clientWidth = width;
+  viewport.getBoundingClientRect = () => ({ left: 0, right: viewport.clientWidth, width: viewport.clientWidth, top: 0, bottom: 800, height: 800 });
   const root = el('div', 'menu-live', viewport, 'menu-live ds-navigation');
   for (const [name, value] of Object.entries(attributes)) {
     root.setAttribute(name, value);
@@ -796,4 +797,170 @@ test('Navigation shadow declarations use shared profiles instead of fixed shadow
   }
   assert.match(css, /--pattern-shadow:\s*var\(--ds-shadow-medium,\s*none\)/);
   assert.match(css, /--pattern-shadow:\s*var\(--ds-shadow-soft,\s*none\)/);
+});
+
+test('position and mobile-side attributes and setters share validated state without losing folding preferences', () => {
+  const f = setup(1440, { 'test-sidebar-collapsed': 'true' }, { 'data-position': 'right' });
+  assert.equal(f.root.dataset.position, 'right');
+  assert.equal(f.root.dataset.mobileSide, 'right');
+  assert.equal(f.root.dataset.sidebarCollapsed, 'true');
+  assert.equal(f.control.setPosition('diagonal'), false);
+  assert.equal(f.control.setMobilePosition('top'), false);
+  assert.equal(f.control.setDock('true'), false);
+  assert.equal(f.control.setPosition('bottom'), true);
+  assert.equal(f.root.dataset.mobileSide, 'left');
+  f.control.setMobilePosition('right');
+  assert.equal(f.root.dataset.mobileSide, 'right');
+  f.control.setPosition('top');
+  assert.equal(f.root.dataset.mobileSide, 'right');
+  const observer = f.observers.find(observer => observer.targets?.some(({ options }) => options?.attributeFilter?.includes('data-position')));
+  f.root.dataset.position = 'left';
+  f.root.dataset.mobilePosition = 'left';
+  observer.callback();
+  assert.equal(f.root.dataset.position, 'left');
+  assert.equal(f.root.dataset.mobileSide, 'left');
+  assert.equal(f.root.dataset.sidebarCollapsed, 'true');
+  f.root.dataset.position = 'invalid';
+  observer.callback();
+  assert.equal(f.root.dataset.position, 'left');
+  f.control.destroy();
+  assert.equal(f.control.setPosition('right'), false);
+});
+
+test('dock adopts catalogue actions, orders them and shares Search/keyboard handlers and preferences', () => {
+  const f = setup(1440, {}, { 'data-dock': 'true' });
+  const shortcuts = f.control.shortcuts, dock = f.control.slots.dock;
+  let calls = 0, enabled = true;
+  assert.equal(dock.hidden, true);
+  const offOther = shortcuts.register({ id: 'other', label: 'Other', dock: { order: 20 }, handler: () => true });
+  const off = shortcuts.register({
+    id: 'editor.save', label: 'Save document', icon: 'plus', searchable: true,
+    dock: { order: 10 }, defaultShortcut: 'Mod+S',
+    enabled: () => enabled, handler: () => { calls++; return true; },
+  });
+  assert.equal(dock.hidden, false);
+  const buttons = dock.querySelectorAll('button');
+  assert.deepEqual(buttons.map(button => button.dataset.dockAction), ['editor.save', 'other']);
+  assert.equal(buttons[0].getAttribute('aria-label'), 'Save document');
+  assert.equal(buttons[0].getAttribute('aria-keyshortcuts'), 'Control+S Meta+S');
+  dock.emit('click', { target: buttons[0] });
+  assert.equal(calls, 1);
+  f.doc.emit('keydown', { key: 's', ctrlKey: true, preventDefault() {} });
+  assert.equal(calls, 2);
+  assert.equal(f.control.search.setQuery('Save document').length, 1);
+  f.control.search.results.emit('click', { target: f.control.search.results.querySelector('button'), preventDefault() {} });
+  assert.equal(calls, 3);
+  shortcuts.set('editor.save', null);
+  assert.equal(buttons[0].getAttribute('aria-keyshortcuts'), null);
+  assert.equal(dock.querySelectorAll('button').length, 2);
+  buttons[0].focus();
+  shortcuts.refresh('editor.save');
+  assert.equal(f.doc.activeElement, buttons[0]);
+  enabled = false; // Execution rechecks even before the owner notifies consumers.
+  dock.emit('click', { target: buttons[0] });
+  assert.equal(calls, 3);
+  assert.equal(dock.querySelectorAll('button').length, 1);
+  enabled = true;
+  shortcuts.refresh('editor.save');
+  f.control.setDock(false);
+  assert.equal(dock.hidden, true);
+  assert.equal(shortcuts.execute('editor.save'), true);
+  assert.equal(calls, 4);
+  assert.equal(shortcuts.get('editor.save').shortcut, null);
+  f.control.setDock(true);
+  assert.equal(dock.hidden, false);
+  off();
+  offOther();
+  assert.equal(dock.hidden, true);
+  assert.equal(f.root.style.getPropertyValue('--navigation-dock-space'), '0px');
+  f.control.destroy();
+});
+
+test('dock registration before mount, cleanup and remount never duplicate actions or helpers', () => {
+  const f = setup();
+  f.control.destroy();
+  const shortcuts = f.control.shortcuts;
+  const off = shortcuts.register({ id: 'existing', label: 'Existing', dock: true, handler: () => true });
+  f.root.dataset.dock = 'true';
+  const view = shell.mount(f.root, { viewport: f.viewport });
+  assert.equal(view.slots.dock.querySelectorAll('button').length, 1);
+  assert.equal(shell.mount(f.root, { viewport: f.viewport }), view);
+  view.destroy();
+  assert.equal(shortcuts.execute('existing'), true);
+  assert.equal(f.root.querySelector('.menu-dock'), null);
+  const replacement = shell.mount(f.root, { viewport: f.viewport });
+  assert.equal(f.root.querySelectorAll('.menu-dock').length, 1);
+  replacement.destroy();
+  off();
+});
+
+test('Search opts into the dock through its existing action independently of the footer and binding', () => {
+  const f = setup(1440, {}, { 'data-dock': 'true' });
+  const search = f.control.search, shortcuts = f.control.shortcuts, dock = f.control.slots.dock;
+  assert.equal(dock.hidden, true);
+  search.update({ showDockTrigger: true, showNavigationTrigger: false });
+  assert.equal(search.trigger, null);
+  assert.equal(dock.hidden, false);
+  assert.deepEqual(dock.querySelectorAll('button').map(button => button.dataset.dockAction), ['navigation.search']);
+  assert.equal(shortcuts.list().filter(action => action.id === 'navigation.search').length, 1);
+  shortcuts.set('navigation.search', null);
+  assert.equal(dock.hidden, false);
+  dock.emit('click', { target: dock.querySelector('button') });
+  assert.equal(search.isOpen(), true);
+  search.close();
+  search.setEnabled(false);
+  assert.equal(dock.hidden, true);
+  search.setEnabled(true);
+  assert.equal(dock.hidden, false);
+  search.update({ showDockTrigger: false });
+  assert.equal(dock.hidden, true);
+  assert.equal(shortcuts.execute('navigation.search'), true);
+  assert.equal(shortcuts.get('navigation.search').shortcut, null);
+  f.control.destroy();
+  assert.equal(shortcuts.get('navigation.search'), null);
+});
+
+test('right, top and bottom submenus open toward content and use directional keyboard access', () => {
+  const f = setup();
+  f.nav.getBoundingClientRect = () => ({ left: 1000, right: 1220, top: 700, bottom: 744, width: 220, height: 44 });
+  f.control.setPosition('right');
+  f.control.setCollapsed(true);
+  f.parent.emit('keydown', { key: 'ArrowLeft', preventDefault() {} });
+  f.control.overflow.position();
+  assert.equal(f.panel.style.left, '780px');
+  assert.equal(f.doc.activeElement, f.leaf);
+  f.nav.emit('keydown', { key: 'ArrowRight', target: f.leaf, preventDefault() {} });
+  assert.equal(f.panel.hidden, true);
+  for (const [position, key, top] of [['top', 'ArrowDown', '744px'], ['bottom', 'ArrowUp', '636px']]) {
+    f.control.setPosition(position);
+    f.control.setCollapsed(false);
+    f.parent.emit('keydown', { key, preventDefault() {} });
+    f.control.overflow.position();
+    assert.equal(f.panel.popoverOpen, true);
+    assert.equal(f.panel.style.top, top);
+    assert.equal(f.doc.activeElement, f.leaf);
+    f.nav.emit('keydown', { key: 'Escape', target: f.leaf, preventDefault() {} });
+    assert.equal(f.panel.hidden, true);
+  }
+  f.control.destroy();
+});
+
+test('horizontal navigation overflow scrolls on the horizontal axis', () => {
+  const f = setup();
+  f.control.setPosition('top');
+  const primary = f.control.overflow.regions[0];
+  f.items.clientWidth = primary.region.clientWidth = 200;
+  f.items.scrollWidth = 800;
+  f.items.scrollLeft = 0;
+  f.items.scrollBy = ({ left }) => { f.items.scrollLeft += left; };
+  f.control.overflow.update();
+  assert.equal(primary.up.disabled, true);
+  assert.equal(primary.down.disabled, false);
+  assert.equal(primary.down.getAttribute('aria-label'), 'Scroll navigation right');
+  primary.down.emit('click');
+  assert.equal(f.items.scrollLeft, 140);
+  f.items.scrollLeft = 600;
+  f.control.overflow.update();
+  assert.equal(primary.down.disabled, true);
+  f.control.destroy();
 });

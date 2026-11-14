@@ -50,7 +50,7 @@
 /* Multi-selection is one shared field: chips and query wrap inside its border. */
 .ds-autocomplete[data-multiple=true] .ds-field-body{display:flex;align-items:center;flex-wrap:wrap;gap:6px;min-height:var(--ds-form-field-height);padding:6px 36px;border:1px solid var(--ds-colour-border);border-radius:var(--ds-form-field-radius);background:var(--ds-form-surface);cursor:text}
 .ds-autocomplete[data-multiple=true] .ds-ac-chips{display:contents}
-.ds-autocomplete[data-multiple=true] .ds-field-control{flex:1 1 140px;width:0;min-width:min(140px,100%);min-height:30px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+.ds-autocomplete[data-multiple=true] .ds-field-control{flex:1 1 140px;width:0;min-width:min(140px,100%);min-height:30px;padding:0;border:0;border-radius:0;background:transparent;outline:none;box-shadow:none}
 .ds-autocomplete[data-multiple=true] .ds-field-body:focus-within{border-color:var(--ds-colour-accent);box-shadow:inset 0 0 0 .5px var(--ds-colour-accent)}
 .ds-autocomplete[data-multiple=true] .ds-field[data-invalid=true] .ds-field-body{border-color:var(--ds-form-error);box-shadow:none}
 .ds-autocomplete .ds-field-caption{z-index:1}

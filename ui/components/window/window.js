@@ -51,9 +51,9 @@
     grip.setAttribute('aria-label', 'Resize window');
     grip.title = 'Drag to resize. Arrow keys resize; Shift resizes in larger steps.';
     if (!options.hydrate) { header.append(title, closeButton); dialog.append(header, body, footer, grip); (state.container || doc.body).append(dialog); }
-    function listen(node, type, fn) {
-      node.addEventListener(type, fn);
-      listeners.push(() => node.removeEventListener(type, fn));
+    function listen(node, type, fn, settings) {
+      node.addEventListener(type, fn, settings);
+      listeners.push(() => node.removeEventListener(type, fn, settings));
     }
     function content(node, value) {
       node.replaceChildren();
@@ -221,6 +221,10 @@
         box.height + dy * (vertical() && state.side === 'bottom' ? -1 : 1));
       if (before.width !== state.width || before.height !== state.height) resized();
     }
+    // Native dialog autofocus can retain :focus-visible after touch in Safari.
+    // Observe the opener as well, without removing focus or its keyboard cue.
+    listen(doc, 'pointerdown', () => { dialog.dataset.inputModality = 'pointer'; }, true);
+    listen(doc, 'keydown', () => { dialog.dataset.inputModality = 'keyboard'; }, true);
     listen(closeButton, 'click', () => close('button'));
     listen(dialog, 'cancel', cancel);
     listen(dialog, 'close', closed);

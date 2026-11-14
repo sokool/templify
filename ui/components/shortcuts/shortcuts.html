@@ -1,6 +1,6 @@
 <!--
 Component: Shortcuts
-Purpose: Register and edit keyboard shortcuts.
+Purpose: Register component actions and edit their keyboard shortcuts.
 Elements: Rows with an identifier, label, recorder input and reset button.
 JavaScript behavior: set(id, shortcut), reset(id), list(), recording Cmd/Ctrl, Alt and/or
 Shift with a letter or digit, or at least two modifiers without a character.
@@ -12,6 +12,11 @@ adopts existing rows and displays newly registered actions, including Navigation
 Components may declare defaults through their own data-* shortcut attributes;
 saved user bindings take precedence. Removing the editor does not disable other
 components' shortcuts or destroy the shared catalogue.
+Actions may opt into Search with searchable: true and Navigation's bottom dock
+with dock: true or dock: {order: number}, even without a keyboard binding.
+execute(id, event) rechecks availability and runs the single registered handler.
+refresh(id) notifies consumers after availability changes without changing bindings.
+setDock(id, value) updates an action's dock presentation without replacing its handler or binding.
 ui:shortcut is cancelable: the application handler calls preventDefault() when it
 handles the action; only then is the browser's default shortcut blocked.
 -->

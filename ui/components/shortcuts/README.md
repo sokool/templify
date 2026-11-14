@@ -117,6 +117,26 @@ Search. `enabled()` disables both entry points without discarding preferences.
 Search hides unavailable actions and rechecks them when activated. Components
 unregister actions when destroyed.
 
+## Navigation dock actions
+
+Actions can independently opt into Navigation's bottom dock with `dock: true`
+(order 0) or `dock: { order: 10 }` (lower numbers first, registration order for
+ties). This does not require `searchable: true` or a keyboard binding.
+`get()`/`list()` expose a copy of the dock metadata. Navigation renders only
+available opted-in actions and invokes the same `execute(id, event)` contract.
+No additional action registry or keyboard dispatcher is created.
+`setDock(id, true/false)` or `setDock(id, { order: 10 })` updates an existing action's
+dock metadata without replacing its handler, binding or registration. It emits a
+`metadata` notification only when the presentation changes. Invalid values or
+unknown IDs return `false`.
+
+Call `refresh(id)` after changing state used by an `enabled()` predicate, or
+`refresh()` to notify all catalogue consumers. Predicates are still checked
+at activation time, even without a refresh. Refresh emits an `availability`
+notification without changing bindings or defaults. Unregistering an action
+removes its dock button; hiding/destroying the dock does not unregister actions
+owned by other components. See [Navigation](../navigation/README.md#menu-position-and-bottom-dock).
+
 ## Recorder component
 
 Shortcuts is itself the recorder/editor, not a configurator of another component.

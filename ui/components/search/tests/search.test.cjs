@@ -5,6 +5,7 @@ const Shortcuts = require('../../shortcuts/shortcuts.js');
 
 test('search defaults to at most five results', () => {
   assert.equal(Search.defaults.maxResults, 5);
+  assert.equal(Search.defaults.showDockTrigger, false);
 });
 
 test('search matches URLs, decoded anchors, titles, descriptions, keywords, groups and graphic labels', () => {

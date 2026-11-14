@@ -80,6 +80,10 @@
       'chevron-down': '<path d="m6 9 6 6 6-6"/>',
       'panel-left-open': '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18m4-12 3 3-3 3"/>',
       'panel-left-close': '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18m7-12-3 3 3 3"/>',
+      'panel-right-open': '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18m-4-12-3 3 3 3"/>',
+      'panel-right-close': '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18m-7-12 3 3-3 3"/>',
+      'panel-top': '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/>',
+      'panel-bottom': '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 15h18"/>',
       home: '<path d="m3 10 9-7 9 7v11h-6v-7H9v7H3Z"/>',
       dashboard: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
       folder: '<path d="M3 7V4h6l2 3h10v13H3Z"/>',
@@ -242,6 +246,122 @@
     return view;
   }
 
+  function createDock(root, { shortcuts, renderIcon, onLayout, focusFallback }) {
+    const document = root.ownerDocument;
+    let element = root.querySelector('.menu-dock');
+    const generated = !element;
+    if (!element) {
+      element = document.createElement('nav');
+      element.className = 'menu-dock';
+      root.append(element);
+    }
+    element.setAttribute('aria-label', 'Component actions');
+    element.setAttribute('data-search-ignore', '');
+    const items = document.createElement('div'), tooltip = document.createElement('span');
+    items.className = 'menu-dock-items';
+    tooltip.className = 'menu-dock-tooltip';
+    tooltip.id = 'menu-dock-tooltip';
+    tooltip.setAttribute('role', 'tooltip');
+    tooltip.hidden = true;
+    element.append(items, tooltip);
+    const buttons = new Map(), listeners = [];
+    let signature = '', destroyed = false;
+    function listen(type, handler, options) {
+      element.addEventListener(type, handler, options);
+      listeners.push(() => element.removeEventListener(type, handler, options));
+    }
+    function hideTooltip() {
+      tooltip.hidden = true;
+      buttons.forEach(button => button.removeAttribute('aria-describedby'));
+    }
+    function showTooltip(event) {
+      const button = event.target.closest('[data-dock-action]');
+      if (!button || !items.contains(button)) return;
+      hideTooltip();
+      tooltip.textContent = button.getAttribute('aria-label');
+      tooltip.hidden = false;
+      button.setAttribute('aria-describedby', tooltip.id);
+      const box = button.getBoundingClientRect(), bounds = element.getBoundingClientRect();
+      const width = tooltip.getBoundingClientRect().width;
+      tooltip.style.left = Math.max(bounds.left + 4, Math.min(box.left + box.width / 2 - width / 2, bounds.right - width - 4)) + 'px';
+      tooltip.style.top = bounds.top - tooltip.getBoundingClientRect().height - 4 + 'px';
+    }
+    function render() {
+      if (destroyed) return;
+      const active = document.activeElement, hadFocus = element.contains(active);
+      const previous = Array.from(items.children).indexOf(active);
+      const actions = shortcuts.list().filter(action => action.dock && action.enabled)
+        .sort((a, b) => a.dock.order - b.dock.order);
+      const ids = new Set(actions.map(action => action.id));
+      for (const [id, button] of buttons) if (!ids.has(id)) { button.remove(); buttons.delete(id); }
+      const nodes = actions.map(action => {
+        let button = buttons.get(action.id);
+        if (!button) {
+          button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'menu-dock-action';
+          button.dataset.dockAction = action.id;
+          button.setAttribute('aria-label', action.label);
+          if (action.image) {
+            const image = document.createElement('img');
+            image.src = action.image;
+            image.alt = '';
+            button.append(image);
+          } else if (action.icon) button.innerHTML = renderIcon(action.icon);
+          else button.textContent = Array.from(String(action.label).trim())[0] || '•';
+          buttons.set(action.id, button);
+        }
+        const binding = Shortcuts.aria(action.shortcut);
+        if (binding) button.setAttribute('aria-keyshortcuts', binding);
+        else button.removeAttribute('aria-keyshortcuts');
+        return button;
+      });
+      const next = JSON.stringify(actions.map(action => action.id));
+      if (signature !== next) {
+        signature = next;
+        hideTooltip();
+        items.replaceChildren(...nodes);
+      }
+      element.hidden = root.dataset.dock !== 'true' || !nodes.length;
+      if (element.hidden) hideTooltip();
+      if (hadFocus && (element.hidden || !items.contains(active))) {
+        if (!element.hidden) nodes[Math.min(Math.max(previous, 0), nodes.length - 1)].focus();
+        else focusFallback();
+      } else if (hadFocus && document.activeElement !== active) active.focus();
+      onLayout();
+    }
+    listen('click', event => {
+      const button = event.target.closest('[data-dock-action]');
+      if (!button || !items.contains(button) || element.hidden) return;
+      shortcuts.execute(button.dataset.dockAction, event);
+      render();
+    });
+    listen('pointerover', showTooltip);
+    listen('focusin', showTooltip);
+    listen('pointerout', hideTooltip);
+    listen('focusout', hideTooltip);
+    listen('scroll', () => {
+      if (items.contains(document.activeElement)) showTooltip({ target: document.activeElement });
+      else hideTooltip();
+    }, true);
+    listen('keydown', event => { if (event.key === 'Escape') hideTooltip(); });
+    const unsubscribe = shortcuts.subscribe(render);
+    render();
+    return {
+      element, render, hideTooltip,
+      destroy() {
+        destroyed = true;
+        unsubscribe();
+        listeners.forEach(off => off());
+        items.remove();
+        tooltip.remove();
+        buttons.clear();
+        if (generated) element.remove();
+        else element.hidden = true;
+      },
+    };
+  }
+
   function mount(root, options = {}) {
     if (!root) throw new TypeError('Navigation requires a root element');
     if (mounted.has(root)) return mounted.get(root);
@@ -262,6 +382,17 @@
       if (value !== undefined && root.dataset[name] === undefined) root.dataset[name] = String(value);
     }
     let collapseEnabled = root.dataset.collapse !== 'false';
+    const positions = ['left', 'right', 'top', 'bottom'];
+    let position = positions.includes(root.dataset.position) ? root.dataset.position
+      : positions.includes(options.position) ? options.position : 'left';
+    root.dataset.position = position;
+    if (root.dataset.dock === undefined) root.dataset.dock = String(options.dock === true);
+    if (root.dataset.mobilePosition === undefined && ['left', 'right'].includes(options.mobilePosition)) {
+      root.dataset.mobilePosition = options.mobilePosition;
+    }
+    const isHorizontal = () => viewport.clientWidth > 620 && (position === 'top' || position === 'bottom');
+    const mobileSide = () => ['left', 'right'].includes(root.dataset.mobilePosition)
+      ? root.dataset.mobilePosition : position === 'right' ? 'right' : 'left';
     const shortcutDefault = (attribute, fallback) => {
       const value = root.getAttribute(attribute);
       return value === null ? fallback : value === '' || value === 'false' ? null : Shortcuts.normalise(value) || fallback;
@@ -271,6 +402,7 @@
       listeners = [];
     let destroyed = false,
       searchController = null,
+      dockController = null,
       disposeSidebarShortcut = () => {};
     function listen(target, type, handler, settings) {
       target.addEventListener(type, handler, settings);
@@ -300,6 +432,24 @@
     );
     let afterSync = () => {};
     const nav = root.querySelector('.menu-live-nav'), footer = root.querySelector('.menu-sidebar-footer');
+    const content = root.querySelector('.menu-live-content');
+    function syncLayout() {
+      if (destroyed) return;
+      root.dataset.mobileSide = mobileSide();
+      const bounds = viewport.getBoundingClientRect();
+      const area = viewport.clientWidth > 620 && !isHorizontal() ? content.getBoundingClientRect() : bounds;
+      for (const [name, value] of Object.entries({
+        '--navigation-viewport-left': bounds.left,
+        '--navigation-viewport-width': bounds.width,
+        '--navigation-dock-left': area.left,
+        '--navigation-dock-width': area.width,
+        '--navigation-dock-space': dockController && !dockController.element.hidden ? dockController.element.getBoundingClientRect().height : 0,
+        '--navigation-bottom-size': isHorizontal() && position === 'bottom' ? nav.getBoundingClientRect().height : 0,
+      })) {
+        if (root.style.getPropertyValue(name) !== value + 'px') root.style.setProperty(name, value + 'px');
+      }
+      api.mobile?.syncPosition();
+    }
     const sidebarToggle = root.querySelector('#menu-sidebar-toggle');
     let items = root.querySelector('.workspace-nav-items');
     if (!items) {
@@ -366,8 +516,16 @@
       sidebarToggle.hidden = !collapseEnabled;
       edgeToggle.hidden = !collapseEnabled;
       edgeToggle.setAttribute('aria-expanded', String(!collapsed));
-      edgeToggle.setAttribute('aria-label', (collapsed ? 'Expand' : 'Collapse') + ' sidebar from edge');
-      edgeToggle.innerHTML = uiIcon(collapsed ? 'chevron-right' : 'chevron-left');
+      const label = isHorizontal() ? 'navigation' : 'sidebar';
+      sidebarToggle.setAttribute('aria-label', (collapsed ? 'Expand ' : 'Collapse ') + label);
+      foldLabel.textContent = isHorizontal() ? 'Menu' : 'Sidebar';
+      edgeToggle.setAttribute('aria-label', (collapsed ? 'Expand ' : 'Collapse ') + label + ' from edge');
+      const outward = position === 'right' ? 'left' : position === 'top' ? 'down' : position === 'bottom' ? 'up' : 'right';
+      const opposite = { left: 'right', right: 'left', up: 'down', down: 'up' };
+      edgeToggle.innerHTML = uiIcon('chevron-' + (collapsed ? outward : opposite[outward]));
+      const icon = position === 'top' || position === 'bottom' ? 'panel-' + position
+        : 'panel-' + position + (collapsed ? '-open' : '-close');
+      sidebarToggle.querySelector('.sidebar-toggle-icon').innerHTML = uiIcon(icon);
       syncEdgeBackground();
     }
 
@@ -378,6 +536,15 @@
         root.dataset.sidebarCollapsed === 'true' &&
         root.dataset.sidebarFolding !== 'collapse'
       );
+    }
+    function isFloatingMenu() {
+      return isHorizontal() || isSidebarCompact();
+    }
+    function submenuKeys() {
+      const side = viewport.clientWidth <= 620 ? mobileSide() : position;
+      const open = { left: 'ArrowRight', right: 'ArrowLeft', top: 'ArrowDown', bottom: 'ArrowUp' }[side];
+      const close = { ArrowRight: 'ArrowLeft', ArrowLeft: 'ArrowRight', ArrowDown: 'ArrowUp', ArrowUp: 'ArrowDown' }[open];
+      return { open, close };
     }
     let foldAnimations = [],
       foldVersion = 0;
@@ -406,7 +573,7 @@
         return;
       }
       panel.hidden = false;
-      const compact = isSidebarCompact();
+      const compact = isFloatingMenu();
       panel.style.overflow = 'hidden';
       const frames = compact
         ? [
@@ -432,7 +599,7 @@
         .catch(() => {});
     }
     function syncSidebarSubmenus(animate = true) {
-      const compact = isSidebarCompact();
+      const compact = isFloatingMenu();
       const ready = document.getElementById('menu-live').dataset.motionReady === 'true';
       sidebarGroups.forEach((button) => {
         const group = button.dataset.menuGroup;
@@ -461,6 +628,7 @@
         remember &&
         wasCollapsed !== value &&
         viewport.clientWidth > 620 &&
+        !isHorizontal() &&
         !reduced &&
         typeof sidebarGroups[0]?.animate === 'function';
       if (value && !fading && remember) openSidebarFlyout = sidebarGroups.find(button => expandedMenuGroups[button.dataset.menuGroup])?.dataset.menuGroup || null;
@@ -507,7 +675,7 @@
       }
     }
     function toggleSidebarGroup(group) {
-      if (isSidebarCompact()) openSidebarFlyout = openSidebarFlyout === group ? null : group;
+      if (isFloatingMenu()) openSidebarFlyout = openSidebarFlyout === group ? null : group;
       else expandedMenuGroups[group] = !expandedMenuGroups[group];
       rememberWorkspaceMenu();
       syncSidebarSubmenus();
@@ -533,11 +701,11 @@
           if (!button.disabled && button.getAttribute('aria-disabled') !== 'true') toggleSidebarGroup(button.dataset.menuGroup);
         });
         on(button, 'keydown', (event) => {
-          if (event.key === 'ArrowRight') {
+          if (event.key === submenuKeys().open) {
             event.preventDefault();
             if (button.getAttribute('aria-expanded') !== 'true') toggleSidebarGroup(button.dataset.menuGroup);
             document.getElementById(button.getAttribute('aria-controls')).querySelector('[data-menu-page]')?.focus();
-          } else if (event.key === 'ArrowLeft' && button.getAttribute('aria-expanded') === 'true') {
+          } else if (event.key === submenuKeys().close && button.getAttribute('aria-expanded') === 'true') {
             event.preventDefault();
             toggleSidebarGroup(button.dataset.menuGroup);
           }
@@ -568,7 +736,7 @@
     listen(edgeToggle, 'click', () => setSidebarCollapsed(root.dataset.sidebarCollapsed !== 'true'));
     listen(document.getElementById('menu-live-nav'), 'keydown', (event) => {
       if (event.defaultPrevented) return;
-      if (event.key !== 'Escape' && event.key !== 'ArrowLeft') return;
+      if (event.key !== 'Escape' && event.key !== submenuKeys().close) return;
       const group =
         sidebarGroups.find((button) =>
           document.getElementById(button.getAttribute('aria-controls')).contains(event.target),
@@ -578,7 +746,7 @@
           : null);
       if (!group) return;
       event.preventDefault();
-      if (isSidebarCompact()) openSidebarFlyout = null;
+      if (isFloatingMenu()) openSidebarFlyout = null;
       else expandedMenuGroups[group.dataset.menuGroup] = false;
       syncSidebarSubmenus();
       group.focus();
@@ -634,6 +802,32 @@
       isCompact: isSidebarCompact,
       syncSubmenus: syncSidebarSubmenus,
       setCollapsed: setSidebarCollapsed,
+      setPosition(value) {
+        if (destroyed || !positions.includes(value)) return false;
+        if (root.dataset.position !== value) root.dataset.position = value;
+        if (position !== value) {
+          position = value;
+          clearFoldAnimations();
+          openSidebarFlyout = null;
+          syncSidebarSubmenus(false);
+          syncFoldControls();
+          api.overflow?.schedule();
+        }
+        syncLayout();
+        return true;
+      },
+      setMobilePosition(value) {
+        if (destroyed || !['left', 'right'].includes(value)) return false;
+        if (root.dataset.mobilePosition !== value) root.dataset.mobilePosition = value;
+        syncLayout();
+        return true;
+      },
+      setDock(value) {
+        if (destroyed || typeof value !== 'boolean') return false;
+        if (root.dataset.dock !== String(value)) root.dataset.dock = String(value);
+        dockController?.render();
+        return true;
+      },
       setCollapse(value) {
         if (typeof value !== 'boolean' || destroyed) return false;
         if (root.dataset.collapse !== String(value)) root.dataset.collapse = String(value);
@@ -645,6 +839,7 @@
           api.mobile.close.hidden = !value;
           api.mobile.setOpen(!value || root.dataset.mobileMenuOpen === 'true');
         }
+        searchController?.shortcuts.refresh(sidebarShortcutId);
         return true;
       },
       setItems(entries) {
@@ -693,7 +888,7 @@
               Boolean(Array.from(panel?.querySelectorAll('[data-menu-page]') || []).some(node => node.dataset.menuPage === page)),
           );
         });
-        if (isSidebarCompact() && openSidebarFlyout) {
+        if (isFloatingMenu() && openSidebarFlyout) {
           const group = sidebarGroups.find(
             (button) => button.dataset.menuGroup === openSidebarFlyout,
           );
@@ -726,8 +921,11 @@
           return viewport.clientWidth <= 620;
         }
         function syncMobilePosition() {
+          root.dataset.mobileSide = mobileSide();
           if (!isMobileWorkspace()) return;
-          mobileWorkspace.style.setProperty('--mobile-nav-left', viewport.getBoundingClientRect().left + 'px');
+          const bounds = viewport.getBoundingClientRect();
+          mobileWorkspace.style.setProperty('--mobile-nav-left', bounds.left + 'px');
+          mobileWorkspace.style.setProperty('--mobile-nav-right', window.innerWidth - bounds.right + 'px');
         }
         function setMobileWorkspaceMenu(open, restoreFocus = false) {
           const mobile = isMobileWorkspace(),
@@ -810,6 +1008,7 @@
           close: mobileClose,
           isMobile: isMobileWorkspace,
           setOpen: setMobileWorkspaceMenu,
+          syncPosition: syncMobilePosition,
         };
         syncSidebarShortcut();
         return api.mobile;
@@ -823,18 +1022,25 @@
           return { overflow: content > height + 2, up: top > 2, down: top + height < content - 2 };
         }
         function updateMenuScrollIndicators() {
-          navScrollRegions.forEach(({ region, content, up, down }) => {
+          navScrollRegions.forEach(({ region, content, up, down, kind }) => {
+            const horizontal = isHorizontal();
             const state = menuScrollState(
-              content.clientHeight,
-              content.scrollHeight,
-              content.scrollTop,
+              horizontal ? content.clientWidth : content.clientHeight,
+              horizontal ? content.scrollWidth : content.scrollHeight,
+              horizontal ? content.scrollLeft : content.scrollTop,
             );
-            const overflow = content.scrollHeight > region.clientHeight + 2;
+            const overflow = horizontal ? content.scrollWidth > region.clientWidth + 2 : content.scrollHeight > region.clientHeight + 2;
             region.dataset.overflow = String(overflow);
             up.hidden = !overflow;
             down.hidden = !overflow;
             up.disabled = !state.up;
             down.disabled = !state.down;
+            for (const [button, direction] of [[up, horizontal ? 'left' : 'up'], [down, horizontal ? 'right' : 'down']]) {
+              if (button.dataset.direction === direction) continue;
+              button.dataset.direction = direction;
+              button.setAttribute('aria-label', 'Scroll ' + (kind === 'primary' ? 'navigation' : 'appearance controls') + ' ' + direction);
+              button.innerHTML = uiIcon('chevron-' + direction);
+            }
           });
         }
         [
@@ -860,7 +1066,7 @@
             button.innerHTML = uiIcon(direction === 'up' ? 'chevron-up' : 'chevron-down');
             listen(button, 'click', () =>
               content.scrollBy({
-                top: (direction === 'up' ? -1 : 1) * Math.max(40, content.clientHeight * 0.7),
+                [isHorizontal() ? 'left' : 'top']: (direction === 'up' ? -1 : 1) * Math.max(40, (isHorizontal() ? content.clientWidth : content.clientHeight) * 0.7),
                 behavior: matchMedia('(prefers-reduced-motion: reduce)').matches
                   ? 'auto'
                   : 'smooth',
@@ -871,7 +1077,7 @@
           };
           const up = makeIndicator('up'),
             down = makeIndicator('down');
-          navScrollRegions.push({ region, content, up, down });
+          navScrollRegions.push({ region, content, up, down, kind });
           listen(
             content,
             'scroll',
@@ -884,7 +1090,7 @@
         });
         // Top-layer flyouts remain visible outside the scrolling icon rail.
         function positionScrollableSubmenus() {
-          const floating = isSidebarCompact() && previewViewport.clientWidth > 620;
+          const floating = isFloatingMenu() && previewViewport.clientWidth > 620;
           sidebarGroups.forEach((button) => {
             const panel = document.getElementById(button.getAttribute('aria-controls'));
             const open = button.getAttribute('aria-expanded') === 'true' && !panel.hidden;
@@ -892,18 +1098,25 @@
               if (!panel.hasAttribute('popover')) panel.setAttribute('popover', 'manual');
               if (open) {
                 if (!panel.matches(':popover-open')) panel.showPopover();
-                const box = button.getBoundingClientRect();
-                const rail = pinnedNav.getBoundingClientRect();
-                const maxTop = Math.max(8, window.innerHeight - panel.offsetHeight - 8);
-                panel.style.left = rail.right + 'px';
+                const box = button.getBoundingClientRect(), rail = pinnedNav.getBoundingClientRect();
+                const bounds = previewViewport.getBoundingClientRect();
+                const dockSpace = parseFloat(root.style.getPropertyValue('--navigation-dock-space')) || 0;
+                const minTop = isHorizontal() && position === 'top' ? rail.bottom : 8;
+                const maxBottom = isHorizontal() && position === 'bottom' ? rail.top : window.innerHeight - dockSpace - 8;
+                panel.style.maxHeight = Math.max(0, maxBottom - minTop) + 'px';
+                panel.style.maxWidth = Math.max(0, bounds.width - 16) + 'px';
+                const maxTop = Math.max(minTop, maxBottom - panel.offsetHeight);
+                const preferredLeft = isHorizontal() ? box.left : position === 'right' ? rail.left - panel.offsetWidth : rail.right;
+                const left = Math.max(bounds.left, Math.min(preferredLeft, bounds.left + bounds.width - panel.offsetWidth));
+                panel.style.left = left + 'px';
                 panel.style.right = 'auto';
-                panel.style.top = Math.max(8, Math.min(box.top, maxTop)) + 'px';
+                panel.style.top = (isHorizontal() ? position === 'top' ? minTop : maxTop : Math.max(minTop, Math.min(box.top, maxTop))) + 'px';
                 panel.style.bottom = 'auto';
               } else if (panel.matches(':popover-open')) panel.hidePopover();
             } else if (panel.hasAttribute('popover')) {
               if (panel.matches(':popover-open')) panel.hidePopover();
               panel.removeAttribute('popover');
-              ['left', 'right', 'top', 'bottom'].forEach((key) => panel.style.removeProperty(key));
+              ['left', 'right', 'top', 'bottom', 'max-height', 'max-width'].forEach((key) => panel.style.removeProperty(key));
             }
           });
         }
@@ -952,6 +1165,7 @@
         mounted.delete(root);
         itemListeners.splice(0).forEach(off => off());
         disposeSidebarShortcut();
+        dockController?.destroy();
         searchController?.destroy();
         clearFoldAnimations();
         delete root.dataset.inputModality;
@@ -970,6 +1184,11 @@
         api.mobile?.toggle.remove();
         api.mobile?.close.remove();
         root.style.removeProperty('--mobile-nav-left');
+        root.style.removeProperty('--mobile-nav-right');
+        for (const property of ['viewport-left', 'viewport-width', 'dock-left', 'dock-width', 'dock-space', 'bottom-size']) {
+          root.style.removeProperty('--navigation-' + property);
+        }
+        delete root.dataset.mobileSide;
         api.slots.navigation.inert = false;
         edgeToggle.remove();
         api.overflow?.regions.forEach(({ region, content }) => { region.before(content); region.remove(); });
@@ -990,12 +1209,15 @@
     api.setSearch = (value) => {
       if (typeof value !== 'boolean' || destroyed) return false;
       if (root.dataset.search !== String(value)) root.dataset.search = String(value);
-      return searchController.setEnabled(value);
+      const result = searchController.setEnabled(value);
+      shortcuts.refresh(searchShortcutId);
+      return result;
     };
     api.setSearchEnabled = api.setSearch;
     api.setSearchShortcut = (value) => searchController.setShortcut(value);
     api.focusSearch = () => searchController.focus();
     const shortcuts = searchController.shortcuts;
+    api.shortcuts = shortcuts;
     const unregisterSidebarShortcut = shortcuts.register({
       id: sidebarShortcutId,
       group: 'Navigation',
@@ -1028,14 +1250,26 @@
         control.removeAttribute('aria-keyshortcuts');
       }
     };
+    dockController = createDock(root, {
+      shortcuts, renderIcon: uiIcon, onLayout: syncLayout,
+      focusFallback: () => {
+        const target = collapseEnabled ? api.mobile?.isMobile() ? api.mobile.toggle : sidebarToggle
+          : items.querySelector('button,a');
+        target?.focus({ preventScroll: true });
+      },
+    });
+    api.slots.dock = dockController.element;
     if (typeof MutationObserver !== 'undefined') {
       observe(new MutationObserver(() => {
         if (destroyed) return;
         api.setCollapse(root.dataset.collapse !== 'false');
         api.setSearch(root.dataset.search !== 'false');
+        api.setPosition(positions.includes(root.dataset.position) ? root.dataset.position : 'left');
+        api.setDock(root.dataset.dock === 'true');
+        syncLayout();
         shortcuts.setDefault(searchShortcutId, shortcutDefault('data-search-shortcut', options.searchShortcut === undefined ? defaultSearchShortcut : options.searchShortcut));
         shortcuts.setDefault(sidebarShortcutId, shortcutDefault('data-collapse-shortcut', options.sidebarShortcut === undefined ? defaultSidebarShortcut : options.sidebarShortcut));
-      })).observe(root, { attributes: true, attributeFilter: ['data-collapse', 'data-search', 'data-search-shortcut', 'data-collapse-shortcut'] });
+      })).observe(root, { attributes: true, attributeFilter: ['data-collapse', 'data-search', 'data-search-shortcut', 'data-collapse-shortcut', 'data-position', 'data-mobile-position', 'data-dock'] });
       observe(new MutationObserver(syncEdgeBackground)).observe(nav, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-current', 'aria-expanded', 'aria-pressed', 'class', 'hidden', 'disabled'] });
       observe(new MutationObserver(() => {
         if (destroyed) return;
@@ -1045,9 +1279,16 @@
     }
     listen(nav, 'scroll', syncEdgeBackground, true);
     if (typeof ResizeObserver !== 'undefined') observe(new ResizeObserver(syncEdgeBackground)).observe(nav);
+    if (typeof ResizeObserver !== 'undefined') {
+      const layoutObserver = observe(new ResizeObserver(syncLayout));
+      for (const element of [viewport, nav, content, dockController.element]) layoutObserver.observe(element);
+    }
+    listen(window, 'resize', syncLayout);
+    listen(window, 'scroll', () => { dockController.hideTooltip(); syncLayout(); }, { passive: true });
     api.installMobile();
     api.installOverflow({ items, footer, nav });
     api.setCollapse(collapseEnabled);
+    syncLayout();
     if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => requestAnimationFrame(() => {
       if (!destroyed) root.dataset.motionReady = 'true';
     }));

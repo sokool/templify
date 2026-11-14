@@ -1,12 +1,24 @@
 <!--
 Component: Navigation
-Purpose: Application navigation with a header and collapsible sidebar.
-Elements: Header, menu links and groups, footer, collapse controls and content area.
-JavaScript behavior: setCollapse(boolean) and data-collapse enable sidebar folding;
-setSearch(boolean) and data-search enable the independent Search palette. Both default to true and
-attribute changes are observed. Navigation owns the current folded state, edge and
+Purpose: Application navigation with a header, positionable menu and optional bottom action dock.
+Elements: Header, menu links and groups, footer, collapse controls, content area and dock.
+JavaScript behavior: setCollapse(boolean) and data-collapse enable menu folding (default true).
+data-position="left|right|top|bottom" and setPosition(value) place the main menu.
+The default is left. On mobile, navigation always uses a hamburger drawer;
+data-mobile-position="left|right" and setMobilePosition(value) choose its side.
+When omitted, mobile follows a left/right menu, or uses left for a top/bottom menu.
+data-dock="true|false" and setDock(boolean) enable a compact fixed bottom dock,
+disabled by default. Components opt in through the shared Shortcuts catalogue with
+dock: true or dock: {order: number}. Dock, Search and keyboard activation share the
+registered handler and availability check. shortcuts.refresh(id) notifies consumers
+after availability changes. Unregistering removes the action; hiding the dock does
+not remove actions or saved bindings. Empty docks reserve no space.
+The dock fits the content width, respects safe areas and reserves bottom space.
+A bottom main menu sits above the dock. Dock buttons expose labels on hover/focus.
+setSearch(boolean) and data-search enable the independent Search palette (default true).
+Attribute changes are observed. Navigation owns the current folded state, edge and
 footer controls, animations, scrolling, keyboard access and mobile menu. On mobile,
-a full-viewport-height drawer slides in from the left, with a minimum width of half
+a viewport-height drawer slides in from the selected side above any dock, with a minimum width of half
 the preview and intrinsic sizing for wider labels. Destinations scroll above the
 footer; the close control, Escape and outside clicks dismiss the drawer. Disabling
 collapse expands the sidebar and keeps mobile navigation open. setItems(items)
@@ -26,13 +38,15 @@ navigation.toggleSidebar is a searchable command. Components may opt into Search
 through the shared Shortcuts catalogue, even without a keyboard binding.
 search.update({showNavigationTrigger: false}) hides only the footer magnifier,
 without disabling Search, menu indexing or its saved keyboard binding.
+search.update({showDockTrigger: true}) adds the same Search action to the enabled
+bottom dock, independently of its footer magnifier and keyboard binding.
 Popover shadows follow --ds-shadow-medium, or --ds-shadow-soft with
 data-popup-pattern="soft". The mobile drawer uses --ds-shadow-medium; inline
 mobile submenus remain shadowless. Theme CSS changes apply without remounting.
 One Navigation instance per document; retain the menu-live and menu-live-nav IDs.
 -->
 <div class="navigation-viewport">
-<section class="menu-live ds-navigation" id="menu-live" data-ui="navigation" data-menu-design="sidebar" data-collapse="true" data-search="true" data-search-shortcut="Mod+K" data-collapse-shortcut="Mod+B">
+<section class="menu-live ds-navigation" id="menu-live" data-ui="navigation" data-menu-design="sidebar" data-position="left" data-dock="false" data-collapse="true" data-search="true" data-search-shortcut="Mod+K" data-collapse-shortcut="Mod+B">
   <header class="menu-live-header"><nav class="wordmark workspace-wordmark" id="workspace-breadcrumbs" aria-label="Breadcrumb">Workspace</nav><div class="menu-header-actions"><span class="menu-avatar" aria-label="Account">AK</span></div></header>
   <nav class="menu-live-nav" id="menu-live-nav" aria-label="Workspace navigation">
     <a class="menu-nav-action" data-menu-page="dashboard" href="#example-navigation" aria-label="Dashboard"><span class="menu-nav-icon" aria-hidden="true">⌂</span><span class="menu-nav-label">Dashboard</span></a>

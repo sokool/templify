@@ -93,6 +93,51 @@ test('export page background follows Light, Dark and Matrix themes', async ({ pa
   }
 });
 
+for (const context of ['export', 'workspace']) {
+  test(`autocomplete highlights only its outer field and retains chip focus in every theme (${context})`, async ({ page }) => {
+    await page.route('https://fonts.googleapis.com/**', route => route.abort());
+    await page.goto(url + (context === 'workspace' ? '/source/index.html#topschrank.components.autocomplete' : ''));
+    const autocomplete = page.locator('.ds-autocomplete'), input = autocomplete.getByRole('combobox'), body = autocomplete.locator('.ds-field-body');
+    await expect(autocomplete).toHaveAttribute('data-multiple', 'true');
+    await page.keyboard.press('Tab');
+    for (const theme of ['light', 'dark', 'matrix']) {
+      if (context === 'export') await page.evaluate(theme => Templify.themes.select(theme), theme);
+      else if (theme !== 'light') await page.locator('.menu-utilities [data-theme-next]').click();
+      await expect(page.locator('html')).toHaveAttribute('data-ds-theme', theme);
+      await input.evaluate(element => element.blur());
+      const size = await body.evaluate(element => ({ width: element.offsetWidth, height: element.offsetHeight }));
+      const accent = await autocomplete.evaluate(element => {
+        const probe = document.createElement('span');
+        probe.style.color = 'var(--ds-colour-accent)'; element.append(probe);
+        const colour = getComputedStyle(probe).color; probe.remove(); return colour;
+      });
+      await input.focus();
+      expect(await input.evaluate(element => element.matches(':focus-visible'))).toBe(true);
+      await expect(input).toHaveCSS('outline-style', 'none');
+      await expect(input).toHaveCSS('border-top-width', '0px');
+      await expect(input).toHaveCSS('box-shadow', 'none');
+      await expect(body).toHaveCSS('border-color', accent);
+      await expect(body).not.toHaveCSS('box-shadow', 'none');
+      expect(await body.evaluate(element => ({ width: element.offsetWidth, height: element.offsetHeight }))).toEqual(size);
+      await input.press('Enter');
+      await expect(autocomplete.locator('.ds-ac-chip')).toHaveCount(1);
+      await expect(input).toHaveCSS('outline-style', 'none');
+      const remove = autocomplete.getByRole('button', { name: /^Remove / });
+      await remove.focus();
+      await expect(remove).toHaveCSS('outline-style', 'solid');
+      await remove.click();
+      await expect(input).toBeFocused();
+    }
+    if (context === 'export') {
+      await autocomplete.evaluate(element => Templify.get(element).update({ multiple: false }));
+      await input.focus();
+      await expect(input).toHaveCSS('outline-style', 'solid');
+      await expect(input).toHaveCSS('outline-offset', '-2px');
+      await expect(body).toHaveCSS('border-top-width', '0px');
+    }
+  });
+}
+
 test('Window adopts HTML and retains form values while updating every behaviour option', async ({ page }) => {
   await page.goto(url);
   await page.locator('[data-ui-open="window-preview"]').click();

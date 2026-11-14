@@ -1,10 +1,302 @@
-const { test, expect } = require('@playwright/test');
+const { test, expect, chromium, webkit } = require('@playwright/test');
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const http = require('node:http');
 const { buildExport } = require('../scripts/export.cjs');
 let directory, server, url;
+async function configureDock(page, position = 'left') {
+  await page.evaluate(position => {
+    const root = document.querySelector('#menu-live');
+    const view = window.Templify?.get(root) || DesignSystemNavigation.mount(root);
+    window.dockView = view;
+    window.dockCalls = 0;
+    window.dockAvailable = true;
+    view.setPosition(position);
+    view.setDock(true);
+    window.removeDockAction = view.shortcuts.register({
+      id: 'editor.save', label: 'Save document', icon: 'plus',
+      description: 'Save from any action entry point',
+      searchable: true, dock: { order: 10 }, defaultShortcut: 'Mod+S',
+      enabled: () => window.dockAvailable,
+      handler: () => { window.dockCalls++; return true; },
+    });
+  }, position);
+  await expect(page.locator('.menu-dock')).toBeVisible();
+}
+
+for (const position of ['left', 'right', 'top', 'bottom']) {
+  test(`dock and ${position} navigation reserve space, open inward and retain actions when folded`, async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.setViewportSize({ width: 1100, height: 800 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(url);
+    await configureDock(page, position);
+    const root = page.locator('#menu-live'), nav = root.locator('#menu-live-nav');
+    for (const collapsed of [false, true]) {
+      await page.evaluate(collapsed => window.dockView.setCollapsed(collapsed), collapsed);
+      await expect.poll(async () => {
+        const area = await root.locator('.menu-live-content').boundingBox();
+        const dock = await root.locator('.menu-dock').boundingBox();
+        return Math.round(Math.abs(dock.x - area.x) + Math.abs(dock.width - area.width));
+      }).toBeLessThanOrEqual(1);
+      const navBox = await nav.boundingBox(), dockBox = await root.locator('.menu-dock').boundingBox();
+      if (position === 'left') expect(navBox.x + navBox.width).toBeLessThanOrEqual(dockBox.x + 1);
+      if (position === 'right') expect(navBox.x).toBeGreaterThanOrEqual(dockBox.x + dockBox.width - 1);
+      if (position === 'bottom') expect(navBox.y + navBox.height).toBeLessThanOrEqual(dockBox.y + 1);
+      if (position === 'top') expect(navBox.y).toBeGreaterThanOrEqual(63);
+      const group = page.locator('[data-menu-group="projects"]');
+      if (await group.getAttribute('aria-expanded') !== 'true') await group.click();
+      const panel = page.locator('#submenu-projects');
+      await expect(panel).toBeVisible();
+      const box = await panel.boundingBox();
+      if (collapsed || position === 'top' || position === 'bottom') {
+        if (position === 'right') expect(box.x + box.width).toBeLessThanOrEqual(navBox.x + 1);
+        if (position === 'left') expect(box.x).toBeGreaterThanOrEqual(navBox.x + navBox.width - 1);
+        if (position === 'top') expect(box.y).toBeGreaterThanOrEqual(navBox.y + navBox.height - 1);
+        if (position === 'bottom') expect(box.y + box.height).toBeLessThanOrEqual(navBox.y + 1);
+      }
+      await page.locator('[data-menu-page="all-projects"]').click();
+      await root.locator('[data-dock-action="editor.save"]').click();
+    }
+    expect(await page.evaluate(() => window.dockCalls)).toBe(2);
+    await page.evaluate(() => {
+      document.querySelector('.menu-live-content').insertAdjacentHTML('beforeend', '<div style="height:1800px"></div><button id="last-content">Last content</button>');
+    });
+    await page.locator('#last-content').scrollIntoViewIfNeeded();
+    const last = await page.locator('#last-content').boundingBox();
+    const bottomSurface = await (position === 'bottom' ? nav : root.locator('.menu-dock')).boundingBox();
+    expect(last.y + last.height).toBeLessThanOrEqual(bottomSurface.y + 1);
+    expect(errors).toEqual([]);
+  });
+}
+
+test('dock shares command execution, availability and user bindings without duplicate Search results', async ({ page }) => {
+  await page.goto(url);
+  await configureDock(page);
+  const button = page.locator('[data-dock-action="editor.save"]');
+  await button.focus();
+  await expect(page.locator('.menu-dock-tooltip')).toBeVisible();
+  await expect(page.locator('.menu-dock-tooltip')).toHaveText('Save document');
+  await button.press('Enter');
+  expect(await page.evaluate(() => window.dockCalls)).toBe(1);
+  await page.keyboard.press('Control+s');
+  expect(await page.evaluate(() => window.dockCalls)).toBe(2);
+  await page.evaluate(() => window.dockView.focusSearch());
+  await page.locator('#menu-search-panel input').fill('Save document');
+  await expect(page.locator('.ds-search-result')).toHaveCount(1);
+  await page.locator('.ds-search-result').click();
+  expect(await page.evaluate(() => window.dockCalls)).toBe(3);
+  await page.evaluate(() => window.dockView.shortcuts.set('editor.save', null));
+  await expect(button).not.toHaveAttribute('aria-keyshortcuts');
+  await expect(button).toBeVisible();
+  await page.evaluate(() => { window.dockAvailable = false; window.dockView.shortcuts.refresh('editor.save'); });
+  await expect(button).toHaveCount(0);
+  await expect(page.locator('.menu-dock')).toBeHidden();
+  await expect.poll(() => page.locator('#menu-live').evaluate(root => getComputedStyle(root).paddingBottom)).toBe('0px');
+  await page.evaluate(() => { window.dockAvailable = true; window.dockView.shortcuts.refresh('editor.save'); });
+  await expect(button).toBeVisible();
+  await page.evaluate(() => window.dockView.setDock(false));
+  expect(await page.evaluate(() => window.dockView.shortcuts.execute('editor.save'))).toBe(true);
+  await page.evaluate(() => window.removeDockAction());
+  await page.evaluate(() => window.dockView.setDock(true));
+  await expect(page.locator('.menu-dock')).toBeHidden();
+});
+
+test('Search can opt into the dock while its footer trigger is absent and retains its existing binding', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(url);
+  await page.evaluate(() => {
+    const view = Templify.get(document.querySelector('#menu-live'));
+    window.dockSearchNavigation = view;
+    view.setDock(true);
+    view.search.update({ showDockTrigger: true, showNavigationTrigger: false });
+    view.setSearchShortcut('Mod+J');
+  });
+  const button = page.locator('[data-dock-action="navigation.search"]');
+  const input = page.locator('#menu-search-panel input');
+  await expect(button).toBeVisible();
+  await expect(button.locator('svg circle')).toHaveCount(1);
+  await expect(button).toHaveAttribute('aria-keyshortcuts', 'Control+J Meta+J');
+  await expect(page.locator('.menu-search-toggle')).toHaveCount(0);
+  await button.focus();
+  await button.press('Enter');
+  await expect(input).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(button).toBeFocused();
+  await page.evaluate(() => window.dockSearchNavigation.setSearch(false));
+  await expect(button).toHaveCount(0);
+  await expect(page.locator('.menu-dock')).toBeHidden();
+  await page.evaluate(() => window.dockSearchNavigation.setSearch(true));
+  await expect(button).toBeVisible();
+  await page.evaluate(() => window.dockSearchNavigation.setSearchShortcut(null));
+  await expect(button).not.toHaveAttribute('aria-keyshortcuts');
+  await button.click();
+  await expect(input).toBeFocused();
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => {
+    const view = window.dockSearchNavigation;
+    view.setSearchShortcut('Mod+J');
+    view.search.element.dataset.showDockTrigger = 'false';
+  });
+  await expect(button).toHaveCount(0);
+  await page.keyboard.press('Control+j');
+  await expect(input).toBeFocused();
+  await page.keyboard.press('Escape');
+  expect(await page.evaluate(() => {
+    const { shortcuts } = window.dockSearchNavigation;
+    return shortcuts.list().filter(action => action.id === 'navigation.search').length;
+  })).toBe(1);
+  expect(errors).toEqual([]);
+});
+
+for (const side of ['left', 'right']) {
+  test(`mobile ${side} drawer and dock fit a centered preview and survive desktop position changes`, async ({ page }) => {
+    await page.setViewportSize({ width: 1100, height: 844 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(url);
+    await configureDock(page, 'bottom');
+    await page.evaluate(side => {
+      const root = document.querySelector('#menu-live'), viewport = root.parentElement;
+      viewport.style.width = '390px';
+      viewport.style.marginInline = 'auto';
+      root.dataset.mobilePosition = side;
+    }, side);
+    const root = page.locator('#menu-live'), nav = root.locator('#menu-live-nav');
+    await root.locator('.workspace-hamburger').click();
+    await expect(nav).toBeVisible();
+    await expect(nav).toHaveJSProperty('inert', false);
+    const viewportBox = await root.locator('.menu-live-header').boundingBox();
+    const navBox = await nav.boundingBox(), dock = await root.locator('.menu-dock').boundingBox();
+    if (side === 'left') expect(Math.abs(navBox.x - viewportBox.x)).toBeLessThanOrEqual(1);
+    else expect(Math.abs(navBox.x + navBox.width - viewportBox.x - viewportBox.width)).toBeLessThanOrEqual(1);
+    expect(navBox.y + navBox.height).toBeLessThanOrEqual(dock.y + 1);
+    expect(Math.abs(dock.x - viewportBox.x)).toBeLessThanOrEqual(1);
+    expect(dock.width).toBeLessThanOrEqual(390);
+    await page.keyboard.press('Escape');
+    await expect(nav).toHaveJSProperty('inert', true);
+    await expect(root.locator('.workspace-hamburger')).toBeFocused();
+    await root.locator('[data-dock-action="editor.save"]').click();
+    expect(await page.evaluate(() => window.dockCalls)).toBe(1);
+    await page.evaluate(() => {
+      document.querySelector('#menu-live').parentElement.style.width = '';
+      window.dockView.setPosition('right');
+    });
+    await expect(root).toHaveAttribute('data-position', 'right');
+    await expect(nav).toHaveJSProperty('inert', false);
+  });
+}
+
+test('dock overflow, live HTML configuration and repeated mounting remain usable', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(url);
+  await configureDock(page);
+  await page.evaluate(() => {
+    for (let i = 0; i < 18; i++) window.dockView.shortcuts.register({
+      id: 'extra.' + i, label: '<b>Extra ' + i + '</b>', dock: true, handler: () => true,
+    });
+    const root = document.querySelector('#menu-live');
+    root.dataset.position = 'top';
+    root.dataset.mobilePosition = 'right';
+  });
+  const items = page.locator('.menu-dock-items');
+  expect(await items.evaluate(node => node.scrollWidth > node.clientWidth)).toBe(true);
+  await page.locator('[data-dock-action="editor.save"]').focus();
+  await expect(page.locator('[data-dock-action="editor.save"]')).toBeInViewport();
+  await expect(page.locator('.menu-dock-tooltip')).toBeVisible();
+  await expect(page.locator('.menu-dock b')).toHaveCount(0);
+  await page.evaluate(() => {
+    const root = document.querySelector('#menu-live');
+    window.dockView.destroy();
+    Templify.destroy(root);
+    Templify.init(root);
+  });
+  await expect(page.locator('.menu-dock')).toHaveCount(1);
+  await expect(page.locator('[data-dock-action="editor.save"]')).toHaveCount(1);
+  await expect(page.locator('#menu-live')).toHaveAttribute('data-mobile-side', 'right');
+});
+
+for (const position of ['top', 'bottom']) {
+  test(`${position} navigation scrolls overflowing destinations horizontally and keeps the last submenu on screen`, async ({ page }) => {
+    await page.setViewportSize({ width: 900, height: 800 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(url);
+    await configureDock(page, position);
+    await page.evaluate(() => {
+      window.dockView.setItems([
+        ...Array.from({ length: 20 }, (_, index) => ({ id: 'page-' + index, label: 'Destination ' + index, href: '#page-' + index })),
+        { id: 'last', label: 'Last group', children: [{ id: 'nested', label: 'Nested destination', href: '#nested' }] },
+      ]);
+    });
+    const items = page.locator('.workspace-nav-items');
+    const forward = page.locator('.menu-scroll-primary .menu-scroll-indicator.down');
+    await expect(forward).toBeVisible();
+    await expect(forward).toHaveAttribute('aria-label', 'Scroll navigation right');
+    await forward.click();
+    await expect.poll(() => items.evaluate(node => node.scrollLeft)).toBeGreaterThan(0);
+    const group = page.locator('[data-menu-group="last"]');
+    await group.focus();
+    await group.press(position === 'top' ? 'ArrowDown' : 'ArrowUp');
+    const panel = page.locator('#submenu-last');
+    await expect(panel).toBeVisible();
+    const box = await panel.boundingBox(), nav = await page.locator('#menu-live-nav').boundingBox();
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(900);
+    if (position === 'bottom') expect(box.y + box.height).toBeLessThanOrEqual(nav.y + 1);
+    else expect(box.y).toBeGreaterThanOrEqual(nav.y + nav.height - 1);
+    await expect(page.locator('[data-menu-page="nested"]')).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(panel).toBeHidden();
+    await expect(group).toBeFocused();
+    expect(await page.locator('#menu-live').evaluate(root => root.scrollWidth <= root.clientWidth + 1)).toBe(true);
+  });
+}
+
+test('WebKit keeps all dock/menu layouts and the right mobile drawer within their bounds', async () => {
+  const browser = await webkit.launch({ channel: undefined });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1000, height: 800 } });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(url);
+    await configureDock(page);
+    for (const position of ['left', 'right', 'top', 'bottom']) {
+      await page.evaluate(position => {
+        window.dockView.setPosition(position);
+        window.dockView.setCollapsed(true);
+      }, position);
+      const group = page.locator('[data-menu-group="projects"]');
+      if (await group.getAttribute('aria-expanded') !== 'true') await group.click();
+      const panel = page.locator('#submenu-projects');
+      await expect(panel).toBeVisible();
+      const box = await panel.boundingBox(), dock = await page.locator('.menu-dock').boundingBox();
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(1000);
+      expect(box.y + box.height).toBeLessThanOrEqual(dock.y + 1);
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.evaluate(() => window.dockView.setMobilePosition('right'));
+    await page.locator('.workspace-hamburger').click();
+    await expect(page.locator('#menu-live-nav')).toHaveJSProperty('inert', false);
+    const nav = await page.locator('#menu-live-nav').boundingBox(), dock = await page.locator('.menu-dock').boundingBox();
+    const geometry = await page.locator('#menu-live').evaluate(root => ({
+      viewportRight: root.parentElement.getBoundingClientRect().right,
+      innerWidth: window.innerWidth,
+      right: getComputedStyle(root.querySelector('#menu-live-nav')).right,
+      rootRight: root.getBoundingClientRect().right,
+      bodyWidth: document.body.scrollWidth,
+    }));
+    expect(nav.x + nav.width, JSON.stringify(geometry)).toBeCloseTo(geometry.viewportRight, 0);
+    expect(nav.y + nav.height).toBeLessThanOrEqual(dock.y + 1);
+    await page.locator('[data-dock-action="editor.save"]').click();
+    expect(await page.evaluate(() => window.dockCalls)).toBe(1);
+  } finally {
+    await browser.close();
+  }
+});
+
 async function dismissSearch(page) {
   const dialog = page.locator('#menu-search-panel');
   if (await dialog.isVisible()) {
@@ -375,6 +667,114 @@ test('mobile drawer grows for labels, wraps at its width cap and scrolls above t
   await expect(root).toHaveAttribute('data-mobile-menu-open', 'false');
 });
 
+for (const browserName of ['chromium', 'webkit']) {
+  test.describe(`${browserName} touch navigation controls`, () => {
+    let browser;
+    test.beforeAll(async () => {
+      browser = await ({ chromium, webkit })[browserName].launch({ channel: browserName === 'chromium' ? 'chromium' : undefined });
+    });
+    test.afterAll(async () => { await browser?.close(); });
+    const touch = test.extend({
+      page: async ({}, use) => {
+        const context = await browser.newContext({
+          hasTouch: true, isMobile: true, viewport: { width: 375, height: 812 },
+        });
+        try { await use(await context.newPage()); } finally { await context.close(); }
+      },
+    });
+
+    touch('close button keeps touch focus quiet and keyboard focus visible', async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.goto(url);
+      const root = page.locator('#menu-live');
+      const toggle = root.locator('.workspace-hamburger');
+      const close = root.locator('.menu-mobile-close');
+      await toggle.tap();
+      await expect(close).toBeFocused();
+      await expect(close).toHaveCSS('border-color', 'rgba(0, 0, 0, 0)');
+      await expect(close).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      await expect(close).toHaveCSS('-webkit-tap-highlight-color', 'rgba(0, 0, 0, 0)');
+
+      await page.keyboard.press('Tab');
+      await close.focus();
+      await expect(close).toBeFocused();
+      await expect(close).not.toHaveCSS('border-color', 'rgba(0, 0, 0, 0)');
+
+      await close.dispatchEvent('pointerdown', { pointerType: 'touch', bubbles: true });
+      await expect(close).toBeFocused();
+      await expect(close).toHaveCSS('border-color', 'rgba(0, 0, 0, 0)');
+      await close.tap();
+      await expect(root).toHaveAttribute('data-mobile-menu-open', 'false');
+      await expect(toggle).toBeFocused();
+      await expect(toggle).toHaveCSS('border-color', 'rgba(0, 0, 0, 0)');
+      await expect(toggle).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    });
+
+    for (const side of ['left', 'right']) {
+      touch(`${side} drawer selection markers stay on selected rows, not the whole submenu`, async ({ page }) => {
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await page.goto(url);
+        const root = page.locator('#menu-live');
+        await page.evaluate(side => {
+          const view = Templify.get(document.querySelector('#menu-live'));
+          window.selectionView = view;
+          view.setMobilePosition(side);
+          view.setItems([
+            { id: 'home', label: 'Home', href: '#home' },
+            { id: 'projects', label: 'Projects', children: [
+              { id: 'first', label: 'First project', href: '#first' },
+              { id: 'current', label: 'Current project', href: '#current' },
+              { id: 'last', label: 'Last project', href: '#last' },
+            ] },
+          ]);
+        }, side);
+        for (const collapsed of [false, true]) {
+          await page.evaluate(collapsed => {
+            const view = window.selectionView;
+            view.setCollapsed(collapsed);
+            view.select('current');
+            view.mobile.setOpen(true);
+            const group = document.querySelector('[data-menu-group="projects"]');
+            if (group.getAttribute('aria-expanded') !== 'true') view.toggleGroup('projects');
+          }, collapsed);
+          await expect(root).toHaveAttribute('data-sidebar-collapsed', String(collapsed));
+          const parent = root.locator('[data-menu-group="projects"]');
+          const current = root.locator('[data-menu-page="current"]');
+          for (const row of [parent, current]) {
+            await expect(row).toBeVisible();
+            const marker = await row.evaluate(node => {
+              const style = getComputedStyle(node, '::before');
+              return {
+                content: style.content, position: getComputedStyle(node).position,
+                height: parseFloat(style.height), rowHeight: node.getBoundingClientRect().height,
+                left: style.left, right: style.right, width: style.width,
+                colour: style.backgroundColor, accent: getComputedStyle(node).color,
+              };
+            });
+            expect(marker.content).toBe('""');
+            expect(marker.position).toBe('relative');
+            expect(Math.abs(marker.height - marker.rowHeight)).toBeLessThanOrEqual(1);
+            expect(marker[side]).toBe('-1px');
+            expect(parseFloat(marker[side === 'left' ? 'right' : 'left'])).toBeGreaterThan(3);
+            expect(marker.width).toBe('3px');
+            expect(marker.colour).toBe(marker.accent);
+          }
+          for (const id of ['home', 'first', 'last']) {
+            expect(await root.locator(`[data-menu-page="${id}"]`).evaluate(node =>
+              getComputedStyle(node, '::before').content)).toBe('none');
+          }
+          await page.evaluate(() => {
+            window.selectionView.select('home');
+            window.selectionView.mobile.setOpen(true);
+          });
+          expect(await parent.evaluate(node => getComputedStyle(node, '::before').content)).toBe('none');
+          expect(await current.evaluate(node => getComputedStyle(node, '::before').content)).toBe('none');
+        }
+      });
+    }
+  });
+}
+
 test('mobile drawer slides from the left, dismisses outside and respects reduced motion', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -437,6 +837,17 @@ test('standalone example runs without workspace and exposes the same menu action
   await expect(page.locator('.menu-search-section')).toBeHidden();
   await page.locator('#allow-collapse').uncheck();
   await expect(page.locator('#menu-sidebar-toggle')).toBeHidden();
+  await page.locator('#allow-dock').check();
+  await page.locator('#menu-position').selectOption('bottom');
+  await page.locator('[data-dock-action="notes.create"]').click();
+  await expect(page.locator('#action-status')).toHaveText('Quick note action executed.');
+  await page.locator('#mobile-position').selectOption('right');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('#menu-live')).toHaveAttribute('data-mobile-side', 'right');
+  const nav = await page.locator('#menu-live-nav').boundingBox();
+  const dock = await page.locator('.menu-dock').boundingBox();
+  expect(nav.x + nav.width).toBe(390);
+  expect(nav.y + nav.height).toBeLessThanOrEqual(dock.y + 1);
   expect(errors).toEqual([]);
 });
 

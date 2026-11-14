@@ -1,7 +1,7 @@
 # Navigation
 
-The responsive application frame: header, expanded sidebar, icon rail, connected
-flyouts, search, mobile navigation and independently scrolling menu/footer regions.
+The responsive application frame: header, positionable sidebar/rail or horizontal
+menu, connected flyouts, search, mobile drawers and an optional bottom action dock.
 The main application and portable export use this same implementation. Navigation
 owns both collapse controls, animations, overflow helpers and their cleanup; no
 `workspace/` files are required.
@@ -34,6 +34,9 @@ IDs, and matching `aria-controls`/submenu IDs. Wrap the shell in
 | --- | --- | --- | --- |
 | Allow sidebar folding | `data-collapse="true/false"` | `setCollapse(boolean)` | `true` |
 | Menu search | `data-search="true/false"` | `setSearch(boolean)` | `true` |
+| Main menu position | `data-position="left/right/top/bottom"` | `setPosition(value)` | `left` |
+| Mobile drawer side | `data-mobile-position="left/right"` | `setMobilePosition(value)` | Follow left/right menu; otherwise `left` |
+| Bottom action dock | `data-dock="true/false"` | `setDock(boolean)` | `false` |
 
 Attribute changes are observed after initialization. Methods update those same
 attributes and apply the change immediately; there is one effective feature state.
@@ -99,11 +102,66 @@ and `.search` expose composition points. Put host utility controls before
 `navigation.sidebarToggle` in the footer; `.menu-utilities`, `.menu-utility` and
 `.menu-utility-label` provide shared row styling. Actions such as theme selection
 and device previews remain host-owned. Moving supplied DOM retains its listeners.
+`slots.dock` exposes the catalogue-owned dock; register actions instead of appending
+buttons directly to that region.
+
+## Menu position and bottom dock
+
+The header stays at the top. Left/right menus retain an expanded sidebar or icon
+rail; top/bottom menus use a horizontal scrolling row with inward-opening submenus.
+Folding the horizontal row hides labels without removing destinations. Changes
+preserve selection, expanded groups and the saved collapse preference.
+`mount(root, { position, mobilePosition, dock })` also accepts these defaults when
+the corresponding HTML attributes are absent. Setters update attributes immediately;
+invalid setter arguments return `false` without changing the active configuration.
+
+```html
+<section id="menu-live" class="menu-live ds-navigation" data-ui="navigation"
+  data-menu-design="sidebar" data-position="right" data-mobile-position="right"
+  data-dock="true">
+  <!-- Keep the header, navigation, footer and content from navigation.html. -->
+</section>
+```
+
+The compact dock is separate from the sidebar footer and remains fixed at the
+bottom of the content area. It follows the content width as the sidebar folds,
+handles action overflow with horizontal scrolling, and respects device safe areas.
+The shell reserves its height so the last content remains reachable. A bottom
+main menu sits above the dock, never behind it. On mobile the drawer ends above
+the dock. Empty/disabled docks reserve no space.
+
+Components expose actions by opting into the existing document Shortcuts catalogue,
+not by registering another handler with Navigation:
+
+```js
+const shortcuts = DesignSystemShortcuts.create({ document });
+const unregister = shortcuts.register({
+  id: 'editor.save', label: 'Save', icon: 'plus', group: 'Editor',
+  dock: { order: 10 }, // `true` is shorthand for order 0; lower orders come first.
+  searchable: true, defaultShortcut: null,
+  enabled: () => editor.canSave(),
+  handler: () => editor.save() === true,
+});
+// After changing availability:
+shortcuts.refresh('editor.save');
+// On component destruction:
+unregister();
+```
+
+`navigation.shortcuts` exposes this same catalogue. Dock and Search are independent
+opt-ins. All activation paths call `shortcuts.execute`, which rechecks availability.
+Unavailable actions are omitted; binding removal does not remove a dock action.
+Registration before or after Navigation mounts works. `refresh(id)` updates
+availability in mounted consumers without re-registering or changing preferences.
+Disabling/destroying Navigation removes only its dock presentation, not actions
+owned by other components. `slots.dock` exposes the generated labelled navigation
+region; labels appear on pointer hover and keyboard focus. Dock buttons are
+excluded from the document search index to avoid duplicate command results.
 
 ## Mobile drawer
 
 At preview widths up to 620 px, the hamburger opens a drawer sliding in from the
-left edge of the preview. It fills the viewport height and occupies at least half
+selected edge of the preview. It fills the viewport height above any dock and occupies at least half
 the preview width, growing to fit menu labels up to the preview width minus 16 px.
 Long labels wrap at that limit. Destinations scroll independently above the pinned
 footer, where Search and utility icons share one row; the page content does not move.
@@ -170,6 +228,9 @@ graphics, descriptions and commands. There is no inline input or rail popover.
 The magnifier lives in the footer. Use
 `navigation.search.update({showNavigationTrigger: false})` to hide only the
 button while keeping Search and its shortcut enabled.
+`navigation.search.update({showDockTrigger: true})` exposes that same Search action
+in the bottom dock when `navigation.setDock(true)` is enabled. The footer and dock
+options are independent and do not create another action or keyboard binding.
 The compatibility integration keeps `navigation.search`, `data-search-shortcut`
 and saved user bindings.
 

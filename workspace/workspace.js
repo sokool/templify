@@ -53,7 +53,7 @@
     settings.scope('components.list').defaults(DesignSystemList.defaults);
     settings.scope('components.autocomplete').defaults({ size: 'small', multiple: true });
     themeSwitcherSettings.defaults({ menuFooter: true });
-    searchSettings.defaults({ showNavigationTrigger: true, compact: false, maxResults: DesignSystemSearch.defaults.maxResults });
+    searchSettings.defaults({ showNavigationTrigger: true, showDockTrigger: false, compact: false, maxResults: DesignSystemSearch.defaults.maxResults });
   });
   const iconAliases = {
     dashboard: 'layout-dashboard',
@@ -295,15 +295,28 @@
             if (eventType === 'change') searchSettings.set('showNavigationTrigger', value);
           },
         });
-        const unsubscribe = searchSettings.subscribe(({ showNavigationTrigger, compact, maxResults }) => {
+        const dockField = DesignSystemFormField.mount(controls, {
+          id: 'search-dock-trigger',
+          type: 'checkbox',
+          switch: true,
+          label: 'Show search in dock',
+          hint: 'Adds a magnifier to the bottom dock.',
+          attrs: { checked: searchSettings.get('showDockTrigger', false) },
+          onChange({ value, eventType }) {
+            if (eventType === 'change') searchSettings.set('showDockTrigger', value);
+          },
+        });
+        const unsubscribe = searchSettings.subscribe(({ showNavigationTrigger, showDockTrigger, compact, maxResults }) => {
           field.control.checked = showNavigationTrigger;
           field.sync();
+          dockField.control.checked = showDockTrigger;
+          dockField.sync();
           compactField.control.checked = compact;
           compactField.sync();
           maxResultsField.control.value = String(maxResults);
           maxResultsField.sync();
         });
-        contentComponents.push(field, compactField, maxResultsField, { destroy: unsubscribe });
+        contentComponents.push(field, dockField, compactField, maxResultsField, { destroy: unsubscribe });
         page.append(lead, button, options);
       },
     },
@@ -393,7 +406,7 @@
   navigation
     .find((entry) => entry.id === 'components')
     .children.sort((a, b) => a.label.localeCompare(b.label, 'en', { sensitivity: 'base' }));
-  const releaseVersion = 'v0.1.9';
+  const releaseVersion = 'v0.1.10';
   DesignSystemNavigation.renderStructure(root, {
     user: { initials: releaseVersion, label: 'Templify ' + releaseVersion },
   });
@@ -439,6 +452,7 @@
   const shortcuts = DesignSystemShortcuts.create({ document });
   const shell = DesignSystemNavigation.mount(root, {
     shortcuts,
+    dock: true,
     viewport,
     renderIcon: icon,
     storage,
@@ -449,8 +463,8 @@
   ExampleShortcuts.connect({ themes, shortcuts });
   // Theme commands remain available when the optional footer control is absent.
   DesignSystemThemeSwitcher.create({ document, themes, shortcuts });
-  function syncSearchSettings({ showNavigationTrigger = true, compact = false, maxResults = DesignSystemSearch.defaults.maxResults }) {
-    shell.search.update({ showNavigationTrigger, compact, maxResults });
+  function syncSearchSettings({ showNavigationTrigger = true, showDockTrigger = false, compact = false, maxResults = DesignSystemSearch.defaults.maxResults }) {
+    shell.search.update({ showNavigationTrigger, showDockTrigger, compact, maxResults });
   }
   syncSearchSettings(searchSettings.snapshot());
   searchSettings.subscribe(syncSearchSettings);
